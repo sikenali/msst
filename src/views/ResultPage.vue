@@ -1630,22 +1630,22 @@ function handleBack() {
   }
 
   .bottom-spacer {
-    height: 48px;
+    height: 32px;
   }
 
   .result-footer {
-    padding: 12px 0;
+    padding: 16px 0;
   }
 
   .footer-inner {
-    padding: 0 16px;
+    padding: 0 32px;
     max-width: 1158px;
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
-    border-radius: 12px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    border-radius: 20px;
+    padding-top: 14px;
+    padding-bottom: 14px;
   }
 
   .footer-text {
