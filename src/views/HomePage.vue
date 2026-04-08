@@ -395,7 +395,7 @@ function reload() {
   margin: 0 auto;
   background: transparent;
   box-shadow: none;
-  padding: 16px 0;
+  padding: 12px 0;
   position: relative;
   z-index: 10;
   box-sizing: border-box;
@@ -414,7 +414,7 @@ function reload() {
   align-items: center;
   justify-content: space-between;
   position: relative;
-  padding: 12px 0;
+  padding: 8px 0;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -431,8 +431,8 @@ function reload() {
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 9999px;
   background: linear-gradient(180deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
   display: flex;
@@ -442,18 +442,18 @@ function reload() {
 }
 
 .logo-svg {
-  width: 18px;
-  height: 24px;
-  font-size: 16px;
+  width: 16px;
+  height: 20px;
+  font-size: 14px;
   color: #FFFFFF;
 }
 
 .logo-spacer {
-  width: 8px;
+  width: 6px;
 }
 
 .logo-text {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.2;
   color: #92400E;
@@ -476,8 +476,8 @@ function reload() {
 }
 
 .info-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 9999px;
   background: #FEF3C7;
   display: flex;
@@ -492,9 +492,9 @@ function reload() {
 }
 
 .info-icon {
-  width: 26px;
-  height: 26px;
-  font-size: 26px;
+  width: 22px;
+  height: 22px;
+  font-size: 22px;
   color: #B45309;
 }
 
@@ -673,13 +673,13 @@ function reload() {
 }
 
 .main-inner {
-  padding: 32px 24px;
+  padding: 16px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   max-width: 672px;
   margin: 0 auto;
-  gap: 16px;
+  gap: 10px;
 }
 
 /* 选号配置区 */
@@ -689,7 +689,7 @@ function reload() {
   background: rgba(255,255,255,1);
   border: 0.7px solid #FDE68A;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.1);
-  padding: 24px;
+  padding: 16px;
   box-sizing: border-box;
 }
 
@@ -699,7 +699,7 @@ function reload() {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 0 0 20px 0;
+  margin: 0 0 12px 0;
 }
 
 .config-tag {
@@ -715,14 +715,14 @@ function reload() {
 }
 
 .config-spacer {
-  height: 24px;
+  height: 16px;
 }
 
 /* 生财按钮 */
 .generate-btn-wrapper {
   display: flex;
   justify-content: center;
-  margin-top: 32px;
+  margin-top: 16px;
 }
 
 .generate-btn {
@@ -769,7 +769,7 @@ function reload() {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .word-item {
@@ -808,13 +808,13 @@ function reload() {
 
 /* 底部间距 */
 .bottom-spacer {
-  height: 32px;
+  height: 16px;
 }
 
 /* 底部版权 - 悬浮透明背景 */
 .home-footer {
   background: transparent;
-  padding: 16px 0;
+  padding: 12px 0;
   position: relative;
   z-index: 10;
 }
@@ -830,8 +830,8 @@ function reload() {
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
   box-sizing: border-box;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .footer-text {
@@ -855,61 +855,61 @@ function reload() {
   }
 
   .header-content {
-    padding: 14px 0;
+    padding: 10px 0;
     border-radius: 20px;
   }
 
   .logo-icon {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
 
   .logo-svg {
-    width: 16px;
-    height: 22px;
-    font-size: 14px;
+    width: 15px;
+    height: 20px;
+    font-size: 13px;
   }
 
   .logo-text {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .info-btn {
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
   }
 
   .main-inner {
-    padding: 40px 32px;
+    padding: 24px 32px;
   }
 
   .config-card {
-    padding: 28px;
+    padding: 20px;
   }
 
   .config-title {
-    font-size: 23px;
+    font-size: 20px;
   }
 
   .generate-btn {
-    width: 150px;
-    height: 150px;
+    width: 96px;
+    height: 96px;
   }
 
   .generate-icon {
-    width: 46px;
-    height: 40px;
+    width: 30px;
+    height: 26px;
   }
 
   .generate-text {
-    font-size: 24px;
+    font-size: 18px;
   }
 }
 
 /* 桌面端适配 */
 @media screen and (min-width: 1024px) {
   .home-header {
-    padding: 20px 0;
+    padding: 10px 0;
   }
 
   .header-inner {
@@ -921,72 +921,119 @@ function reload() {
   }
 
   .header-content {
-    padding: 16px 0;
+    padding: 8px 0;
     border-radius: 24px;
   }
 
   .logo-icon {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
   }
 
   .logo-svg {
-    width: 18px;
-    height: 24px;
-    font-size: 16px;
+    width: 15px;
+    height: 19px;
+    font-size: 13px;
   }
 
   .logo-spacer {
-    width: 12px;
+    width: 8px;
   }
 
   .logo-text {
-    font-size: 28px;
+    font-size: 20px;
   }
 
   .info-btn {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .info-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 22px;
   }
 
   .main-inner {
-    padding: 48px 144px;
+    padding: 12px 144px;
     max-width: 672px;
+    gap: 6px;
   }
 
   .config-card {
-    padding: 32px;
+    padding: 12px;
   }
 
   .config-title {
-    font-size: 24px;
-    margin-bottom: 24px;
+    font-size: 20px;
+    margin-bottom: 4px !important;
+  }
+
+  .config-tag {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+
+  .config-spacer {
+    height: 8px;
+  }
+
+  .generate-btn-wrapper {
+    margin-top: 8px;
   }
 
   .generate-btn {
-    width: 150px;
-    height: 150px;
+    width: 100px;
+    height: 100px;
   }
 
   .generate-icon {
-    width: 46px;
-    height: 40px;
+    width: 32px;
+    height: 28px;
+  }
+
+  .generate-spacer {
+    height: 2px;
   }
 
   .generate-text {
-    font-size: 24px;
+    font-size: 18px;
+  }
+
+  .nine-words-section {
+    margin-top: 6px;
+  }
+
+  .word-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .word-icon--ssq {
+    width: 20px;
+    height: 16px;
+  }
+
+  .word-icon--dlt {
+    width: 20px;
+    height: 20px;
+  }
+
+  .word-char {
+    font-size: 12px;
   }
 
   .tip-title {
-    font-size: 16px;
-  }
-
-  .tip-text {
     font-size: 14px;
   }
 
+  .tip-text {
+    font-size: 12px;
+  }
+
   .home-footer {
-    padding: 16px 0;
+    padding: 10px 0;
   }
 
   .footer-inner {
@@ -996,12 +1043,42 @@ function reload() {
     width: 100%;
     box-sizing: border-box;
     border-radius: 20px;
-    padding-top: 14px;
-    padding-bottom: 14px;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
 
   .footer-text {
-    font-size: 14px;
+    font-size: 12px;
+  }
+
+  .bottom-spacer {
+    height: 12px;
+  }
+
+  /* config-card 整体缩放 */
+  .config-card {
+    transform: scale(0.8);
+    transform-origin: center center;
+  }
+
+  /* NoteCounter 组件等比缩放 */
+  .note-counter {
+    transform: scale(0.9);
+    transform-origin: center center;
+  }
+
+  /* ModeSelector 组件等比缩放 */
+  .mode-selector {
+    transform: scale(0.9);
+    transform-origin: center center;
+  }
+
+  .config-spacer {
+    height: 0px !important;
+  }
+
+  .config-title {
+    margin-bottom: 4px !important;
   }
 }
 

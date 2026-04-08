@@ -62,6 +62,16 @@ function closeRules() {
 // 响应式计算
 const lotteryName = computed(() => lotteryType.value === 'ssq' ? '双色球' : '大乐透')
 
+// 根据注数动态计算卡片缩放比例
+const cardScale = computed(() => {
+  const n = notes.value
+  if (n <= 5) return 1
+  if (n <= 10) return 0.9
+  if (n <= 20) return 0.8
+  if (n <= 30) return 0.7
+  return 0.6
+})
+
 function refreshData() {
   const currentMode = mode.value as 'single' | 'multiple' | 'dantuo'
   if (lotteryType.value === 'ssq') {
@@ -172,7 +182,8 @@ function handleBack() {
         </div>
 
         <!-- 号码展示区 -->
-        <div class="result-card" ref="resultCardRef">
+        <div class="result-card-wrapper" :style="{ '--card-scale': cardScale }">
+          <div class="result-card" ref="resultCardRef">
           <div class="result-card-header">
             <h3 class="result-title">{{ lotteryName }} 第{{ issueNumber }}期</h3>
             <div class="mode-tag" :class="mode">
@@ -293,6 +304,8 @@ function handleBack() {
         </div>
 
         <!-- 底部操作栏 -->
+        </div>
+
         <div class="action-buttons">
           <button class="action-btn action-btn--save" @click="handleSaveImage">
             <RiDownload2Line class="action-icon" />
@@ -677,6 +690,7 @@ function handleBack() {
   align-items: center;
   max-width: 768px;
   margin: 0 auto;
+  gap: 16px;
 }
 
 /* 成功提示区 */
@@ -1499,7 +1513,7 @@ function handleBack() {
 /* 桌面端适配 */
 @media screen and (min-width: 1024px) {
   .result-header {
-    padding: 20px 0;
+    padding: 10px 0;
   }
 
   .header-inner {
@@ -1511,28 +1525,28 @@ function handleBack() {
   }
 
   .header-content {
-    padding: 16px 0;
+    padding: 8px 0;
     border-radius: 24px;
     justify-content: space-between;
   }
 
   .logo-icon {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
   }
 
   .logo-svg {
-    width: 18px;
-    height: 24px;
-    font-size: 16px;
+    width: 15px;
+    height: 19px;
+    font-size: 13px;
   }
 
   .logo-spacer {
-    width: 12px;
+    width: 8px;
   }
 
   .logo-text {
-    font-size: 28px;
+    font-size: 20px;
   }
 
   .tab-wrapper {
@@ -1542,99 +1556,100 @@ function handleBack() {
   }
 
   .info-btn {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
   }
 
   .main-inner {
-    padding: 48px 168px;
+    padding: 12px 168px;
     max-width: 768px;
+    gap: 8px;
   }
 
   .success-section {
-    margin-bottom: 48px;
+    margin-bottom: 16px;
   }
 
   .success-icon {
-    width: 96px;
-    height: 96px;
-    margin-bottom: 24px;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 8px;
   }
 
   .success-svg {
-    width: 48px;
-    height: 48px;
+    width: 30px;
+    height: 30px;
   }
 
   .success-text {
-    font-size: 18px;
-  }
-
-  .result-card {
-    padding: 40px;
-  }
-
-  .result-title {
-    font-size: 28px;
-  }
-
-  .section-title {
-    font-size: 20px;
-  }
-
-  .section-spacer {
-    height: 16px;
-  }
-
-  .ball-spacer {
-    width: 24px;
-  }
-
-  .number-section--mt {
-    margin-top: 40px;
-  }
-
-  .meta-section {
-    padding-top: 32px;
-    margin-top: 32px;
-  }
-
-  .meta-icon {
-    width: 20px;
-    height: 28px;
-  }
-
-  .meta-text {
-    font-size: 16px;
-  }
-
-  .meta-mode {
     font-size: 14px;
   }
 
-  .action-buttons {
-    max-width: 448px;
+  .result-card {
+    padding: 20px;
   }
 
-  .action-btn {
-    height: 64px;
-  }
-
-  .action-icon {
-    width: 26px;
-    height: 32px;
-  }
-
-  .action-text {
+  .result-title {
     font-size: 20px;
   }
 
+  .section-title {
+    font-size: 16px;
+  }
+
+  .section-spacer {
+    height: 10px;
+  }
+
+  .ball-spacer {
+    width: 12px;
+  }
+
+  .number-section--mt {
+    margin-top: 20px;
+  }
+
+  .meta-section {
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+
+  .meta-icon {
+    width: 16px;
+    height: 22px;
+  }
+
+  .meta-text {
+    font-size: 12px;
+  }
+
+  .meta-mode {
+    font-size: 11px;
+  }
+
+  .action-buttons {
+    max-width: 320px;
+  }
+
+  .action-btn {
+    height: 48px;
+  }
+
+  .action-icon {
+    width: 20px;
+    height: 26px;
+  }
+
+  .action-text {
+    font-size: 16px;
+  }
+
   .bottom-spacer {
-    height: 32px;
+    height: 12px;
   }
 
   .result-footer {
-    padding: 16px 0;
+    padding: 10px 0;
   }
 
   .footer-inner {
@@ -1644,12 +1659,25 @@ function handleBack() {
     width: 100%;
     box-sizing: border-box;
     border-radius: 20px;
-    padding-top: 14px;
-    padding-bottom: 14px;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
 
   .footer-text {
-    font-size: 14px;
+    font-size: 12px;
+  }
+
+  .nine-words-section {
+    margin-top: 8px;
+  }
+
+  .word-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .word-char {
+    font-size: 12px;
   }
 }
 
