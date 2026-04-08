@@ -36,19 +36,6 @@ const modeLabels = {
   dantuo: '胆拖',
 }
 
-// 九字真言 - 八卦图标
-const nineWords = [
-  { char: '临', icon: 'qian' as const },
-  { char: '兵', icon: 'dui' as const },
-  { char: '斗', icon: 'qian' as const },
-  { char: '者', icon: 'zhen' as const },
-  { char: '皆', icon: 'xun' as const },
-  { char: '阵', icon: 'kan' as const },
-  { char: '列', icon: 'gen' as const },
-  { char: '前', icon: 'kun' as const },
-  { char: '行', icon: 'taiji' as const },
-]
-
 const showRulesModal = ref(false)
 
 function openRules() {
@@ -169,16 +156,6 @@ function handleBack() {
           <p class="success-text">
             {{ lotteryType === 'ssq' ? '五行八卦 · 吉时已到 · 必中大奖' : '奇门遁甲 · 神机妙算 · 必得头奖' }}
           </p>
-        </div>
-
-        <!-- 九字真言 -->
-        <div class="nine-words-section" :style="{
-          '--word-icon-color': lotteryType === 'ssq' ? '#D97706' : '#2563EB'
-        }">
-          <div v-for="(word, index) in nineWords" :key="index" class="word-item">
-            <BaguaIcon :type="word.icon" class="word-icon" />
-            <span class="word-char">{{ word.char }}</span>
-          </div>
         </div>
 
         <!-- 号码展示区 -->
@@ -489,8 +466,8 @@ function handleBack() {
 }
 
 .info-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 9999px;
   background: #FEF3C7;
   display: flex;
@@ -505,9 +482,9 @@ function handleBack() {
 }
 
 .info-icon {
-  width: 26px;
-  height: 26px;
-  font-size: 26px;
+  width: 22px;
+  height: 22px;
+  font-size: 22px;
   color: #B45309;
 }
 
@@ -1070,40 +1047,6 @@ function handleBack() {
   font-family: 'SourceHanSans-SemiBold';
 }
 
-/* 九字真言区域 */
-.nine-words-section {
-  width: 100%;
-  max-width: 448px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: -8px auto 8px;
-}
-
-.word-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  color: var(--word-icon-color, #D97706);
-}
-
-.word-icon {
-  width: 18px;
-  height: 18px;
-  color: inherit;
-  transition: color 0.3s;
-}
-
-.word-char {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #92400E;
-  font-family: 'SourceHanSans-SemiBold';
-}
-
 /* 底部间距 */
 .bottom-spacer {
   height: 24px;
@@ -1312,23 +1255,6 @@ function handleBack() {
     height: 28px !important;
     font-size: 11px !important;
     border-width: 1.5px !important;
-  }
-
-  /* 九字真言移动端适配 */
-  .nine-words-section {
-    max-width: 100%;
-    gap: 6px;
-    margin: 0 auto 12px;
-  }
-
-  .word-icon {
-    width: 16px;
-    height: 16px;
-    color: var(--word-icon-color, #D97706);
-  }
-
-  .word-char {
-    font-size: 10px;
   }
 
   .result-card {
@@ -1667,18 +1593,6 @@ function handleBack() {
     font-size: 12px;
   }
 
-  .nine-words-section {
-    margin-top: 8px;
-  }
-
-  .word-icon {
-    width: 20px;
-    height: 20px;
-  }
-
-  .word-char {
-    font-size: 12px;
-  }
 }
 
 /* 移动端适配修正：解决 Logo 遮挡导航标签问题 */

@@ -54,30 +54,35 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
   }
 
   if (mode === 'multiple') {
-    const redCount = 7 + Math.floor(Math.random() * 4)
-    const blueCount = 1 + Math.floor(Math.random() * 2)
-    return [{
-      type: 'multiple',
-      red: getEnhancedNums(1, 33, redCount),
-      blue: getEnhancedNums(1, 16, blueCount),
-    }]
+    // 复式：根据注数生成多组复式号码
+    return Array.from({ length: notes }, () => {
+      const redCount = 7 + Math.floor(Math.random() * 4)
+      const blueCount = 1 + Math.floor(Math.random() * 2)
+      return {
+        type: 'multiple',
+        red: getEnhancedNums(1, 33, redCount),
+        blue: getEnhancedNums(1, 16, blueCount),
+      }
+    })
   }
 
-  // 胆拖：结合增强算法
-  const bankerCount = 1 + Math.floor(Math.random() * 4)
-  const dragCount = 2 + Math.floor(Math.random() * 4)
+  // 胆拖：根据注数生成多组胆拖号码
+  return Array.from({ length: notes }, () => {
+    const bankerCount = 1 + Math.floor(Math.random() * 4)
+    const dragCount = 2 + Math.floor(Math.random() * 4)
 
-  const bankers = getEnhancedNums(1, 33, bankerCount)
-  const remaining = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
-  const drags = getRandomNumsFromPool(remaining, dragCount)
+    const bankers = getEnhancedNums(1, 33, bankerCount)
+    const remaining = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
+    const drags = getRandomNumsFromPool(remaining, dragCount)
 
-  return [{
-    type: 'dantuo',
-    red: [...bankers, ...drags].sort((a, b) => a - b),
-    blue: getEnhancedNums(1, 16, 1),
-    redBanker: bankers,
-    redDrag: drags,
-  }]
+    return {
+      type: 'dantuo',
+      red: [...bankers, ...drags].sort((a, b) => a - b),
+      blue: getEnhancedNums(1, 16, 1),
+      redBanker: bankers,
+      redDrag: drags,
+    }
+  })
 }
 
 /**
@@ -93,30 +98,35 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
   }
 
   if (mode === 'multiple') {
-    const frontCount = 6 + Math.floor(Math.random() * 5)
-    const backCount = 3 + Math.floor(Math.random() * 2)
-    return [{
-      type: 'multiple',
-      front: getEnhancedNums(1, 35, frontCount),
-      back: getEnhancedNums(1, 12, backCount),
-    }]
+    // 复式：根据注数生成多组复式号码
+    return Array.from({ length: notes }, () => {
+      const frontCount = 6 + Math.floor(Math.random() * 5)
+      const backCount = 3 + Math.floor(Math.random() * 2)
+      return {
+        type: 'multiple',
+        front: getEnhancedNums(1, 35, frontCount),
+        back: getEnhancedNums(1, 12, backCount),
+      }
+    })
   }
 
-  // 胆拖
-  const bankerCount = 1 + Math.floor(Math.random() * 3)
-  const dragCount = 2 + Math.floor(Math.random() * 3)
+  // 胆拖：根据注数生成多组胆拖号码
+  return Array.from({ length: notes }, () => {
+    const bankerCount = 1 + Math.floor(Math.random() * 3)
+    const dragCount = 2 + Math.floor(Math.random() * 3)
 
-  const bankers = getEnhancedNums(1, 35, bankerCount)
-  const remaining = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
-  const drags = getRandomNumsFromPool(remaining, dragCount)
+    const bankers = getEnhancedNums(1, 35, bankerCount)
+    const remaining = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
+    const drags = getRandomNumsFromPool(remaining, dragCount)
 
-  return [{
-    type: 'dantuo',
-    front: [...bankers, ...drags].sort((a, b) => a - b),
-    back: getEnhancedNums(1, 12, 2),
-    frontBanker: bankers,
-    frontDrag: drags,
-  }]
+    return {
+      type: 'dantuo',
+      front: [...bankers, ...drags].sort((a, b) => a - b),
+      back: getEnhancedNums(1, 12, 2),
+      frontBanker: bankers,
+      frontDrag: drags,
+    }
+  })
 }
 
 /**

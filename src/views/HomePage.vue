@@ -19,19 +19,6 @@ const showRulesModal = ref(false)
 const isSpinning = ref(false)
 const counterAutofocus = ref(false)
 
-// 九字真言
-const nineWords = [
-  { char: '临' },
-  { char: '兵' },
-  { char: '斗' },
-  { char: '者' },
-  { char: '皆' },
-  { char: '阵' },
-  { char: '列' },
-  { char: '前' },
-  { char: '行' },
-]
-
 // 监听类型切换，触发输入框聚焦
 watch(lotteryType, () => {
   // 仅在移动端（屏幕宽度小于 768px）自动聚焦
@@ -291,17 +278,14 @@ function reload() {
 
         <!-- 选号配置区 -->
         <div class="config-card">
-          <div class="config-title" :style="{
-            '--config-tag-text': lotteryType === 'ssq' ? '#DC2626' : '#2563EB',
-            '--config-tag-bg': lotteryType === 'ssq' ? '#FEE2E2' : '#DBEAFE'
-          }">
+          <div class="config-title">
             <template v-if="lotteryType === 'ssq'">
-              <span class="config-tag">一花一世界</span>
-              <span class="config-tag">一叶一菩提</span>
+              <span class="config-tag config-tag--active-ssq">一花一世界</span>
+              <span class="config-tag config-tag--active-ssq">一叶一菩提</span>
             </template>
             <template v-else>
-              <span class="config-tag">道生一 一生二</span>
-              <span class="config-tag">二生三 三生万物</span>
+              <span class="config-tag config-tag--active-dlt">道生一 一生二</span>
+              <span class="config-tag config-tag--active-dlt">二生三 三生万物</span>
             </template>
           </div>
           <NoteCounter v-model="notes" :theme="lotteryType" :autofocus="counterAutofocus" />
@@ -317,15 +301,6 @@ function reload() {
             <div class="generate-spacer"></div>
             <span class="generate-text">{{ buttonText }}</span>
           </button>
-        </div>
-
-        <!-- 九字真言 -->
-        <div class="nine-words-section">
-          <div v-for="(word, index) in nineWords" :key="index" class="word-item">
-            <RiMoneyCnyCircleFill v-if="lotteryType === 'ssq'" class="word-icon word-icon--ssq" />
-            <CopperCoinIcon v-else class="word-icon word-icon--dlt" />
-            <span class="word-char">{{ word.char }}</span>
-          </div>
         </div>
       </div>
     </main>
@@ -691,6 +666,7 @@ function reload() {
   box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.1);
   padding: 16px;
   box-sizing: border-box;
+  margin-top: -10px;
 }
 
 .config-title {
@@ -705,13 +681,28 @@ function reload() {
 .config-tag {
   padding: 4px 10px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   text-align: center;
   color: var(--config-tag-text, #DC2626);
   background: var(--config-tag-bg, #FEE2E2);
   font-family: 'SourceHanSans-Medium';
   white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.config-tag--active-ssq {
+  background: linear-gradient(90deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
+  color: #FFFFFF;
+  font-family: 'SourceHanSans-SemiBold';
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.config-tag--active-dlt {
+  background: linear-gradient(90deg, rgba(59,130,246,1) 0%, rgba(99,102,241,1) 100%);
+  color: #FFFFFF;
+  font-family: 'SourceHanSans-SemiBold';
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .config-spacer {
@@ -759,51 +750,6 @@ function reload() {
   line-height: 1.2;
   color: #FFFFFF;
   font-family: 'SourceHanSans-ExtraBold';
-}
-
-/* 九字真言区域 */
-.nine-words-section {
-  width: 100%;
-  max-width: 448px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.word-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.word-icon {
-  width: 24px;
-  height: 24px;
-  color: #D97706;
-}
-
-/* 双色球 word-icon 与 generate-icon 一致 */
-.word-icon--ssq {
-  width: 24px;
-  height: 20px;
-}
-
-/* 大乐透 word-icon 保持铜钱图标样式 */
-.word-icon--dlt {
-  width: 24px;
-  height: 24px;
-  color: #2563EB;
-}
-
-.word-char {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #92400E;
-  font-family: 'SourceHanSans-SemiBold';
 }
 
 /* 底部间距 */
@@ -971,8 +917,8 @@ function reload() {
   }
 
   .config-tag {
-    padding: 2px 6px;
-    font-size: 10px;
+    padding: 3px 8px;
+    font-size: 14px;
   }
 
   .config-spacer {
@@ -999,29 +945,6 @@ function reload() {
 
   .generate-text {
     font-size: 18px;
-  }
-
-  .nine-words-section {
-    margin-top: 6px;
-  }
-
-  .word-icon {
-    width: 20px;
-    height: 20px;
-  }
-
-  .word-icon--ssq {
-    width: 20px;
-    height: 16px;
-  }
-
-  .word-icon--dlt {
-    width: 20px;
-    height: 20px;
-  }
-
-  .word-char {
-    font-size: 12px;
   }
 
   .tip-title {
