@@ -38,15 +38,15 @@ const modeLabels = {
 
 // 九字真言 - 八卦图标
 const nineWords = [
-  { char: '临', icon: 'qian' },
-  { char: '兵', icon: 'dui' },
-  { char: '斗', icon: 'li' },
-  { char: '者', icon: 'zhen' },
-  { char: '皆', icon: 'xun' },
-  { char: '阵', icon: 'kan' },
-  { char: '列', icon: 'gen' },
-  { char: '前', icon: 'kun' },
-  { char: '行', icon: 'taiji' },
+  { char: '临', icon: 'qian' as const },
+  { char: '兵', icon: 'dui' as const },
+  { char: '斗', icon: 'qian' as const },
+  { char: '者', icon: 'zhen' as const },
+  { char: '皆', icon: 'xun' as const },
+  { char: '阵', icon: 'kan' as const },
+  { char: '列', icon: 'gen' as const },
+  { char: '前', icon: 'kun' as const },
+  { char: '行', icon: 'taiji' as const },
 ]
 
 const showRulesModal = ref(false)
