@@ -368,14 +368,25 @@ const ballStyleTag = computed(() => props.type === 'blue' ? 'blue-ball' : 'red-b
 /* 移动端适配 */
 @media screen and (max-width: 480px) {
   .picker-modal-overlay {
-    padding: 16px;
-    align-items: flex-end;
+    padding: 24px;
+    align-items: center; /* 居中显示 */
   }
 
   .picker-modal-content {
-    width: 500px;
-    height: 400px;
+    width: 90vw;
+    max-width: 400px;
+    height: auto; /* 高度自适应 */
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     border-radius: 20px;
+  }
+
+  .picker-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .number-grid {
