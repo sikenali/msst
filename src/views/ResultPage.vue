@@ -53,8 +53,36 @@ if (isShareMode.value) {
   lotteryType.value = (route.query.type as 'ssq' | 'dlt') || 'ssq'
   notes.value = Number(route.query.notes) || 5
   mode.value = (route.query.mode as string) || 'single'
-  refreshData()
   
+  // 如果 URL 中有号码数据，直接使用；否则重新生成
+  if (route.query.numbers) {
+    try {
+      numbers.value = JSON.parse(decodeURIComponent(route.query.numbers as string))
+    } catch {
+      refreshData()
+    }
+  } else {
+    refreshData()
+  }
+  
+  issueNumber.value = getIssueNumber(lotteryType.value)
+  issuePrefix.value = currentIssuePrefix.value
+  issueSuffix.value = currentIssueSuffix.value
+  metaTime.value = formatTime()
+  metaMode.value = `注数：${notes.value}注 | 模式：${modeLabels[mode.value as keyof typeof modeLabels]}`
+  ticketCode.value = generateTicketCode()
+  drawDate.value = calculateNextDrawDate(lotteryType.value)
+  
+  // 设置出票时间为系统当前时间
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  const seconds = String(now.getSeconds()).padStart(2, '0')
+  ticketTime.value = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+
   // 分享模式隐藏操作按钮
   isFloatExpanded.value = false
 }
@@ -80,8 +108,10 @@ function handleFloatIconClick(type: string) {
 }
 
 async function handleShare() {
-  const shareUrl = `${window.location.origin}/?type=${lotteryType.value}&notes=${notes.value}&mode=${mode.value}&autoGenerate=1`
-  
+  // 将号码数据编码到 URL 中
+  const numbersStr = encodeURIComponent(JSON.stringify(numbers.value))
+  const shareUrl = `${window.location.origin}/?type=${lotteryType.value}&notes=${notes.value}&mode=${mode.value}&autoGenerate=1&numbers=${numbersStr}`
+
   try {
     await navigator.clipboard.writeText(shareUrl)
     alert('分享链接已复制到剪贴板！')
@@ -1621,6 +1651,7 @@ function handleBack() {
     flex: 1;
     width: 100%;
     overflow-x: hidden;
+    margin: 0 auto;
   }
 
   .main-inner {
@@ -1630,6 +1661,9 @@ function handleBack() {
     margin: 0 auto;
     box-sizing: border-box;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .result-card-wrapper {
@@ -1646,12 +1680,15 @@ function handleBack() {
     margin: 12px auto;
     justify-content: center;
     width: fit-content;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .result-card {
     padding: 0;
     width: 100%;
     box-sizing: border-box;
+    margin: 0 auto;
   }
 
   .ticket-container {
@@ -1659,6 +1696,7 @@ function handleBack() {
     width: 100%;
     box-sizing: border-box;
     align-items: center;
+    margin: 0 auto;
   }
 
   .brand-header {

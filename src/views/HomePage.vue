@@ -142,21 +142,28 @@ if (autoGenerate.value) {
   const shareType = (route.query.type as 'ssq' | 'dlt') || 'ssq'
   const shareNotes = Number(route.query.notes) || 5
   const shareMode = (route.query.mode as 'single' | 'multiple' | 'dantuo') || 'single'
-  
+  const shareNumbers = route.query.numbers as string | undefined
+
   // 同步数据到全局状态
   const { setNotes, setMode } = useUserSelections()
   setNotes(shareNotes)
   setMode(shareMode)
+
+  // 直接跳转到结果页，传递所有参数
+  const resultQuery: Record<string, string> = {
+    type: shareType,
+    notes: String(shareNotes),
+    mode: shareMode,
+    share: '1',
+  }
   
-  // 直接跳转到结果页
+  if (shareNumbers) {
+    resultQuery.numbers = shareNumbers
+  }
+
   router.replace({
     path: '/result',
-    query: {
-      type: shareType,
-      notes: shareNotes,
-      mode: shareMode,
-      share: '1',
-    },
+    query: resultQuery,
   })
 }
 
