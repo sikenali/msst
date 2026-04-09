@@ -1,5 +1,13 @@
+import { ref } from 'vue'
 import { generateBaguaNumbers } from './useBagua'
 import { generateEnhancedNumbers } from './useFortune'
+import {
+  userBlueNumbers,
+  userRedNumbers,
+  userBirthday,
+  userConstellation,
+  userLuckyNumbers,
+} from './useUserSelections'
 
 export interface SSQResult {
   type: 'single' | 'multiple' | 'dantuo'
@@ -41,90 +49,289 @@ const getRandomNumsFromPool = (pool: number[], count: number): number[] => {
   return res.sort((a, b) => a - b)
 }
 
+// 辅助函数：加权池生成逻辑
+// 将多个来源的数字合并去重，用于优先推荐
+const getWeightedPool = (sources: number[][], range: [number, number]): number[] => {
+  const pool = new Set<number>()
+  const [min, max] = range
+
+  for (const arr of sources) {
+    for (const n of arr) {
+      if (n >= min && n <= max) {
+        pool.add(n)
+      }
+    }
+  }
+
+  // 增加权重：池中的数字出现 2-3 次，增加被随机选中的概率
+  const weightedArr: number[] = []
+  for (const n of pool) {
+    weightedArr.push(n, n, n)
+  }
+  return weightedArr
+}
+
 /**
- * 生成双色球号码 (基于增强算法：农历+星座+天干地支+八卦)
+ * 获取生日幸运数字 (简易算法)
+ */
+const getBirthdayLuckyNumbers = (): number[] => {
+  const { year, month, day } = userBirthday.value || {}
+  if (!year || !month || !day) return []
+
+  // 简单的数字拆解和相加
+  const nums = new Set<number>()
+  const str = `${year}${month}${day}`
+  for (let i = 0; i < str.length; i++) {
+    const d = parseInt(str[i], 10)
+    if (d > 0) nums.add(d)
+  }
+  
+  // 组合数
+  nums.add((month + day) % 35 || 35)
+  nums.add((year % 100 + month) % 35 || 35)
+  
+  return Array.from(nums)
+}
+
+/**
+ * 获取星座幸运数字 (映射表)
+ */
+const getConstellationLuckyNumbers = (): number[] => {
+  const map: Record<string, number[]> = {
+    '白羊座': [1, 9, 18, 24], '金牛座': [4, 6, 12, 20], '双子座': [3, 7, 15, 22],
+    '巨蟹座': [2, 8, 11, 26], '狮子座': [5, 10, 19, 30], '处女座': [6, 14, 25, 32],
+    '天秤座': [1, 13, 17, 28], '天蝎座': [3, 8, 27, 33], '射手座': [9, 16, 21, 34],
+    '摩羯座': [5, 12, 18, 35], '水瓶座': [2, 7, 23, 29], '双鱼座': [4, 11, 14, 31]
+  }
+  return map[userConstellation.value] || []
+}
+
+/**
+ * 获取所有法号/道号相关的加权池
+ */
+const getDivineNumberPools = (maxRange: number) => {
+  const birthNums = getBirthdayLuckyNumbers().filter(n => n <= maxRange)
+  const constNums = getConstellationLuckyNumbers().filter(n => n <= maxRange)
+  const luckyNums = userLuckyNumbers.value.filter(n => n <= maxRange)
+
+  return getWeightedPool([birthNums, constNums, luckyNums], [1, maxRange])
+}
+
+/**
+ * 生成双色球号码 (融合所有"法号"数据)
  */
 export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single'): SSQResult[] {
+  // 获取用户固定的红蓝球
+  const fixedRed = userRedNumbers.value.filter(n => n >= 1 && n <= 33)
+  const fixedBlue = userBlueNumbers.value.filter(n => n >= 1 && n <= 16)
+  
+  // 获取加权池
+  const redPool = getDivineNumberPools(33)
+  const bluePool = getDivineNumberPools(16)
+
+  // 辅助生成函数：优先使用固定号和加权池，不足则随机补充
+  const generateRed = (count: number) => {
+    if (fixedRed.length > 0 && fixedRed.length >= count) {
+      return fixedRed.slice(0, count).sort((a, b) => a - b)
+    }
+
+    const picked = new Set<number>(fixedRed)
+    if (redPool.length > 0) {
+      while (picked.size < count) {
+        const idx = Math.floor(Math.random() * redPool.length)
+        picked.add(redPool[idx])
+      }
+    }
+    
+    if (picked.size < count) {
+      const remaining = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !picked.has(n))
+      const randomPick = getRandomNumsFromPool(remaining, count - picked.size)
+      randomPick.forEach(n => picked.add(n))
+    }
+
+    return Array.from(picked).sort((a, b) => a - b)
+  }
+
+  const generateBlue = (count: number) => {
+    if (fixedBlue.length > 0 && fixedBlue.length >= count) {
+      return fixedBlue.slice(0, count).sort((a, b) => a - b)
+    }
+
+    const picked = new Set<number>(fixedBlue)
+    if (bluePool.length > 0) {
+      while (picked.size < count) {
+        const idx = Math.floor(Math.random() * bluePool.length)
+        picked.add(bluePool[idx])
+      }
+    }
+    
+    if (picked.size < count) {
+      const remaining = Array.from({ length: 16 }, (_, i) => i + 1).filter(n => !picked.has(n))
+      const randomPick = getRandomNumsFromPool(remaining, count - picked.size)
+      randomPick.forEach(n => picked.add(n))
+    }
+
+    return Array.from(picked).sort((a, b) => a - b)
+  }
+
   if (mode === 'single') {
     return Array.from({ length: notes }, () => ({
       type: 'single',
-      red: getEnhancedNums(1, 33, 6),
-      blue: getEnhancedNums(1, 16, 1),
+      red: generateRed(6),
+      blue: generateBlue(1),
     }))
   }
 
   if (mode === 'multiple') {
-    // 复式：根据注数生成多组复式号码
     return Array.from({ length: notes }, () => {
-      const redCount = 7 + Math.floor(Math.random() * 4)
-      const blueCount = 1 + Math.floor(Math.random() * 2)
+      const redCount = Math.max(7, fixedRed.length || (7 + Math.floor(Math.random() * 3)))
+      const blueCount = Math.max(2, fixedBlue.length || (1 + Math.floor(Math.random() * 2)))
       return {
         type: 'multiple',
-        red: getEnhancedNums(1, 33, redCount),
-        blue: getEnhancedNums(1, 16, blueCount),
+        red: generateRed(redCount),
+        blue: generateBlue(blueCount),
       }
     })
   }
 
-  // 胆拖：根据注数生成多组胆拖号码
+  // 胆拖
   return Array.from({ length: notes }, () => {
-    const bankerCount = 1 + Math.floor(Math.random() * 4)
-    const dragCount = 2 + Math.floor(Math.random() * 4)
+    const bankerCount = 1 + Math.floor(Math.random() * 3)
+    const dragCount = 2 + Math.floor(Math.random() * 3)
+    
+    // 胆码优先使用固定红球的前几个
+    const bankers = fixedRed.length > 0 
+      ? fixedRed.slice(0, Math.min(bankerCount, fixedRed.length)) 
+      : generateRed(bankerCount)
 
-    const bankers = getEnhancedNums(1, 33, bankerCount)
-    const remaining = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
-    const drags = getRandomNumsFromPool(remaining, dragCount)
+    // 拖码
+    let drags: number[]
+    if (fixedRed.length > bankers.length) {
+      drags = fixedRed.slice(bankers.length, bankers.length + dragCount)
+      if (drags.length < dragCount) {
+        const need = dragCount - drags.length
+        const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n))
+        drags.push(...getRandomNumsFromPool(pool, need))
+      }
+    } else {
+      const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
+      drags = getRandomNumsFromPool(pool, dragCount)
+    }
 
     return {
       type: 'dantuo',
       red: [...bankers, ...drags].sort((a, b) => a - b),
-      blue: getEnhancedNums(1, 16, 1),
-      redBanker: bankers,
-      redDrag: drags,
+      blue: generateBlue(1),
+      redBanker: bankers.sort((a, b) => a - b),
+      redDrag: drags.sort((a, b) => a - b),
     }
   })
 }
 
 /**
- * 生成大乐透号码 (基于增强算法：农历+星座+天干地支+八卦)
+ * 生成大乐透号码 (融合所有"道号"数据)
  */
 export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single'): DLTResult[] {
+  // 获取用户固定的前区(红)和后区(蓝)
+  const fixedFront = userRedNumbers.value.filter(n => n >= 1 && n <= 35)
+  const fixedBack = userBlueNumbers.value.filter(n => n >= 1 && n <= 12)
+  
+  // 获取加权池
+  const frontPool = getDivineNumberPools(35)
+  const backPool = getDivineNumberPools(12)
+
+  const generateFront = (count: number) => {
+    if (fixedFront.length > 0 && fixedFront.length >= count) {
+      return fixedFront.slice(0, count).sort((a, b) => a - b)
+    }
+
+    const picked = new Set<number>(fixedFront)
+    if (frontPool.length > 0) {
+      while (picked.size < count) {
+        const idx = Math.floor(Math.random() * frontPool.length)
+        picked.add(frontPool[idx])
+      }
+    }
+    
+    if (picked.size < count) {
+      const remaining = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !picked.has(n))
+      const randomPick = getRandomNumsFromPool(remaining, count - picked.size)
+      randomPick.forEach(n => picked.add(n))
+    }
+
+    return Array.from(picked).sort((a, b) => a - b)
+  }
+
+  const generateBack = (count: number) => {
+    if (fixedBack.length > 0 && fixedBack.length >= count) {
+      return fixedBack.slice(0, count).sort((a, b) => a - b)
+    }
+
+    const picked = new Set<number>(fixedBack)
+    if (backPool.length > 0) {
+      while (picked.size < count) {
+        const idx = Math.floor(Math.random() * backPool.length)
+        picked.add(backPool[idx])
+      }
+    }
+    
+    if (picked.size < count) {
+      const remaining = Array.from({ length: 12 }, (_, i) => i + 1).filter(n => !picked.has(n))
+      const randomPick = getRandomNumsFromPool(remaining, count - picked.size)
+      randomPick.forEach(n => picked.add(n))
+    }
+
+    return Array.from(picked).sort((a, b) => a - b)
+  }
+
   if (mode === 'single') {
     return Array.from({ length: notes }, () => ({
       type: 'single',
-      front: getEnhancedNums(1, 35, 5),
-      back: getEnhancedNums(1, 12, 2),
+      front: generateFront(5),
+      back: generateBack(2),
     }))
   }
 
   if (mode === 'multiple') {
-    // 复式：根据注数生成多组复式号码
     return Array.from({ length: notes }, () => {
-      const frontCount = 6 + Math.floor(Math.random() * 5)
-      const backCount = 3 + Math.floor(Math.random() * 2)
+      const frontCount = Math.max(6, fixedFront.length || (6 + Math.floor(Math.random() * 4)))
+      const backCount = Math.max(3, fixedBack.length || (2 + Math.floor(Math.random() * 2)))
       return {
         type: 'multiple',
-        front: getEnhancedNums(1, 35, frontCount),
-        back: getEnhancedNums(1, 12, backCount),
+        front: generateFront(frontCount),
+        back: generateBack(backCount),
       }
     })
   }
 
-  // 胆拖：根据注数生成多组胆拖号码
+  // 胆拖
   return Array.from({ length: notes }, () => {
-    const bankerCount = 1 + Math.floor(Math.random() * 3)
-    const dragCount = 2 + Math.floor(Math.random() * 3)
+    const bankerCount = 1 + Math.floor(Math.random() * 2)
+    const dragCount = 2 + Math.floor(Math.random() * 2)
 
-    const bankers = getEnhancedNums(1, 35, bankerCount)
-    const remaining = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
-    const drags = getRandomNumsFromPool(remaining, dragCount)
+    const bankers = fixedFront.length > 0 
+      ? fixedFront.slice(0, Math.min(bankerCount, fixedFront.length)) 
+      : generateFront(bankerCount)
+
+    let drags: number[]
+    if (fixedFront.length > bankers.length) {
+      drags = fixedFront.slice(bankers.length, bankers.length + dragCount)
+      if (drags.length < dragCount) {
+        const need = dragCount - drags.length
+        const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n))
+        drags.push(...getRandomNumsFromPool(pool, need))
+      }
+    } else {
+      const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
+      drags = getRandomNumsFromPool(pool, dragCount)
+    }
 
     return {
       type: 'dantuo',
       front: [...bankers, ...drags].sort((a, b) => a - b),
-      back: getEnhancedNums(1, 12, 2),
-      frontBanker: bankers,
-      frontDrag: drags,
+      back: generateBack(2),
+      frontBanker: bankers.sort((a, b) => a - b),
+      frontDrag: drags.sort((a, b) => a - b),
     }
   })
 }
@@ -139,101 +346,35 @@ export function formatTime(): string {
 }
 
 /**
+ * 期号变量（可动态修改）
+ */
+export const currentIssueNumber = ref<string>('')
+
+/**
  * 获取推荐期号（下一期）
- * 双色球：每周二、四、日21:00开奖，每年约150期
- * 大乐透：每周一、三、六21:00开奖，每年约156期
- *
- * 返回的是"下一期推荐"的期号：
- * - 未过21:00：显示下一期
- * - 已过21:00：开奖后自动+1
  */
 export function getIssueNumber(type: 'ssq' | 'dlt'): string {
+  // 如果手动设置了期号，直接返回
+  if (currentIssueNumber.value) {
+    return currentIssueNumber.value
+  }
+  
+  // 否则按日期自动生成
   const now = new Date()
   const year = now.getFullYear()
   const shortYear = String(year).slice(-2)
-
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const currentHour = now.getHours()
 
-  let issueNum: number
+  // 简易算法：基于当前时间戳生成相对稳定的期号偏移
+  const dayOfYear = Math.floor((today.getTime() - new Date(year, 0, 1).getTime()) / 86400000)
+  const baseNum = (dayOfYear % 150) + 1
 
-  if (type === 'ssq') {
-    // 双色球：26038期开奖日：2026-04-07（周二）
-    const refDate = new Date(2026, 3, 7) // 2026-04-07 周二
-    const refIssue = 38
-    const daysDiff = Math.floor((today.getTime() - refDate.getTime()) / 86400000)
+  return `${shortYear}${String(baseNum).padStart(3, '0')}`
+}
 
-    if (daysDiff < 0) {
-      // 参考日期之前
-      issueNum = refIssue
-    } else {
-      const weeksDiff = Math.floor(daysDiff / 7)
-      const daysIntoWeek = daysDiff % 7
-      const refDayOfWeek = refDate.getDay() // 2 (周二)
-
-      // 基础期数
-      issueNum = refIssue + weeksDiff * 3
-
-      // 双色球开奖日：周日(0)、周二(2)、周四(4)
-      const ssqDrawDays = [0, 2, 4]
-
-      // 计算当前周期已过的开奖日（跳过参考日本身）
-      for (const drawDay of ssqDrawDays) {
-        let offset = (drawDay - refDayOfWeek + 7) % 7
-
-        // 跳过参考日（期号已包含）
-        if (offset === 0) continue
-
-        if (offset < daysIntoWeek) {
-          issueNum += 1
-        } else if (offset === daysIntoWeek && currentHour >= 21) {
-          issueNum += 1
-        }
-      }
-
-      // 推荐的是下一期，所以+1
-      issueNum += 1
-    }
-  } else {
-    // 大乐透：26036期开奖日：2026-04-06（周一）
-    const refDate = new Date(2026, 3, 6) // 2026-04-06 周一
-    const refIssue = 36
-    const daysDiff = Math.floor((today.getTime() - refDate.getTime()) / 86400000)
-
-    if (daysDiff < 0) {
-      // 参考日期之前
-      issueNum = refIssue
-    } else {
-      const weeksDiff = Math.floor(daysDiff / 7)
-      const daysIntoWeek = daysDiff % 7
-      const refDayOfWeek = refDate.getDay() // 1 (周一)
-
-      // 基础期数
-      issueNum = refIssue + weeksDiff * 3
-
-      // 大乐透开奖日：周一(1)、周三(3)、周六(6)
-      const dltDrawDays = [1, 3, 6]
-
-      // 计算当前周期已过的开奖日（跳过参考日本身）
-      for (const drawDay of dltDrawDays) {
-        let offset = (drawDay - refDayOfWeek + 7) % 7
-
-        // 跳过参考日（期号已包含）
-        if (offset === 0) continue
-
-        if (offset < daysIntoWeek) {
-          issueNum += 1
-        } else if (offset === daysIntoWeek && currentHour >= 21) {
-          issueNum += 1
-        }
-      }
-
-      // 推荐的是下一期，所以+1
-      issueNum += 1
-    }
-  }
-
-  // 限制在合理范围内
-  issueNum = Math.min(type === 'ssq' ? 150 : 156, Math.max(1, issueNum))
-  return `${shortYear}${String(issueNum).padStart(3, '0')}`
+/**
+ * 手动设置期号
+ */
+export function setIssueNumber(issue: string) {
+  currentIssueNumber.value = issue
 }

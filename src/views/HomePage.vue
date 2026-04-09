@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { RiMoneyCnyCircleFill, RiCloseLine } from '@remixicon/vue'
+import { RiMoneyCnyCircleFill } from '@remixicon/vue'
+import { useUserSelections } from '@/composables/useUserSelections'
 import TabSwitcher from '@/components/TabSwitcher.vue'
 import BaguaDiagram from '@/components/BaguaDiagram.vue'
 import NoteCounter from '@/components/NoteCounter.vue'
 import ModeSelector from '@/components/ModeSelector.vue'
 import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
 import TurtleIcon from '@/components/TurtleIcon.vue'
+import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
+import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
+import IconModal from '@/components/IconModal.vue'
+import NumberPickerModal from '@/components/NumberPickerModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -18,6 +23,53 @@ const mode = ref<'single' | 'multiple' | 'dantuo'>('single')
 const showRulesModal = ref(false)
 const isSpinning = ref(false)
 const counterAutofocus = ref(false)
+
+// 浮动面板弹框
+const showIconModal = ref(false)
+const currentModalType = ref('')
+
+// 号码选择弹框
+const showPickerModal = ref(false)
+const pickerType = ref<'blue' | 'red'>('blue')
+const pickerTitle = ref('')
+const pickerSelectedNumbers = ref<number[]>([])
+
+function handleOpenModal(type: string) {
+  // 蓝若寺和红佛女打开号码选择器
+  if (type === 'lanruo') {
+    pickerType.value = 'blue'
+    pickerTitle.value = '蓝若寺'
+    pickerSelectedNumbers.value = []
+    showPickerModal.value = true
+    return
+  }
+
+  if (type === 'hongfolv') {
+    pickerType.value = 'red'
+    pickerTitle.value = '红佛女'
+    pickerSelectedNumbers.value = []
+    showPickerModal.value = true
+    return
+  }
+
+  // 其他类型打开普通弹框
+  currentModalType.value = type
+  showIconModal.value = true
+}
+
+function handleCloseModal() {
+  showIconModal.value = false
+}
+
+function handlePickerConfirm(numbers: number[]) {
+  console.log('选中的号码:', numbers)
+  // TODO: 将选中的号码存储起来，用于后续号码生成
+  pickerSelectedNumbers.value = numbers
+}
+
+function handlePickerClose() {
+  showPickerModal.value = false
+}
 
 // 监听类型切换，触发输入框聚焦
 watch(lotteryType, () => {
@@ -68,6 +120,7 @@ const autoGenerate = computed(() => route.query.autoGenerate === '1')
 
 watch(autoGenerate, async (shouldAutoGenerate) => {
   if (shouldAutoGenerate) {
+    console.log('生成注数:', notes.value)
     isSpinning.value = true
     // 根据注数动态计算等待时间（与BaguaDiagram旋转时间一致）
     const notesCount = notes.value
@@ -109,9 +162,59 @@ watch(autoGenerate, async (shouldAutoGenerate) => {
 })
 
 async function handleGenerate() {
+  const { userRedNumbers, userBlueNumbers } = useUserSelections()
+  
+  // 获取用户固定号码
+  const redCount = userRedNumbers.value.length
+  const blueCount = userBlueNumbers.value.length
+  
+  // 智能判断模式和注数
+  let finalMode: 'single' | 'multiple' | 'dantuo' = mode.value
+  let finalNotes = notes.value
+
+  if (lotteryType.value === 'ssq') {
+    // 双色球逻辑
+    if (redCount === 6 && blueCount === 1) {
+      // 刚好6+1，单式1注
+      finalMode = 'single'
+      finalNotes = 1
+    } else if (redCount > 6 || blueCount > 1) {
+      // 红球>6个 或 蓝球>1个，复式
+      finalMode = 'multiple'
+      finalNotes = 1
+    } else if (redCount > 0 || blueCount > 0) {
+      // 有固定号码但不足标准数量，保持用户选择的模式
+      finalMode = mode.value
+      finalNotes = notes.value
+    }
+  } else {
+    // 大乐透逻辑
+    if (redCount === 5 && blueCount === 2) {
+      // 刚好5+2，单式1注
+      finalMode = 'single'
+      finalNotes = 1
+    } else if (redCount > 5 || blueCount > 2) {
+      // 前区>5个 或 后区>2个，复式
+      finalMode = 'multiple'
+      finalNotes = 1
+    } else if (redCount > 0 || blueCount > 0) {
+      // 有固定号码但不足标准数量，保持用户选择的模式
+      finalMode = mode.value
+      finalNotes = notes.value
+    }
+  }
+
+  console.log('🎲 生成参数:', {
+    彩种: lotteryType.value,
+    模式: finalMode,
+    注数: finalNotes,
+    红球: userRedNumbers.value,
+    蓝球: userBlueNumbers.value
+  })
+  
   isSpinning.value = true
   // 根据注数动态计算等待时间（与BaguaDiagram旋转时间一致）
-  const notesCount = notes.value
+  const notesCount = finalNotes
   let baseDuration = 0
   let extraPerNote = 0
   const maxDuration = 25000
@@ -142,8 +245,8 @@ async function handleGenerate() {
     path: '/result',
     query: {
       type: lotteryType.value,
-      notes: notes.value,
-      mode: mode.value,
+      notes: finalNotes,
+      mode: finalMode,
     },
   })
 }
@@ -206,9 +309,15 @@ function reload() {
             <TabSwitcher v-model="lotteryType" />
           </div>
 
-          <!-- 说明按钮 -->
+          <!-- 温馨提示按钮 -->
           <button class="info-btn" @click="openRules">
-            <TurtleIcon class="info-icon" />
+            <svg class="info-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- 双手作揖 -->
+              <path d="M12 2C10 4 8 6 8 9C8 12 10 14 12 16C14 14 16 12 16 9C16 6 14 4 12 2Z" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.2"/>
+              <path d="M7 10C5 11 3 14 4 17C5 20 8 21 10 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <path d="M17 10C19 11 21 14 20 17C19 20 16 21 14 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <path d="M10 18L12 22L14 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -217,54 +326,19 @@ function reload() {
     <!-- 规则弹窗 -->
     <div class="modal-overlay" v-if="showRulesModal" @click="closeRules">
       <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3 class="modal-title">玩法规则说明</h3>
-          <div class="modal-tip">
-            <TurtleIcon class="modal-tip-icon" />
-            <span class="modal-tip-text">温馨提示：理性购彩，量力而行，本工具仅供娱乐使用</span>
+        <div class="modal-tip-content">
+          <div class="tip-icon-wrapper">
+            <svg class="tip-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- 双手作揖 -->
+              <path d="M12 2C10 4 8 6 8 9C8 12 10 14 12 16C14 14 16 12 16 9C16 6 14 4 12 2Z" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.2"/>
+              <path d="M7 10C5 11 3 14 4 17C5 20 8 21 10 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <path d="M17 10C19 11 21 14 20 17C19 20 16 21 14 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <path d="M10 18L12 22L14 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
           </div>
-          <button class="modal-close" @click="closeRules">
-            <RiCloseLine class="close-icon" />
-          </button>
-        </div>
-        <div class="modal-divider"></div>
-        <div class="modal-body">
-          <h4 class="rule-title rule-title--red">🔴 双色球玩法规则</h4>
-          <div class="rule-list">
-            <div class="rule-item">
-              <div class="rule-num rule-num--red">1</div>
-              <div class="rule-spacer"></div>
-              <p class="rule-text">红球：从1-33中随机选择6个不重复号码，按升序排列</p>
-            </div>
-            <div class="rule-item">
-              <div class="rule-num rule-num--blue">2</div>
-              <div class="rule-spacer"></div>
-              <p class="rule-text">蓝球：从1-16中随机选择1个号码</p>
-            </div>
-            <div class="rule-item">
-              <div class="rule-num rule-num--gold">3</div>
-              <div class="rule-spacer"></div>
-              <p class="rule-text">支持单式、自定义注数、复式多种投注模式</p>
-            </div>
-          </div>
-          <div class="modal-divider"></div>
-          <h4 class="rule-title rule-title--blue">🔵 大乐透玩法规则</h4>
-          <div class="rule-list">
-            <div class="rule-item">
-              <div class="rule-num rule-num--red">1</div>
-              <div class="rule-spacer"></div>
-              <p class="rule-text">前区：从1-35中随机选择5个不重复号码，按升序排列</p>
-            </div>
-            <div class="rule-item">
-              <div class="rule-num rule-num--blue">2</div>
-              <div class="rule-spacer"></div>
-              <p class="rule-text">后区：从1-12中随机选择2个不重复号码</p>
-            </div>
-            <div class="rule-item">
-              <div class="rule-num rule-num--gold">3</div>
-              <div class="rule-spacer"></div>
-              <p class="rule-text">支持单式、自定义注数、复式多种投注模式</p>
-            </div>
+          <div class="tip-text-wrapper">
+            <p class="tip-message">其实你有1000万存款，只不过你忘记了取款密码，每输入一次需要2元，一旦正确，钱就是你的，不着急，不放弃，心若在，梦就在。</p>
+            <p class="tip-copyright">@2026 sikenali  Vibe Coding</p>
           </div>
         </div>
       </div>
@@ -273,25 +347,14 @@ function reload() {
     <!-- 主内容区 -->
     <main class="home-main">
       <div class="main-inner">
+        <!-- 左侧浮动面板（乌龟） -->
+        <FloatingLeftPanel @open-modal="handleOpenModal" />
+
+        <!-- 右侧浮动面板（木鱼） -->
+        <FloatingRightPanel @open-modal="handleOpenModal" />
+
         <!-- 八卦图 -->
         <BaguaDiagram :theme="lotteryType" :spinning="isSpinning" :notes="notes" />
-
-        <!-- 选号配置区 -->
-        <div class="config-card">
-          <div class="config-title">
-            <template v-if="lotteryType === 'ssq'">
-              <span class="config-tag config-tag--active-ssq">一花一世界</span>
-              <span class="config-tag config-tag--active-ssq">一叶一菩提</span>
-            </template>
-            <template v-else>
-              <span class="config-tag config-tag--active-dlt">道生一 一生二</span>
-              <span class="config-tag config-tag--active-dlt">二生三 三生万物</span>
-            </template>
-          </div>
-          <NoteCounter v-model="notes" :theme="lotteryType" :autofocus="counterAutofocus" />
-          <div class="config-spacer"></div>
-          <ModeSelector v-model="mode" :theme="lotteryType" />
-        </div>
 
         <!-- 生财/有道按钮 -->
         <div class="generate-btn-wrapper">
@@ -311,9 +374,31 @@ function reload() {
     <!-- 底部版权 -->
     <footer class="home-footer">
       <div class="footer-inner">
-        <p class="footer-text">@2026 sikenali  Vibe Coding</p>
+        <p class="footer-text">
+          <span v-if="lotteryType === 'ssq'">一花一世界 · 一叶一菩提</span>
+          <span v-else>道生一 一生二 · 二生三 三生万物</span>
+        </p>
       </div>
     </footer>
+
+    <!-- 图标弹框 -->
+    <IconModal
+      :visible="showIconModal"
+      :type="currentModalType"
+      :lottery-type="lotteryType"
+      @close="handleCloseModal"
+    />
+
+    <!-- 号码选择弹框 -->
+    <NumberPickerModal
+      :visible="showPickerModal"
+      :title="pickerTitle"
+      :type="pickerType"
+      :lottery-type="lotteryType"
+      :selected-numbers="pickerSelectedNumbers"
+      @confirm="handlePickerConfirm"
+      @close="handlePickerClose"
+    />
   </div>
 </template>
 
@@ -451,193 +536,121 @@ function reload() {
 }
 
 .info-btn {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 9999px;
-  background: #FEF3C7;
+  background: linear-gradient(135deg, rgba(254,243,199,1) 0%, rgba(255,251,235,1) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  border: 1.5px solid #FCD34D;
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
   z-index: 1;
   margin-right: 12px;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
 }
 
-.info-icon {
+.info-btn:hover {
+  background: linear-gradient(135deg, rgba(253,224,71,1) 0%, rgba(252,211,77,1) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
+}
+
+.info-btn:active {
+  transform: translateY(0);
+}
+
+.info-icon-svg {
   width: 22px;
   height: 22px;
-  font-size: 22px;
-  color: #B45309;
+  color: #D97706;
 }
 
 /* 规则弹窗 */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 200;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.4);
-  padding: 48px 24px 24px 24px;
-  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 24px;
 }
 
 .modal-content {
-  width: 100%;
-  max-width: 672px;
-  max-height: 80vh;
-  margin: 0 auto;
-  overflow-y: auto;
-  border-radius: 12px;
-  background: rgba(255,255,255,1);
-  border: 0.7px solid #FDE68A;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.1);
+  width: 500px;
+  height: 320px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+  padding: 16px;
 }
 
-.modal-header {
+.modal-tip-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.tip-icon-wrapper {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(254,243,199,1) 0%, rgba(255,251,235,1) 100%);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 24px 24px 0 24px;
+  justify-content: center;
+  border: 2px solid #FCD34D;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
 }
 
-.modal-title {
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: #92400E;
-  font-family: 'SourceHanSans-Bold';
-  margin: 0;
-}
-
-.modal-tip {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
-  background: #FEF3C7;
-  border-radius: 12px;
-}
-
-.modal-tip-icon {
-  width: 20px;
-  height: 20px;
-  color: #D97706;
-}
-
-.modal-tip-text {
-  font-size: 13px;
-  font-weight: 500;
-  color: #92400E;
-  font-family: 'SourceHanSans-Medium';
-  white-space: nowrap;
-}
-
-.modal-close {
+.tip-icon-svg {
   width: 32px;
   height: 32px;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  background: transparent;
-}
-
-.close-icon {
-  width: 20px;
-  height: 20px;
-  color: #92400E;
-}
-
-.modal-divider {
-  margin: 16px 24px 0 24px;
-  height: 1px;
-  background: #FDE68A;
-}
-
-.modal-body {
-  padding: 24px 24px 24px 24px;
-}
-
-.rule-title {
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0 0 16px 0;
-}
-
-.rule-title::first-letter {
-  font-size: 20px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-}
-
-.rule-title--red {
-  color: #DC2626;
-  font-family: 'SourceHanSans-Bold';
-}
-
-.rule-title--blue {
-  color: #3B82F6;
-  font-family: 'SourceHanSans-Bold';
-  margin-top: 16px;
-}
-
-.rule-list {
-  padding: 0 0 0 12px;
-}
-
-.rule-item {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.rule-num {
-  width: 24px;
-  height: 24px;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: 'SourceHanSans-SemiBold';
-}
-
-.rule-num--red {
-  background: #FEE2E2;
-  color: #DC2626;
-}
-
-.rule-num--blue {
-  background: #DBEAFE;
-  color: #2563EB;
-}
-
-.rule-num--gold {
-  background: #FEF3C7;
   color: #D97706;
 }
 
-.rule-spacer {
-  width: 8px;
+.tip-message {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #92400E;
+  font-family: 'SourceHanSans-Medium';
+  margin: 0;
+  text-align: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(254,243,199,0.5) 0%, rgba(255,251,235,0.8) 50%, rgba(254,243,199,0.5) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(253, 230, 138, 0.6);
+  box-shadow: inset 0 1px 3px rgba(180, 83, 9, 0.08);
+  letter-spacing: 0.3px;
 }
 
-.rule-text {
+.tip-text-wrapper {
   flex: 1;
-  font-size: 16px;
-  line-height: 1.2;
-  color: #78350F;
-  font-family: 'SourceHanSans-Regular';
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.tip-copyright {
+  font-size: 13px;
+  color: #B45309;
+  font-family: 'SourceHanSans-Medium';
+  text-align: center;
   margin: 0;
+  opacity: 0.85;
+  letter-spacing: 0.5px;
 }
 
 /* 主内容区 */
@@ -655,20 +668,10 @@ function reload() {
   max-width: 672px;
   margin: 0 auto;
   gap: 10px;
+  position: relative;
 }
 
-/* 选号配置区 */
-.config-card {
-  width: 100%;
-  border-radius: 12px;
-  background: rgba(255,255,255,1);
-  border: 0.7px solid #FDE68A;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.1);
-  padding: 16px;
-  box-sizing: border-box;
-  margin-top: -10px;
-}
-
+/* 配置标题 */
 .config-title {
   width: 100%;
   display: flex;
@@ -750,6 +753,37 @@ function reload() {
   line-height: 1.2;
   color: #FFFFFF;
   font-family: 'SourceHanSans-ExtraBold';
+}
+
+/* 配置标题（按钮下方，间距加大） */
+.config-title {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.config-tag {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+  color: #FFFFFF;
+  font-family: 'SourceHanSans-SemiBold';
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.config-tag--active-ssq {
+  background: linear-gradient(90deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.config-tag--active-dlt {
+  background: linear-gradient(90deg, rgba(59,130,246,1) 0%, rgba(99,102,241,1) 100%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.1);
 }
 
 /* 底部间距 */
@@ -891,14 +925,13 @@ function reload() {
   }
 
   .info-btn {
-    width: 34px;
-    height: 34px;
+    width: 42px;
+    height: 42px;
   }
 
-  .info-icon {
-    width: 22px;
-    height: 22px;
-    font-size: 22px;
+  .info-icon-svg {
+    width: 24px;
+    height: 24px;
   }
 
   .main-inner {
@@ -976,32 +1009,6 @@ function reload() {
 
   .bottom-spacer {
     height: 12px;
-  }
-
-  /* config-card 整体缩放 */
-  .config-card {
-    transform: scale(0.8);
-    transform-origin: center center;
-  }
-
-  /* NoteCounter 组件等比缩放 */
-  .note-counter {
-    transform: scale(0.9);
-    transform-origin: center center;
-  }
-
-  /* ModeSelector 组件等比缩放 */
-  .mode-selector {
-    transform: scale(0.9);
-    transform-origin: center center;
-  }
-
-  .config-spacer {
-    height: 0px !important;
-  }
-
-  .config-title {
-    margin-bottom: 4px !important;
   }
 }
 
@@ -1196,7 +1203,8 @@ function reload() {
   }
 
   .modal-content {
-    max-height: 85vh;
+    width: 500px;
+    height: 400px;
   }
 
   .modal-header {

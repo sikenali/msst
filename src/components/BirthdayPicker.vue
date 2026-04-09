@@ -1,0 +1,202 @@
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { RiSubtractLine, RiAddLine } from '@remixicon/vue'
+import { useUserSelections } from '@/composables/useUserSelections'
+
+interface Props {
+  theme?: 'ssq' | 'dlt'
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  theme: 'ssq'
+})
+
+const emit = defineEmits<{
+  cancel: []
+  confirm: []
+}>()
+
+const { userBirthday, setBirthday } = useUserSelections()
+
+const now = new Date()
+const year = ref(userBirthday.value?.year || now.getFullYear() - 20)
+const month = ref(userBirthday.value?.month || 1)
+const day = ref(userBirthday.value?.day || 1)
+
+const border = computed(() => props.theme === 'ssq' ? '#D97706' : '#3B82F6')
+const bg = computed(() => props.theme === 'ssq' ? 'rgba(254,243,199,1)' : 'rgba(219,234,254,1)')
+const btnHover = computed(() => props.theme === 'ssq' ? 'rgba(217,119,6,0.1)' : 'rgba(59,130,246,0.1)')
+
+const daysInMonth = computed(() => new Date(year.value, month.value, 0).getDate())
+
+watch(month, () => {
+  if (day.value > daysInMonth.value) {
+    day.value = daysInMonth.value
+  }
+})
+
+function clampYear(val: number) { return Math.max(1900, Math.min(now.getFullYear(), val)) }
+function clampMonth(val: number) { return Math.max(1, Math.min(12, val)) }
+function clampDay(val: number) { return Math.max(1, Math.min(daysInMonth.value, val)) }
+
+function adjustYear(delta: number) { year.value = clampYear(year.value + delta) }
+function adjustMonth(delta: number) { month.value = clampMonth(month.value + delta) }
+function adjustDay(delta: number) { day.value = clampDay(day.value + delta) }
+
+function onYearInput(e: Event) { const v = parseInt((e.target as HTMLInputElement).value, 10); if (!isNaN(v)) year.value = clampYear(v) }
+function onMonthInput(e: Event) { const v = parseInt((e.target as HTMLInputElement).value, 10); if (!isNaN(v)) month.value = clampMonth(v) }
+function onDayInput(e: Event) { const v = parseInt((e.target as HTMLInputElement).value, 10); if (!isNaN(v)) day.value = clampDay(v) }
+
+function handleConfirm() {
+  setBirthday({ year: year.value, month: month.value, day: day.value })
+  emit('confirm')
+}
+
+function handleCancel() {
+  year.value = userBirthday.value?.year || now.getFullYear() - 20
+  month.value = userBirthday.value?.month || 1
+  day.value = userBirthday.value?.day || 1
+  emit('cancel')
+}
+</script>
+
+<template>
+  <div class="birthday-picker" :style="{ '--bp-border': border, '--bp-bg': bg, '--bp-hover': btnHover }">
+    <!-- 日期选择区 -->
+    <div class="bp-fields">
+      <div class="bp-field">
+        <span class="bp-label">年</span>
+        <div class="bp-control">
+          <button class="bp-btn" @click="adjustYear(1)"><RiAddLine class="bp-icon" /></button>
+          <input type="text" inputmode="numeric" class="bp-input" :value="year" @input="onYearInput" />
+          <button class="bp-btn" @click="adjustYear(-1)"><RiSubtractLine class="bp-icon" /></button>
+        </div>
+      </div>
+      <div class="bp-field">
+        <span class="bp-label">月</span>
+        <div class="bp-control">
+          <button class="bp-btn" @click="adjustMonth(1)"><RiAddLine class="bp-icon" /></button>
+          <input type="text" inputmode="numeric" class="bp-input" :value="month" @input="onMonthInput" />
+          <button class="bp-btn" @click="adjustMonth(-1)"><RiSubtractLine class="bp-icon" /></button>
+        </div>
+      </div>
+      <div class="bp-field">
+        <span class="bp-label">日</span>
+        <div class="bp-control">
+          <button class="bp-btn" @click="adjustDay(1)"><RiAddLine class="bp-icon" /></button>
+          <input type="text" inputmode="numeric" class="bp-input" :value="day" @input="onDayInput" />
+          <button class="bp-btn" @click="adjustDay(-1)"><RiSubtractLine class="bp-icon" /></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="bp-actions">
+      <button class="picker-btn picker-btn--cancel" @click="handleCancel">取消</button>
+      <button class="picker-btn picker-btn--confirm" @click="handleConfirm">确定</button>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.birthday-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bp-fields {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.bp-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.bp-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400E;
+  font-family: 'SourceHanSans-SemiBold';
+}
+
+.bp-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 68px;
+  border: 2px solid var(--bp-border);
+  border-radius: 10px;
+  background: var(--bp-bg);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.bp-btn {
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.bp-btn:active { background: var(--bp-hover); }
+
+.bp-icon { width: 14px; height: 14px; color: var(--bp-border); }
+
+.bp-input {
+  width: 100%;
+  height: 38px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #92400E;
+  font-family: 'SourceHanSans-SemiBold';
+  background: transparent;
+  border: none;
+  outline: none;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.bp-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.picker-btn {
+  flex: 1;
+  height: 38px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'SourceHanSans-SemiBold';
+}
+
+.picker-btn:active { transform: scale(0.96); }
+
+.picker-btn--cancel { background: #F3F4F6; color: #6B7280; }
+.picker-btn--cancel:hover { background: #E5E7EB; }
+
+.picker-btn--confirm {
+  background: var(--confirm-gradient, linear-gradient(135deg, #F59E0B 0%, #D97706 100%));
+  color: #FFFFFF;
+  box-shadow: var(--confirm-shadow, 0 4px 12px rgba(217, 119, 6, 0.25));
+}
+
+.picker-btn--confirm:hover { box-shadow: var(--confirm-hover-shadow, 0 6px 16px rgba(217, 119, 6, 0.35)); }
+</style>

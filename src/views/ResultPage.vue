@@ -15,7 +15,7 @@ import NumberBall from '@/components/NumberBall.vue'
 import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
 import TurtleIcon from '@/components/TurtleIcon.vue'
 import BaguaIcon from '@/components/BaguaIcon.vue'
-import { generateSSQ, generateDLT, formatTime, getIssueNumber } from '@/composables/useLottery'
+import { generateSSQ, generateDLT, formatTime, getIssueNumber, setIssueNumber, currentIssueNumber } from '@/composables/useLottery'
 
 const router = useRouter()
 const route = useRoute()
@@ -304,7 +304,10 @@ function handleBack() {
     <!-- 底部版权 -->
     <footer class="result-footer">
       <div class="footer-inner">
-        <p class="footer-text">@2026 sikenali  Vibe Coding</p>
+        <p class="footer-text">
+          <span v-if="lotteryType === 'ssq'">一花一世界 · 一叶一菩提</span>
+          <span v-else>道生一 一生二 · 二生三 三生万物</span>
+        </p>
       </div>
     </footer>
 

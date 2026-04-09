@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import IncenseIcon from '@/components/IncenseIcon.vue'
+import RedCandleIcon from '@/components/RedCandleIcon.vue'
 
 interface Props {
   theme?: 'ssq' | 'dlt'
@@ -13,16 +13,14 @@ const props = withDefaults(defineProps<Props>(), {
 const modelValue = defineModel<'single' | 'multiple' | 'dantuo'>({ default: 'single' })
 
 const activeGradient = computed(() => props.theme === 'ssq'
-  ? 'linear-gradient(90deg, rgba(254,242,242,1) 0%, rgba(255,251,235,1) 100%)'
-  : 'linear-gradient(90deg, rgba(219,234,254,1) 0%, rgba(238,242,255,1) 100%)'
+  ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
+  : 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
 )
-const activeBorder = computed(() => props.theme === 'ssq' ? '#EF4444' : '#3B82F6')
-const activeText = computed(() => props.theme === 'ssq' ? '#DC2626' : '#2563EB')
-const inactiveBorderColor = '#FDE68A'
-const inactiveBgColor = '#FFFBEB'
-const inactiveTextColor = '#92400E'
-
-const modeLabel = computed(() => props.theme === 'ssq' ? '拜式' : '拜式')
+const activeBorder = computed(() => props.theme === 'ssq' ? '#D97706' : '#2563EB')
+const activeText = computed(() => '#FFFFFF')
+const inactiveBorderColor = computed(() => props.theme === 'ssq' ? '#FDE68A' : '#BFDBFE')
+const inactiveBgColor = computed(() => props.theme === 'ssq' ? 'rgba(255,251,235,1)' : 'rgba(238,242,255,1)')
+const inactiveTextColor = computed(() => props.theme === 'ssq' ? '#D97706' : '#2563EB')
 
 // 点击后主动 blur，防止按钮保持焦点
 function handleClick(value: 'single' | 'multiple' | 'dantuo') {
@@ -35,9 +33,6 @@ function handleClick(value: 'single' | 'multiple' | 'dantuo') {
 
 <template>
   <div class="mode-selector">
-    <label class="mode-label">{{ modeLabel }}</label>
-    <!-- 间距 12px -->
-    <div class="mode-spacer"></div>
     <!-- 模式选项 -->
     <div class="mode-buttons">
       <!-- 单式 -->
@@ -51,7 +46,7 @@ function handleClick(value: 'single' | 'multiple' | 'dantuo') {
         tabindex="-1"
       >
         <span class="mode-icon-wrapper">
-          <IncenseIcon class="mode-icon" :count="1" />
+          <RedCandleIcon class="mode-icon" :count="1" />
         </span>
         单式
       </button>
@@ -68,7 +63,7 @@ function handleClick(value: 'single' | 'multiple' | 'dantuo') {
         tabindex="-1"
       >
         <span class="mode-icon-wrapper">
-          <IncenseIcon class="mode-icon" :count="2" />
+          <RedCandleIcon class="mode-icon" :count="2" />
         </span>
         复式
       </button>
@@ -85,7 +80,7 @@ function handleClick(value: 'single' | 'multiple' | 'dantuo') {
         tabindex="-1"
       >
         <span class="mode-icon-wrapper">
-          <IncenseIcon class="mode-icon" :count="3" />
+          <RedCandleIcon class="mode-icon" :count="3" />
         </span>
         胆拖
       </button>
@@ -96,20 +91,6 @@ function handleClick(value: 'single' | 'multiple' | 'dantuo') {
 <style scoped>
 .mode-selector {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.mode-label {
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #78350F;
-  font-family: 'SourceHanSans-SemiBold';
-}
-
-.mode-spacer {
-  height: 12px;
 }
 
 .mode-buttons {
@@ -162,10 +143,6 @@ function handleClick(value: 'single' | 'multiple' | 'dantuo') {
 
 /* 移动端适配 */
 @media screen and (max-width: 480px) {
-  .mode-label {
-    font-size: 15px;
-  }
-
   .mode-buttons {
     height: 48px;
   }

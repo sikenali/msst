@@ -86,13 +86,14 @@ function preventInvalid(e: KeyboardEvent) {
     e.preventDefault()
   }
 }
-
 const counterLabel = computed(() => props.theme === 'ssq' ? '财数' : '道数')
+
+const counterBorder = computed(() => props.theme === 'ssq' ? '#F59E0B' : '#3B82F6')
+const counterBg = computed(() => props.theme === 'ssq' ? '#FFFBEB' : 'rgba(219,234,254,1)')
 </script>
 
 <template>
-  <div class="note-counter">
-    <label class="counter-label">{{ counterLabel }}</label>
+  <div class="note-counter" :style="{ '--counter-border': counterBorder, '--counter-bg': counterBg }">
     <div class="counter-input">
       <button class="counter-btn" @click="decrement" :disabled="count <= 1">
         <RiSubtractLine class="counter-icon" />
@@ -122,30 +123,20 @@ const counterLabel = computed(() => props.theme === 'ssq' ? '财数' : '道数')
 <style scoped>
 .note-counter {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.counter-label {
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #78350F;
-  font-family: 'SourceHanSans-SemiBold';
 }
 
 .counter-input {
-  margin-top: 12px;
   width: 100%;
   height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-radius: 8px;
-  border: 2px solid #FDE68A;
-  background: #FFFBEB;
+  border: 2px solid var(--counter-border, #FDE68A);
+  background: var(--counter-bg, #FFFBEB);
   box-sizing: border-box;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .counter-btn {
@@ -218,10 +209,6 @@ const counterLabel = computed(() => props.theme === 'ssq' ? '财数' : '道数')
 
   .counter-value-input {
     font-size: 18px;
-  }
-
-  .counter-label {
-    font-size: 16px;
   }
 }
 </style>
