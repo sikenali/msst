@@ -2,8 +2,10 @@
 import { ref, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { RiMoneyCnyCircleFill } from '@remixicon/vue'
-import { useUserSelections } from '@/composables/useUserSelections'
+import { useUserSelections, setCurrentType } from '@/composables/useUserSelections'
+import { setCurrentLotteryType } from '@/composables/useLottery'
 import TabSwitcher from '@/components/TabSwitcher.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import BaguaDiagram from '@/components/BaguaDiagram.vue'
 import NoteCounter from '@/components/NoteCounter.vue'
 import ModeSelector from '@/components/ModeSelector.vue'
@@ -18,7 +20,24 @@ const router = useRouter()
 const route = useRoute()
 
 const lotteryType = ref<'ssq' | 'dlt'>((route.query.type as 'ssq' | 'dlt') || 'ssq')
-const notes = ref(1)
+
+// 同步当前彩种类型到全局状态
+watch(lotteryType, (newType) => {
+  setCurrentType(newType)
+  setCurrentLotteryType(newType)
+}, { immediate: true })
+
+// 使用 computed 动态获取当前彩种的注数
+const notes = computed({
+  get: () => {
+    const { userNotes } = useUserSelections()
+    return userNotes.value
+  },
+  set: (val: number) => {
+    const { setNotes } = useUserSelections()
+    setNotes(val)
+  }
+})
 const mode = ref<'single' | 'multiple' | 'dantuo'>('single')
 const showRulesModal = ref(false)
 const isSpinning = ref(false)
@@ -118,12 +137,29 @@ watch(() => route.query.type, (newType) => {
 // Auto generate
 const autoGenerate = computed(() => route.query.autoGenerate === '1')
 
+// 同步路由参数到本地状态
+watch(() => route.query.notes, (val) => {
+  const notesNum = Number(val) || 5
+  const { setNotes } = useUserSelections()
+  setNotes(notesNum)
+}, { immediate: true })
+
+watch(() => route.query.mode, (val) => {
+  if (val === 'single' || val === 'multiple' || val === 'dantuo') {
+    const { setMode } = useUserSelections()
+    setMode(val)
+  }
+}, { immediate: true })
+
 watch(autoGenerate, async (shouldAutoGenerate) => {
   if (shouldAutoGenerate) {
-    console.log('生成注数:', notes.value)
+    // 使用路由参数中的注数和模式
+    const notesCount = Number(route.query.notes) || 5
+    const currentMode = (route.query.mode as string) || 'single'
+    
+    console.log('生成注数:', notesCount, '模式:', currentMode)
     isSpinning.value = true
-    // 根据注数动态计算等待时间（与BaguaDiagram旋转时间一致）
-    const notesCount = notes.value
+    
     let baseDuration = 0
     let extraPerNote = 0
     const maxDuration = 25000
@@ -154,8 +190,8 @@ watch(autoGenerate, async (shouldAutoGenerate) => {
       path: '/result',
       query: {
         type: lotteryType.value,
-        notes: notes.value,
-        mode: mode.value,
+        notes: notesCount,
+        mode: currentMode,
       },
     })
   }
@@ -292,36 +328,11 @@ function reload() {
     </div>
 
     <!-- 顶部导航栏 -->
-    <header class="home-header">
-      <div class="header-inner">
-        <div class="header-content">
-          <!-- Logo区域 -->
-          <div class="logo-area" style="cursor: pointer;" @click="reload">
-            <div class="logo-icon">
-              <RiMoneyCnyCircleFill class="logo-svg" />
-            </div>
-            <div class="logo-spacer"></div>
-            <h1 class="logo-text">妙手神透</h1>
-          </div>
-
-          <!-- 选项卡容器: 水平居中 -->
-          <div class="tab-wrapper">
-            <TabSwitcher v-model="lotteryType" />
-          </div>
-
-          <!-- 温馨提示按钮 -->
-          <button class="info-btn" @click="openRules">
-            <svg class="info-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- 双手作揖 -->
-              <path d="M12 2C10 4 8 6 8 9C8 12 10 14 12 16C14 14 16 12 16 9C16 6 14 4 12 2Z" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.2"/>
-              <path d="M7 10C5 11 3 14 4 17C5 20 8 21 10 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-              <path d="M17 10C19 11 21 14 20 17C19 20 16 21 14 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-              <path d="M10 18L12 22L14 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </header>
+    <PageHeader
+      v-model="lotteryType"
+      @info="openRules"
+      @logo-click="reload"
+    />
 
     <!-- 规则弹窗 -->
     <div class="modal-overlay" v-if="showRulesModal" @click="closeRules">
@@ -446,127 +457,6 @@ function reload() {
   0% { transform: rotate(0deg) scale(var(--rain-scale, 1)); }
   50% { transform: rotate(180deg) scale(var(--rain-scale, 1)); }
   100% { transform: rotate(360deg) scale(var(--rain-scale, 1)); }
-}
-
-/* 顶部导航栏 - 悬浮透明背景 */
-.home-header {
-  width: 100%;
-  max-width: 1158px;
-  margin: 0 auto;
-  background: transparent;
-  box-shadow: none;
-  padding: 12px 0;
-  position: relative;
-  z-index: 10;
-  box-sizing: border-box;
-}
-
-.header-inner {
-  padding: 0 24px;
-  max-width: 1158px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  padding: 8px 0;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
-  box-sizing: border-box;
-}
-
-.logo-area {
-  display: flex;
-  align-items: center;
-  z-index: 1;
-  margin-left: 12px;
-}
-
-.logo-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 9999px;
-  background: linear-gradient(180deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.logo-svg {
-  width: 16px;
-  height: 20px;
-  font-size: 14px;
-  color: #FFFFFF;
-}
-
-.logo-spacer {
-  width: 6px;
-}
-
-.logo-text {
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.2;
-  color: #92400E;
-  font-family: 'SourceHanSans-ExtraBold';
-  margin: 0;
-}
-
-.tab-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-}
-
-.tab-wrapper > * {
-  pointer-events: auto;
-}
-
-.info-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, rgba(254,243,199,1) 0%, rgba(255,251,235,1) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid #FCD34D;
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  z-index: 1;
-  margin-right: 12px;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
-}
-
-.info-btn:hover {
-  background: linear-gradient(135deg, rgba(253,224,71,1) 0%, rgba(252,211,77,1) 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
-}
-
-.info-btn:active {
-  transform: translateY(0);
-}
-
-.info-icon-svg {
-  width: 22px;
-  height: 22px;
-  color: #D97706;
 }
 
 /* 规则弹窗 */
@@ -714,6 +604,7 @@ function reload() {
 
 /* 生财按钮 */
 .generate-btn-wrapper {
+  position: relative;
   display: flex;
   justify-content: center;
   margin-top: 16px;
@@ -835,7 +726,7 @@ function reload() {
   }
 
   .header-content {
-    padding: 10px 0;
+    padding: 12px 0;
     border-radius: 20px;
   }
 
@@ -901,7 +792,7 @@ function reload() {
   }
 
   .header-content {
-    padding: 8px 0;
+    padding: 12px 0;
     border-radius: 24px;
   }
 
@@ -1032,7 +923,7 @@ function reload() {
     gap: 4px;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: 12px 0;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);

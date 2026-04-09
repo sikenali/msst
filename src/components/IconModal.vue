@@ -7,7 +7,7 @@ import BirthdayPicker from '@/components/BirthdayPicker.vue'
 import ConstellationPicker from '@/components/ConstellationPicker.vue'
 import LuckyNumberPicker from '@/components/LuckyNumberPicker.vue'
 import ShengchenPicker from '@/components/ShengchenPicker.vue'
-import { useUserSelections } from '@/composables/useUserSelections'
+import { useUserSelections, setCurrentType } from '@/composables/useUserSelections'
 
 interface Props {
   visible: boolean
@@ -20,8 +20,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   close: []
 }>()
-
-const { setRedNumbers, setBlueNumbers } = useUserSelections()
 
 const typeLabels: Record<string, string> = {
   lanruo: '蓝若是',
@@ -42,13 +40,24 @@ const notesCount = ref(1)
 // 运式状态
 const yunshiMode = ref<'single' | 'multiple' | 'dantuo'>('single')
 
+// 监听弹窗打开，从全局状态加载数据
 watch(() => props.visible, (val) => {
   if (val) {
-    if (props.type === 'yunshu') {
-      notesCount.value = 1
+    // 同步彩种类型
+    if (props.lotteryType) {
+      setCurrentType(props.lotteryType)
     }
+    
+    // 重新获取当前彩种的数据
+    const { userNotes, userMode } = useUserSelections()
+    
+    // 运数：恢复上次保存的注数
+    if (props.type === 'yunshu') {
+      notesCount.value = userNotes.value
+    }
+    // 运式：恢复上次保存的模式
     if (props.type === 'yunshi') {
-      yunshiMode.value = 'single'
+      yunshiMode.value = userMode.value
     }
   }
 })

@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git init)",
       "Bash(npm run *)",
-      "mcp__my-server__get_design_data"
+      "mcp__my-server__get_design_data",
+      "mcp__my-server__get_screenshots"
     ]
   },
   "$version": 3

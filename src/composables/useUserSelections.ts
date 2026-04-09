@@ -6,63 +6,146 @@ export interface BirthdayInfo {
   day: number
 }
 
-// 全局响应式存储 - 用户的"法号"与"道号"数据
-// 页面切换或刷新前临时保存，不跨会话
-export const userBlueNumbers = ref<number[]>([])
-export const userRedNumbers = ref<number[]>([])
-export const userNotes = ref<number>(1)
-export const userMode = ref<'single' | 'multiple' | 'dantuo'>('single')
-export const userBirthday = ref<BirthdayInfo | null>(null)
-export const userConstellation = ref<string>('')
-export const userLuckyNumbers = ref<number[]>([])
+// 全局响应式存储 - 双色球数据
+export const ssqBlueNumbers = ref<number[]>([])
+export const ssqRedNumbers = ref<number[]>([])
+export const ssqNotes = ref<number>(5)
+export const ssqMode = ref<'single' | 'multiple' | 'dantuo'>('single')
+export const ssqBirthday = ref<BirthdayInfo | null>(null)
+export const ssqConstellation = ref<string>('')
+export const ssqLuckyNumbers = ref<number[]>([])
+
+// 全局响应式存储 - 大乐透数据
+export const dltBlueNumbers = ref<number[]>([])
+export const dltRedNumbers = ref<number[]>([])
+export const dltNotes = ref<number>(5)
+export const dltMode = ref<'single' | 'multiple' | 'dantuo'>('single')
+export const dltBirthday = ref<BirthdayInfo | null>(null)
+export const dltConstellation = ref<string>('')
+export const dltLuckyNumbers = ref<number[]>([])
+
+// 当前激活的引用（根据彩种动态切换）
+let currentType: 'ssq' | 'dlt' = 'ssq'
+
+export function setCurrentType(type: 'ssq' | 'dlt') {
+  currentType = type
+}
+
+function getBlueNumbers() {
+  return currentType === 'ssq' ? ssqBlueNumbers : dltBlueNumbers
+}
+
+function getRedNumbers() {
+  return currentType === 'ssq' ? ssqRedNumbers : dltRedNumbers
+}
+
+function getNotes() {
+  return currentType === 'ssq' ? ssqNotes : dltNotes
+}
+
+function getMode() {
+  return currentType === 'ssq' ? ssqMode : dltMode
+}
+
+function getBirthday() {
+  return currentType === 'ssq' ? ssqBirthday : dltBirthday
+}
+
+function getConstellation() {
+  return currentType === 'ssq' ? ssqConstellation : dltConstellation
+}
+
+function getLuckyNumbers() {
+  return currentType === 'ssq' ? ssqLuckyNumbers : dltLuckyNumbers
+}
+
+// 获取当前激活的响应式引用
+function getCurrentRefs() {
+  if (currentType === 'ssq') {
+    return {
+      blueNumbers: ssqBlueNumbers,
+      redNumbers: ssqRedNumbers,
+      notes: ssqNotes,
+      mode: ssqMode,
+      birthday: ssqBirthday,
+      constellation: ssqConstellation,
+      luckyNumbers: ssqLuckyNumbers,
+    }
+  }
+  return {
+    blueNumbers: dltBlueNumbers,
+    redNumbers: dltRedNumbers,
+    notes: dltNotes,
+    mode: dltMode,
+    birthday: dltBirthday,
+    constellation: dltConstellation,
+    luckyNumbers: dltLuckyNumbers,
+  }
+}
 
 export function useUserSelections() {
   function setBlueNumbers(numbers: number[]) {
-    userBlueNumbers.value = [...numbers]
+    const refs = getCurrentRefs()
+    refs.blueNumbers.value = [...numbers]
   }
 
   function setRedNumbers(numbers: number[]) {
-    userRedNumbers.value = [...numbers]
+    const refs = getCurrentRefs()
+    refs.redNumbers.value = [...numbers]
   }
 
   function setNotes(notes: number) {
-    userNotes.value = notes
+    const refs = getCurrentRefs()
+    refs.notes.value = notes
   }
 
   function setMode(mode: 'single' | 'multiple' | 'dantuo') {
-    userMode.value = mode
+    const refs = getCurrentRefs()
+    refs.mode.value = mode
   }
 
   function setBirthday(info: BirthdayInfo) {
-    userBirthday.value = { ...info }
+    const refs = getCurrentRefs()
+    refs.birthday.value = { ...info }
   }
 
   function setConstellation(name: string) {
-    userConstellation.value = name
+    const refs = getCurrentRefs()
+    refs.constellation.value = name
   }
 
   function setLuckyNumbers(numbers: number[]) {
-    userLuckyNumbers.value = [...numbers]
+    const refs = getCurrentRefs()
+    refs.luckyNumbers.value = [...numbers]
   }
 
   function clearAll() {
-    userBlueNumbers.value = []
-    userRedNumbers.value = []
-    userNotes.value = 1
-    userMode.value = 'single'
-    userBirthday.value = null
-    userConstellation.value = ''
-    userLuckyNumbers.value = []
+    ssqBlueNumbers.value = []
+    ssqRedNumbers.value = []
+    ssqNotes.value = 1
+    ssqMode.value = 'single'
+    ssqBirthday.value = null
+    ssqConstellation.value = ''
+    ssqLuckyNumbers.value = []
+
+    dltBlueNumbers.value = []
+    dltRedNumbers.value = []
+    dltNotes.value = 1
+    dltMode.value = 'single'
+    dltBirthday.value = null
+    dltConstellation.value = ''
+    dltLuckyNumbers.value = []
   }
 
+  const refs = getCurrentRefs()
   return {
-    userBlueNumbers,
-    userRedNumbers,
-    userNotes,
-    userMode,
-    userBirthday,
-    userConstellation,
-    userLuckyNumbers,
+    userBlueNumbers: refs.blueNumbers,
+    userRedNumbers: refs.redNumbers,
+    userNotes: refs.notes,
+    userMode: refs.mode,
+    userBirthday: refs.birthday,
+    userConstellation: refs.constellation,
+    userLuckyNumbers: refs.luckyNumbers,
     setBlueNumbers,
     setRedNumbers,
     setNotes,
