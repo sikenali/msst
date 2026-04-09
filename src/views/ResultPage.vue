@@ -32,6 +32,7 @@ const issueNumber = ref('')
 const issuePrefix = ref('')
 const issueSuffix = ref('')
 const metaTime = ref('')
+const drawDate = ref('')
 const metaMode = ref('')
 const ticketTime = ref('')
 const ticketCode = ref('')
@@ -142,9 +143,12 @@ function refreshData() {
   issueNumber.value = getIssueNumber(lotteryType.value)
   issuePrefix.value = currentIssuePrefix.value
   issueSuffix.value = currentIssueSuffix.value
-  metaTime.value = `生成时间：${formatTime()}`
+  metaTime.value = formatTime()
   metaMode.value = `注数：${notes.value}注 | 模式：${modeLabels[mode.value as keyof typeof modeLabels]}`
   ticketCode.value = generateTicketCode()
+  
+  // 计算下一期开奖日期
+  drawDate.value = calculateNextDrawDate(lotteryType.value)
 
   // 设置出票时间为系统当前时间
   const now = new Date()
@@ -155,6 +159,38 @@ function refreshData() {
   const minutes = String(now.getMinutes()).padStart(2, '0')
   const seconds = String(now.getSeconds()).padStart(2, '0')
   ticketTime.value = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+// 计算下一期开奖日期
+function calculateNextDrawDate(type: 'ssq' | 'dlt'): string {
+  const now = new Date()
+  const currentDay = now.getDay() // 0=周日, 1=周一, ..., 6=周六
+  const currentHour = now.getHours()
+  
+  // 开奖日：双色球(0,2,4=周日,周二,周四), 大乐透(1,3,6=周一,周三,周六)
+  const drawDays = type === 'ssq' ? [0, 2, 4] : [1, 3, 6]
+  
+  // 找到下一个开奖日
+  let daysUntilDraw = 7
+  for (const drawDay of drawDays) {
+    let diff = (drawDay - currentDay + 7) % 7
+    if (diff === 0 && currentHour >= 21) {
+      // 今天就是开奖日且已过21点，找下一个
+      diff = 7
+    }
+    if (diff < daysUntilDraw) {
+      daysUntilDraw = diff
+    }
+  }
+  
+  const nextDraw = new Date(now)
+  nextDraw.setDate(now.getDate() + daysUntilDraw)
+  
+  const year = nextDraw.getFullYear()
+  const month = String(nextDraw.getMonth() + 1).padStart(2, '0')
+  const day = String(nextDraw.getDate()).padStart(2, '0')
+  
+  return `${year}-${month}-${day}`
 }
 
 // 计算公益金额（官方规则：双色球/大乐透公益金提取比例为36%，每注2元）
@@ -279,7 +315,7 @@ function handleBack() {
                     <span class="issue-num">第 <span class="issue-num-value" :class="{ 'issue-num-value--dlt': lotteryType === 'dlt' }">{{ issueNumber }}</span> 期</span>
                   </div>
                   <div class="date-info">
-                    <span class="date-text">{{ metaTime.split(' ')[0] }} 开奖</span>
+                    <span class="date-text"><span class="date-label">开奖时间：</span><span class="date-value">{{ drawDate }}</span></span>
                   </div>
                 </div>
                 <div class="spacer-h8"></div>
@@ -955,6 +991,20 @@ function handleBack() {
   font-size: 12px;
   color: #4B5563;
   font-family: 'SourceHanSans-Regular';
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-label {
+  font-weight: 500;
+  color: #6B7280;
+}
+
+.date-value {
+  font-weight: 700;
+  color: #1F2937;
+  font-family: 'SourceHanSans-Bold';
 }
 
 .code-text {
@@ -1021,6 +1071,8 @@ function handleBack() {
 .note-row {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 8px;
   margin-bottom: 12px;
 }
 
@@ -1032,6 +1084,8 @@ function handleBack() {
 .blue-balls {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
 }
 
 .ball {
@@ -1556,18 +1610,46 @@ function handleBack() {
   /* 结果页主内容区移动端适配 */
   .result-main {
     flex: 1;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   .main-inner {
     padding: 16px 12px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .result-card-wrapper {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .result-float-widget {
+    position: relative;
+    top: auto;
+    right: auto;
+    transform: none;
+    margin: 12px auto;
+    justify-content: center;
+    width: fit-content;
   }
 
   .result-card {
     padding: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .ticket-container {
     padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: center;
   }
 
   .brand-header {

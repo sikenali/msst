@@ -192,10 +192,11 @@ watch(autoGenerate, async (shouldAutoGenerate) => {
         type: lotteryType.value,
         notes: notesCount,
         mode: currentMode,
+        share: '1', // 添加分享标识，结果页识别后进入分享模式
       },
     })
   }
-})
+}, { immediate: true })
 
 async function handleGenerate() {
   const { userRedNumbers, userBlueNumbers } = useUserSelections()
