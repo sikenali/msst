@@ -449,7 +449,10 @@ function handleBack() {
               <!-- 公益销售信息区 -->
               <div class="public-info">
                 <div class="charity-row">
-                  <span class="charity-text" :class="lotteryType === 'dlt' ? 'charity-text--dlt' : ''">感谢您为公益事业贡献 {{ charityAmount }} 元</span>
+                  <span class="charity-text" :class="lotteryType === 'dlt' ? 'charity-text--dlt' : ''">
+                    <span class="charity-label">感谢您为后续财富的利息贡献</span>
+                    <span class="charity-amount">{{ charityAmount }} 元</span>
+                  </span>
                 </div>
                 <div class="spacer-h8"></div>
                 <div class="station-row">
@@ -1069,13 +1072,21 @@ function handleBack() {
 
 .bet-value {
   font-size: 14px;
-  font-weight: 700;
-  color: #DC2626;
-  font-family: 'SourceHanSans-Bold';
+  font-weight: 900;
+  background: linear-gradient(90deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  font-family: 'SourceHanSans-Black';
 }
 
 .bet-value--dlt {
-  color: #0E7451;
+  background: linear-gradient(90deg, rgba(59,130,246,1) 0%, rgba(99,102,241,1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .amount-row {
@@ -1084,13 +1095,21 @@ function handleBack() {
 
 .amount-text {
   font-size: 16px;
-  font-weight: 700;
-  color: #DC2626;
-  font-family: 'SourceHanSans-Bold';
+  font-weight: 900;
+  background: linear-gradient(90deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  font-family: 'SourceHanSans-Black';
 }
 
 .amount-text--dlt {
-  color: #0E7451;
+  background: linear-gradient(90deg, rgba(59,130,246,1) 0%, rgba(99,102,241,1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 /* 号码展示区 */
@@ -1177,12 +1196,40 @@ function handleBack() {
 
 .charity-text {
   font-size: 12px;
-  color: #DC2626;
-  font-family: 'SourceHanSans-Regular';
+  background: linear-gradient(90deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  font-family: 'SourceHanSans-Black';
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.charity-text * {
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.charity-label {
+  font-weight: 900;
+}
+
+.charity-amount {
+  font-weight: 900;
 }
 
 .charity-text--dlt {
-  color: #0E7451;
+  background: linear-gradient(90deg, rgba(59,130,246,1) 0%, rgba(99,102,241,1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .station-text,
@@ -1647,11 +1694,17 @@ function handleBack() {
   }
 
   /* 结果页主内容区移动端适配 */
+  .result-page {
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
   .result-main {
     flex: 1;
     width: 100%;
     overflow-x: hidden;
     margin: 0 auto;
+    padding: 0;
   }
 
   .main-inner {
@@ -1680,8 +1733,8 @@ function handleBack() {
     margin: 12px auto;
     justify-content: center;
     width: fit-content;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
   }
 
   .result-card {
