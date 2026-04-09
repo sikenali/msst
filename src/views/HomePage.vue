@@ -137,6 +137,29 @@ watch(() => route.query.type, (newType) => {
 // Auto generate
 const autoGenerate = computed(() => route.query.autoGenerate === '1')
 
+// 分享模式下直接跳转到结果页，跳过首页动画
+if (autoGenerate.value) {
+  const shareType = (route.query.type as 'ssq' | 'dlt') || 'ssq'
+  const shareNotes = Number(route.query.notes) || 5
+  const shareMode = (route.query.mode as 'single' | 'multiple' | 'dantuo') || 'single'
+  
+  // 同步数据到全局状态
+  const { setNotes, setMode } = useUserSelections()
+  setNotes(shareNotes)
+  setMode(shareMode)
+  
+  // 直接跳转到结果页
+  router.replace({
+    path: '/result',
+    query: {
+      type: shareType,
+      notes: shareNotes,
+      mode: shareMode,
+      share: '1',
+    },
+  })
+}
+
 // 同步路由参数到本地状态
 watch(() => route.query.notes, (val) => {
   const notesNum = Number(val) || 5

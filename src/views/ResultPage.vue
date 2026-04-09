@@ -1066,14 +1066,17 @@ function handleBack() {
 /* 号码展示区 */
 .numbers-section {
   width: 100%;
+  overflow: visible; /* Allow content to define width, no scrolling on PC */
 }
 
 .note-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0; /* Remove gap to avoid conflict with spacer elements */
   margin-bottom: 12px;
+  flex-wrap: nowrap;
+  width: 100%;
 }
 
 .note-row:last-child {
@@ -1085,12 +1088,12 @@ function handleBack() {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 0; /* Remove gap to avoid conflict with spacer elements */
 }
 
 .ball {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 9999px;
   display: flex;
   align-items: center;
@@ -1107,7 +1110,7 @@ function handleBack() {
 }
 
 .ball-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: #FFFFFF;
   font-family: 'SourceHanSans-Bold';
@@ -1119,16 +1122,22 @@ function handleBack() {
 }
 
 .ball-spacer {
-  width: 8px;
+  width: 8px; /* Explicit spacing between balls */
   flex-shrink: 0;
 }
 
 .note-separator {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #1F2937;
   font-family: 'SourceHanSans-Bold';
-  margin: 0 8px;
+  margin: 0 8px; /* Explicit spacing around separator */
+  flex-shrink: 0;
+}
+
+.spacer-w8 {
+  width: 12px; /* Explicit spacing between groups */
+  flex-shrink: 0;
 }
 
 /* 公益销售信息区 */
@@ -1661,33 +1670,49 @@ function handleBack() {
   }
 
   .note-row {
-    overflow-x: auto;
+    overflow-x: hidden; /* Prevent scrolling on mobile */
     flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+    padding: 2px 0;
+    gap: 0; /* Ensure no extra space */
+  }
+
+  .numbers-section {
+    overflow-x: hidden;
+    width: 100%;
+    padding-bottom: 0;
+  }
+  
+  .red-balls,
+  .blue-balls {
+    gap: 0; /* Ensure no extra space */
   }
 
   .ball {
-    width: 30px !important;
-    height: 30px !important;
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0;
   }
 
   .ball-text {
-    font-size: 14px !important;
+    font-size: 11px !important;
+    line-height: 1;
   }
 
   .ball-spacer {
-    width: 6px !important;
-  }
-
-  .note-label {
-    font-size: 13px;
+    width: 4px !important;
   }
 
   .note-separator {
-    font-size: 16px;
+    font-size: 14px;
+    margin: 0 4px !important;
+    flex-shrink: 0;
   }
 
   .spacer-w8 {
-    width: 6px;
+    width: 8px;
+    flex-shrink: 0;
   }
 
   .action-btn {
