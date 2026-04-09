@@ -279,15 +279,40 @@ async function handleSaveImage() {
       allowTaint: true,
       onclone: (clonedDoc) => {
         // 修复渐变文字导出问题：html2canvas 不支持 background-clip: text
-        const titleEl = clonedDoc.querySelector('.lottery-title') as HTMLElement
-        if (titleEl) {
-          const color = lotteryType.value === 'ssq' ? '#DC2626' : '#0E7451'
-          titleEl.style.background = 'none'
-          titleEl.style.webkitBackgroundClip = 'border-box'
-          titleEl.style.backgroundClip = 'border-box'
-          titleEl.style.webkitTextFillColor = color
-          titleEl.style.color = color
-        }
+        const isSsq = lotteryType.value === 'ssq'
+        
+        // 定义需要修复的渐变文字元素选择器
+        const ssqSelectors = ['.lottery-title:not(.lottery-title--dlt)', '.issue-num-value:not(.issue-num-value--dlt)', '.bet-value:not(.bet-value--dlt)', '.amount-text:not(.amount-text--dlt)', '.charity-text:not(.charity-text--dlt)', '.charity-label', '.charity-amount']
+        const dltSelectors = ['.lottery-title--dlt', '.issue-num-value--dlt', '.bet-value--dlt', '.amount-text--dlt', '.charity-text--dlt']
+        
+        const ssqColor = '#DC2626'
+        const dltColor = '#0E7451'
+        
+        // 修复双色球渐变文字
+        ssqSelectors.forEach(sel => {
+          const elements = clonedDoc.querySelectorAll(sel)
+          elements.forEach(el => {
+            const htmlEl = el as HTMLElement
+            htmlEl.style.background = 'none'
+            htmlEl.style.webkitBackgroundClip = 'border-box'
+            htmlEl.style.backgroundClip = 'border-box'
+            htmlEl.style.webkitTextFillColor = ssqColor
+            htmlEl.style.color = ssqColor
+          })
+        })
+        
+        // 修复大乐透渐变文字
+        dltSelectors.forEach(sel => {
+          const elements = clonedDoc.querySelectorAll(sel)
+          elements.forEach(el => {
+            const htmlEl = el as HTMLElement
+            htmlEl.style.background = 'none'
+            htmlEl.style.webkitBackgroundClip = 'border-box'
+            htmlEl.style.backgroundClip = 'border-box'
+            htmlEl.style.webkitTextFillColor = dltColor
+            htmlEl.style.color = dltColor
+          })
+        })
       },
     })
     const link = document.createElement('a')
