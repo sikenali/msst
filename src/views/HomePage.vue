@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { RiMoneyCnyCircleFill } from '@remixicon/vue'
+import { RiMoneyCnyCircleFill, RiSparkling2Fill } from '@remixicon/vue'
 import { useUserSelections, setCurrentType } from '@/composables/useUserSelections'
 import { setCurrentLotteryType } from '@/composables/useLottery'
 import TabSwitcher from '@/components/TabSwitcher.vue'
@@ -18,6 +18,9 @@ import NumberPickerModal from '@/components/NumberPickerModal.vue'
 
 const router = useRouter()
 const route = useRoute()
+
+// 九字真言字符
+const mantraChars = ['临', '兵', '斗', '者', '皆', '列', '阵', '前', '行']
 
 const lotteryType = ref<'ssq' | 'dlt'>((route.query.type as 'ssq' | 'dlt') || 'ssq')
 
@@ -381,6 +384,14 @@ function reload() {
           <div class="tip-text-wrapper">
             <p class="tip-message">其实你有1000万存款，只不过你忘记了取款密码，每输入一次需要2元，一旦正确，钱就是你的，不着急，不放弃，心若在，梦就在。</p>
             <p class="tip-copyright">@2026 sikenali  Vibe Coding</p>
+            
+            <!-- 九字真言 -->
+            <div class="nine-syllable-mantra">
+              <div class="mantra-item" v-for="(char, index) in mantraChars" :key="index">
+                <RiSparkling2Fill class="mantra-icon" />
+                <span class="mantra-char">{{ char }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -572,6 +583,38 @@ function reload() {
   margin: 0;
   opacity: 0.85;
   letter-spacing: 0.5px;
+}
+
+/* 九字真言 */
+.nine-syllable-mantra {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 12px 0 4px 0;
+}
+
+.mantra-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mantra-icon {
+  width: 16px;
+  height: 16px;
+  color: #D97706;
+  opacity: 0.7;
+}
+
+.mantra-char {
+  font-size: 20px;
+  font-weight: 900;
+  color: #92400E;
+  font-family: 'SourceHanSans-Black';
+  line-height: 1;
 }
 
 /* 主内容区 */

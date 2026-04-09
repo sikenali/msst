@@ -22,6 +22,23 @@ const sloganImg = '/msst.png'
 const router = useRouter()
 const route = useRoute()
 
+// 背景雨特效
+const generateRain = (count: number, type: 'ssq' | 'dlt') => {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 8,
+    duration: 8 + Math.random() * 8,
+    opacity: 0.1 + Math.random() * 0.25,
+    scale: 0.6 + Math.random() * 0.6,
+    type: type
+  }))
+}
+
+const ssqRain = generateRain(20, 'ssq')
+const dltRain = generateRain(20, 'dlt')
+const currentRain = computed(() => lotteryType.value === 'ssq' ? ssqRain : dltRain)
+
 const lotteryType = ref<'ssq' | 'dlt'>((route.query.type as 'ssq' | 'dlt') || 'ssq')
 const notes = ref(Number(route.query.notes) || 5)
 const mode = ref((route.query.mode as string) || 'single')
@@ -331,6 +348,25 @@ function handleBack() {
 
 <template>
   <div class="result-page">
+    <!-- 背景动画层 -->
+    <div class="rain-bg">
+      <div
+        v-for="drop in currentRain"
+        :key="drop.id"
+        class="rain-drop"
+        :style="{
+          left: `${drop.left}%`,
+          animationDelay: `${drop.delay}s`,
+          animationDuration: `${drop.duration}s`,
+          opacity: drop.opacity,
+          '--rain-scale': drop.scale
+        }"
+      >
+        <RiMoneyCnyCircleFill v-if="drop.type === 'ssq'" class="rain-icon" />
+        <CopperCoinIcon v-else class="rain-icon dlt-rain" />
+      </div>
+    </div>
+
     <!-- 顶部导航栏 -->
     <PageHeader
       v-model="lotteryType"
@@ -683,6 +719,44 @@ function handleBack() {
   display: flex;
   flex-direction: column;
   background: linear-gradient(135deg, rgba(254,243,199,1) 0%, rgba(255,251,235,1) 50%, rgba(254,243,199,1) 100%);
+  position: relative;
+}
+
+/* 背景雨动画 */
+.rain-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.rain-drop {
+  position: absolute;
+  top: -10%;
+  animation: rain-fall linear infinite, spin linear infinite;
+}
+
+.rain-icon {
+  width: 24px;
+  height: 24px;
+  color: #B45309; /* 双色球金色 */
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.rain-icon.dlt-rain {
+  color: #1D4ED8; /* 大乐透蓝色 */
+}
+
+@keyframes rain-fall {
+  0% { top: -10%; }
+  100% { top: 110%; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg) scale(var(--rain-scale, 1)); }
+  50% { transform: rotate(180deg) scale(var(--rain-scale, 1)); }
+  100% { transform: rotate(360deg) scale(var(--rain-scale, 1)); }
 }
 
 /* 规则弹窗 */
@@ -862,6 +936,8 @@ function handleBack() {
 /* 主内容区 */
 .result-main {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .main-inner {
