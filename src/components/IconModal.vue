@@ -153,7 +153,7 @@ function handleLuckyNumberConfirm(data: { type: string; numbers: number[] }) {
 
           <!-- 幸运数：显示幸运数选择器 -->
           <template v-else-if="type === 'xingyunshu'">
-            <LuckyNumberPicker :theme="lotteryType" @confirm="handleClose" @cancel="handleClose" />
+            <LuckyNumberPicker :theme="lotteryType" @confirm="handleLuckyNumberConfirm" @cancel="handleClose" />
           </template>
 
           <!-- 占位内容，后续替换为实际表单 -->

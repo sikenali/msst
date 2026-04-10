@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { RiCloseLine } from '@remixicon/vue'
 
 interface Props {
@@ -26,7 +26,16 @@ const numberRange = computed(() => {
 
 const numbers = computed(() => Array.from({ length: numberRange.value }, (_, i) => i + 1))
 
-const selected = ref<number[]>([...props.selectedNumbers])
+// 使用独立响应式存储，不依赖 props
+const selected = ref<number[]>([])
+
+// 监听弹框打开，初始化选中号码
+watch(() => props.visible, (val) => {
+  if (val) {
+    // 打开时初始化：使用传入的选中号码
+    selected.value = [...props.selectedNumbers]
+  }
+})
 
 function toggleNumber(num: number) {
   const idx = selected.value.indexOf(num)
@@ -42,13 +51,16 @@ function isSelected(num: number) {
   return selected.value.includes(num)
 }
 
+function handleClear() {
+  selected.value = []
+}
+
 function handleConfirm() {
   emit('confirm', [...selected.value])
   emit('close')
 }
 
 function handleClose() {
-  selected.value = [...props.selectedNumbers]
   emit('close')
 }
 
@@ -96,11 +108,11 @@ const ballStyleTag = computed(() => props.type === 'blue' ? 'blue-ball' : 'red-b
 
           <!-- 操作按钮 -->
           <div class="picker-actions">
+            <button class="picker-btn picker-btn--clear" @click="handleClear">清空</button>
             <button class="picker-btn picker-btn--cancel" @click="handleClose">取消</button>
             <button
               class="picker-btn picker-btn--confirm"
               :class="ballClass"
-              :disabled="selected.length === 0"
               @click="handleConfirm"
             >
               确定
@@ -317,7 +329,7 @@ const ballStyleTag = computed(() => props.type === 'blue' ? 'blue-ball' : 'red-b
 /* 操作按钮 */
 .picker-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .picker-btn {
@@ -334,6 +346,15 @@ const ballStyleTag = computed(() => props.type === 'blue' ? 'blue-ball' : 'red-b
 
 .picker-btn:active {
   transform: scale(0.96);
+}
+
+.picker-btn--clear {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+.picker-btn--clear:hover {
+  background: #FEE2E2;
 }
 
 .picker-btn--cancel {

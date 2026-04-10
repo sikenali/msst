@@ -204,10 +204,10 @@ function handleUpdateModelValue(value: unknown) {
 
   .header-content {
     width: 100%;
-    gap: 4px;
+    gap: 8px;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
+    justify-content: space-around;
+    padding: 12px 8px;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -218,7 +218,7 @@ function handleUpdateModelValue(value: unknown) {
 
   .logo-area {
     flex-shrink: 0;
-    margin-left: 0;
+    margin-left: 4px;
   }
 
   .logo-icon {

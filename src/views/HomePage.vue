@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { RiMoneyCnyCircleFill, RiSparkling2Fill } from '@remixicon/vue'
 import { useUserSelections, setCurrentType } from '@/composables/useUserSelections'
 import { setCurrentLotteryType } from '@/composables/useLottery'
+import Toast, { showToast } from '@/components/Toast.vue'
 import TabSwitcher from '@/components/TabSwitcher.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import BaguaDiagram from '@/components/BaguaDiagram.vue'
@@ -30,18 +31,20 @@ watch(lotteryType, (newType) => {
   setCurrentLotteryType(newType)
 }, { immediate: true })
 
+// 在顶层解构一次 composable，避免重复调用
+const { userNotes, setNotes, userRedNumbers, userBlueNumbers, setMode, userMode } = useUserSelections()
+
 // 使用 computed 动态获取当前彩种的注数
 const notes = computed({
-  get: () => {
-    const { userNotes } = useUserSelections()
-    return userNotes.value
-  },
-  set: (val: number) => {
-    const { setNotes } = useUserSelections()
-    setNotes(val)
-  }
+  get: () => userNotes.value,
+  set: (val: number) => setNotes(val)
 })
-const mode = ref<'single' | 'multiple' | 'dantuo'>('single')
+
+// 模式：使用全局状态的 userMode，确保运式选择器的修改能生效
+const mode = computed({
+  get: () => userMode.value,
+  set: (val: 'single' | 'multiple' | 'dantuo') => setMode(val)
+})
 const showRulesModal = ref(false)
 const isSpinning = ref(false)
 const counterAutofocus = ref(false)
@@ -54,14 +57,21 @@ const currentModalType = ref('')
 const showPickerModal = ref(false)
 const pickerType = ref<'blue' | 'red'>('blue')
 const pickerTitle = ref('')
-const pickerSelectedNumbers = ref<number[]>([])
+
+// 蓝若寺和红佛女各自独立存储选中的号码
+const pickerSelectedBlue = ref<number[]>([])
+const pickerSelectedRed = ref<number[]>([])
+
+// 当前弹框使用的选中号码（computed 动态绑定）
+const pickerSelectedNumbers = computed(() =>
+  pickerType.value === 'blue' ? pickerSelectedBlue.value : pickerSelectedRed.value
+)
 
 function handleOpenModal(type: string) {
   // 蓝若寺和红佛女打开号码选择器
   if (type === 'lanruo') {
     pickerType.value = 'blue'
     pickerTitle.value = '蓝若寺'
-    pickerSelectedNumbers.value = []
     showPickerModal.value = true
     return
   }
@@ -69,7 +79,6 @@ function handleOpenModal(type: string) {
   if (type === 'hongfolv') {
     pickerType.value = 'red'
     pickerTitle.value = '红佛女'
-    pickerSelectedNumbers.value = []
     showPickerModal.value = true
     return
   }
@@ -85,8 +94,26 @@ function handleCloseModal() {
 
 function handlePickerConfirm(numbers: number[]) {
   console.log('选中的号码:', numbers)
-  // TODO: 将选中的号码存储起来，用于后续号码生成
-  pickerSelectedNumbers.value = numbers
+
+  // 将选中的号码分别存储到独立状态
+  if (pickerType.value === 'blue') {
+    pickerSelectedBlue.value = [...numbers]
+  } else if (pickerType.value === 'red') {
+    pickerSelectedRed.value = [...numbers]
+  }
+
+  // 同时保存到全局状态（用于号码生成）
+  const { setRedNumbers, setBlueNumbers } = useUserSelections()
+  if (pickerType.value === 'blue') {
+    setBlueNumbers(numbers)
+  } else if (pickerType.value === 'red') {
+    setRedNumbers(numbers)
+  }
+
+  // 关闭弹框
+  showPickerModal.value = false
+
+  showToast(`已选择 ${numbers.length} 个号码`, 'success')
 }
 
 function handlePickerClose() {
@@ -131,6 +158,11 @@ const ssqRain = generateRain(20, 'ssq')
 const dltRain = generateRain(20, 'dlt')
 const currentRain = computed(() => lotteryType.value === 'ssq' ? ssqRain : dltRain)
 
+// 组件销毁时清理（虽然背景雨是静态数据，但保持良好习惯）
+onBeforeUnmount(() => {
+  // 清理工作（当前无需特殊清理，因为雨滴数据是静态的）
+})
+
 watch(() => route.query.type, (newType) => {
   if (newType === 'ssq' || newType === 'dlt') {
     lotteryType.value = newType
@@ -140,59 +172,16 @@ watch(() => route.query.type, (newType) => {
 // Auto generate
 const autoGenerate = computed(() => route.query.autoGenerate === '1')
 
-// 分享模式下直接跳转到结果页，跳过首页动画
-if (autoGenerate.value) {
-  const shareType = (route.query.type as 'ssq' | 'dlt') || 'ssq'
-  const shareNotes = Number(route.query.notes) || 5
-  const shareMode = (route.query.mode as 'single' | 'multiple' | 'dantuo') || 'single'
-  const shareNumbers = route.query.numbers as string | undefined
-
-  // 同步数据到全局状态
-  const { setNotes, setMode } = useUserSelections()
-  setNotes(shareNotes)
-  setMode(shareMode)
-
-  // 直接跳转到结果页，传递所有参数
-  const resultQuery: Record<string, string> = {
-    type: shareType,
-    notes: String(shareNotes),
-    mode: shareMode,
-    share: '1',
-  }
-  
-  if (shareNumbers) {
-    resultQuery.numbers = shareNumbers
-  }
-
-  router.replace({
-    path: '/result',
-    query: resultQuery,
-  })
-}
-
-// 同步路由参数到本地状态
-watch(() => route.query.notes, (val) => {
-  const notesNum = Number(val) || 5
-  const { setNotes } = useUserSelections()
-  setNotes(notesNum)
-}, { immediate: true })
-
-watch(() => route.query.mode, (val) => {
-  if (val === 'single' || val === 'multiple' || val === 'dantuo') {
-    const { setMode } = useUserSelections()
-    setMode(val)
-  }
-}, { immediate: true })
-
+// 监听 autoGenerate，触发八卦图旋转后跳转
 watch(autoGenerate, async (shouldAutoGenerate) => {
   if (shouldAutoGenerate) {
     // 使用路由参数中的注数和模式
     const notesCount = Number(route.query.notes) || 5
     const currentMode = (route.query.mode as string) || 'single'
-    
-    console.log('生成注数:', notesCount, '模式:', currentMode)
+
+    console.log('🔄 重新生成 - 注数:', notesCount, '模式:', currentMode)
     isSpinning.value = true
-    
+
     let baseDuration = 0
     let extraPerNote = 0
     const maxDuration = 25000
@@ -225,52 +214,64 @@ watch(autoGenerate, async (shouldAutoGenerate) => {
         type: lotteryType.value,
         notes: notesCount,
         mode: currentMode,
-        share: '1', // 添加分享标识，结果页识别后进入分享模式
+        share: '1',
       },
     })
   }
 }, { immediate: true })
 
+// 同步路由参数到本地状态
+watch(() => route.query.notes, (val) => {
+  const notesNum = Number(val) || 5
+  const { setNotes } = useUserSelections()
+  setNotes(notesNum)
+}, { immediate: true })
+
+watch(() => route.query.mode, (val) => {
+  if (val === 'single' || val === 'multiple' || val === 'dantuo') {
+    const { setMode } = useUserSelections()
+    setMode(val)
+  }
+}, { immediate: true })
+
 async function handleGenerate() {
-  const { userRedNumbers, userBlueNumbers } = useUserSelections()
-  
-  // 获取用户固定号码
+  // 获取用户固定号码（使用已解构的变量）
   const redCount = userRedNumbers.value.length
   const blueCount = userBlueNumbers.value.length
-  
-  // 智能判断模式和注数
+
+  // 智能判断模式，但保持用户选择的注数
   let finalMode: 'single' | 'multiple' | 'dantuo' = mode.value
-  let finalNotes = notes.value
+  let finalNotes = notes.value // 保持用户选择的注数
 
   if (lotteryType.value === 'ssq') {
     // 双色球逻辑
     if (redCount === 6 && blueCount === 1) {
-      // 刚好6+1，单式1注
+      // 刚好6+1，单式模式，但保持用户注数
       finalMode = 'single'
-      finalNotes = 1
     } else if (redCount > 6 || blueCount > 1) {
-      // 红球>6个 或 蓝球>1个，复式
+      // 红球>6个 或 蓝球>1个，复式模式，但保持用户注数
       finalMode = 'multiple'
-      finalNotes = 1
     } else if (redCount > 0 || blueCount > 0) {
       // 有固定号码但不足标准数量，保持用户选择的模式
       finalMode = mode.value
-      finalNotes = notes.value
+    } else {
+      // 没有固定号码，使用用户选择的模式
+      finalMode = mode.value
     }
   } else {
     // 大乐透逻辑
     if (redCount === 5 && blueCount === 2) {
-      // 刚好5+2，单式1注
+      // 刚好5+2，单式模式，但保持用户注数
       finalMode = 'single'
-      finalNotes = 1
     } else if (redCount > 5 || blueCount > 2) {
-      // 前区>5个 或 后区>2个，复式
+      // 前区>5个 或 后区>2个，复式模式，但保持用户注数
       finalMode = 'multiple'
-      finalNotes = 1
     } else if (redCount > 0 || blueCount > 0) {
       // 有固定号码但不足标准数量，保持用户选择的模式
       finalMode = mode.value
-      finalNotes = notes.value
+    } else {
+      // 没有固定号码，使用用户选择的模式
+      finalMode = mode.value
     }
   }
 
@@ -336,7 +337,8 @@ function closeRules() {
 }
 
 function reload() {
-  window.location.reload()
+  // 使用 router.replace 重置查询参数，避免硬刷新丢失 SPA 状态
+  router.replace({ query: {} })
 }
 </script>
 
@@ -383,8 +385,7 @@ function reload() {
           </div>
           <div class="tip-text-wrapper">
             <p class="tip-message">其实你有1000万存款，只不过你忘记了取款密码，每输入一次需要2元，一旦正确，钱就是你的，不着急，不放弃，心若在，梦就在。</p>
-            <p class="tip-copyright">@2026 sikenali  Vibe Coding</p>
-            
+
             <!-- 九字真言 -->
             <div class="nine-syllable-mantra">
               <div class="mantra-item" v-for="(char, index) in mantraChars" :key="index">
@@ -392,6 +393,8 @@ function reload() {
                 <span class="mantra-char">{{ char }}</span>
               </div>
             </div>
+
+            <p class="tip-copyright">@2026 主任的机(sui)制(ji)不如机(sui)智(ji)的我</p>
           </div>
         </div>
       </div>
@@ -411,7 +414,12 @@ function reload() {
 
         <!-- 生财/有道按钮 -->
         <div class="generate-btn-wrapper">
-          <button class="generate-btn" :style="{ background: buttonGradient }" @click="handleGenerate">
+          <button 
+            class="generate-btn" 
+            :style="{ background: buttonGradient }" 
+            @click="handleGenerate"
+            :aria-label="lotteryType === 'ssq' ? '生成双色球号码' : '生成大乐透号码'"
+          >
             <RiMoneyCnyCircleFill v-if="lotteryType === 'ssq'" class="generate-icon" />
             <CopperCoinIcon v-else class="generate-icon" />
             <div class="generate-spacer"></div>
@@ -452,6 +460,9 @@ function reload() {
       @confirm="handlePickerConfirm"
       @close="handlePickerClose"
     />
+
+    <!-- Toast 提示组件 -->
+    <Toast />
   </div>
 </template>
 

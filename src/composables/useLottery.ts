@@ -151,90 +151,164 @@ const getDivineNumberPools = (maxRange: number) => {
 
 /**
  * 生成双色球号码 (融合所有"法号"数据)
+ * 根据用户选择的红球/蓝球数量自动判断模式
  */
 export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single'): SSQResult[] {
   // 获取用户固定的红蓝球
   const fixedRed = getUserRedNumbers().value.filter(n => n >= 1 && n <= 33)
   const fixedBlue = getUserBlueNumbers().value.filter(n => n >= 1 && n <= 16)
-  
+
   // 获取加权池
   const redPool = getDivineNumberPools(33)
   const bluePool = getDivineNumberPools(16)
 
-  // 辅助生成函数：优先使用固定号和加权池，不足则随机补充
-  const generateRed = (count: number) => {
-    if (fixedRed.length > 0 && fixedRed.length >= count) {
-      return fixedRed.slice(0, count).sort((a, b) => a - b)
-    }
+  console.log('🎲 generateSSQ - notes:', notes, 'mode:', mode, 'fixedRed:', fixedRed.length, 'fixedBlue:', fixedBlue.length)
 
-    const picked = new Set<number>(fixedRed)
-    if (redPool.length > 0) {
-      while (picked.size < count) {
-        const idx = Math.floor(Math.random() * redPool.length)
-        picked.add(redPool[idx])
-      }
-    }
-    
-    if (picked.size < count) {
-      const remaining = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !picked.has(n))
-      const randomPick = getRandomNumsFromPool(remaining, count - picked.size)
-      randomPick.forEach(n => picked.add(n))
-    }
+  // 根据用户选择的号码自动判断模式
+  let finalMode = mode
+  let targetRedCount = 6
+  let targetBlueCount = 1
 
-    return Array.from(picked).sort((a, b) => a - b)
+  if (fixedRed.length === 0 && fixedBlue.length === 0) {
+    // 规则1：什么都没选 → 根据用户选择的模式生成
+    if (mode === 'multiple') {
+      // 复式：随机生成 7-9 个红球，2-3 个蓝球
+      finalMode = 'multiple'
+      targetRedCount = 7 + Math.floor(Math.random() * 3)
+      targetBlueCount = 2 + Math.floor(Math.random() * 2)
+    } else if (mode === 'dantuo') {
+      // 胆拖：保持胆拖模式，在下方胆拖逻辑处理
+      finalMode = 'dantuo'
+      targetRedCount = 6
+      targetBlueCount = 1
+    } else {
+      // 单式：默认 6+1
+      finalMode = 'single'
+      targetRedCount = 6
+      targetBlueCount = 1
+    }
   }
 
-  const generateBlue = (count: number) => {
-    if (fixedBlue.length > 0 && fixedBlue.length >= count) {
-      return fixedBlue.slice(0, count).sort((a, b) => a - b)
-    }
+  console.log('🎯 finalMode:', finalMode, 'targetRed:', targetRedCount, 'targetBlue:', targetBlueCount)
 
-    const picked = new Set<number>(fixedBlue)
-    if (bluePool.length > 0) {
-      while (picked.size < count) {
-        const idx = Math.floor(Math.random() * bluePool.length)
-        picked.add(bluePool[idx])
-      }
-    }
-    
-    if (picked.size < count) {
-      const remaining = Array.from({ length: 16 }, (_, i) => i + 1).filter(n => !picked.has(n))
-      const randomPick = getRandomNumsFromPool(remaining, count - picked.size)
-      randomPick.forEach(n => picked.add(n))
-    }
-
-    return Array.from(picked).sort((a, b) => a - b)
+  if (fixedBlue.length >= 2 && fixedRed.length === 0) {
+    // 规则2：蓝球≥2，红球未选 → 6+复式，红球随机
+    finalMode = 'multiple'
+    targetRedCount = 6
+    targetBlueCount = fixedBlue.length
+  } else if (fixedBlue.length >= 2 && fixedBlue.length < 6 && fixedRed.length > 0) {
+    // 规则3：蓝球≥2且<6，红球已选 → 复式
+    finalMode = 'multiple'
+    targetRedCount = Math.max(6, fixedRed.length)
+    targetBlueCount = fixedBlue.length
+  } else if (fixedBlue.length === 1 && fixedRed.length > 6) {
+    // 规则4：蓝球=1，红球>6 → 复式
+    finalMode = 'multiple'
+    targetRedCount = fixedRed.length
+    targetBlueCount = 1
+  } else if (fixedBlue.length === 1 && fixedRed.length > 0 && fixedRed.length <= 6) {
+    // 规则5：蓝球=1，红球<6 → 单式（选中+随机）
+    finalMode = 'single'
+    targetRedCount = 6
+    targetBlueCount = 1
+  } else if (fixedBlue.length === 0 && fixedRed.length > 0 && fixedRed.length <= 6) {
+    // 规则6：蓝球未选，红球<6 → 单式（蓝球随机）
+    finalMode = 'single'
+    targetRedCount = 6
+    targetBlueCount = 1
+  } else if (fixedBlue.length === 0 && fixedRed.length > 6) {
+    // 规则7：蓝球未选，红球>6 → 复式（蓝球随机）
+    finalMode = 'multiple'
+    targetRedCount = fixedRed.length
+    targetBlueCount = 1
+  } else if (fixedRed.length === 0 && fixedBlue.length === 1) {
+    // 蓝球=1，红球未选 → 单式
+    finalMode = 'single'
+    targetRedCount = 6
+    targetBlueCount = 1
   }
 
-  if (mode === 'single') {
+  // 智能合并固定号码和法号推荐（去重+组合）
+  const mergeNumbers = (fixed: number[], pool: number[], range: number, target: number): number[] => {
+    const unique = new Set<number>(fixed)
+    const filteredPool = pool.filter(n => !fixed.includes(n))
+
+    // 先加入固定号码
+    // 再从加权池中按比例选取（增加命中概率）
+    if (filteredPool.length > 0 && unique.size < target) {
+      // 每个加权数字有60%概率被选中
+      const shuffled = [...filteredPool].sort(() => Math.random() - 0.5)
+      for (const n of shuffled) {
+        if (unique.size >= target) break
+        if (Math.random() < 0.6) {
+          unique.add(n)
+        }
+      }
+    }
+
+    // 不足则随机补充
+    if (unique.size < target) {
+      const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n))
+      const randomPick = getRandomNumsFromPool(remaining, target - unique.size)
+      randomPick.forEach(n => unique.add(n))
+    }
+
+    return Array.from(unique).sort((a, b) => a - b)
+  }
+
+  // 辅助生成函数：合并固定号+推荐号，去重后智能补号
+  const generateRed = (count: number, useFixed: boolean = true) => {
+    if (!useFixed) {
+      // 不使用固定号码，直接从池和随机中生成
+      return mergeNumbers([], redPool, 33, count)
+    }
+
+    // 如果固定号码刚好等于目标数量，直接使用
+    if (fixedRed.length === count) {
+      return [...fixedRed].sort((a, b) => a - b)
+    }
+
+    // 智能合并固定号码和推荐号码
+    return mergeNumbers(fixedRed, redPool, 33, count)
+  }
+
+  const generateBlue = (count: number, useFixed: boolean = true) => {
+    if (!useFixed) {
+      return mergeNumbers([], bluePool, 16, count)
+    }
+
+    if (fixedBlue.length === count) {
+      return [...fixedBlue].sort((a, b) => a - b)
+    }
+
+    return mergeNumbers(fixedBlue, bluePool, 16, count)
+  }
+
+  if (finalMode === 'single') {
     return Array.from({ length: notes }, () => ({
       type: 'single',
-      red: generateRed(6),
-      blue: generateBlue(1),
+      red: generateRed(targetRedCount, fixedRed.length > 0),
+      blue: generateBlue(targetBlueCount, fixedBlue.length > 0),
     }))
   }
 
-  if (mode === 'multiple') {
-    return Array.from({ length: notes }, () => {
-      const redCount = Math.max(7, fixedRed.length || (7 + Math.floor(Math.random() * 3)))
-      const blueCount = Math.max(2, fixedBlue.length || (1 + Math.floor(Math.random() * 2)))
-      return {
-        type: 'multiple',
-        red: generateRed(redCount),
-        blue: generateBlue(blueCount),
-      }
-    })
+  if (finalMode === 'multiple') {
+    return Array.from({ length: notes }, () => ({
+      type: 'multiple',
+      red: generateRed(targetRedCount, fixedRed.length > 0),
+      blue: generateBlue(targetBlueCount, fixedBlue.length > 0),
+    }))
   }
 
   // 胆拖
   return Array.from({ length: notes }, () => {
     const bankerCount = 1 + Math.floor(Math.random() * 3)
     const dragCount = 2 + Math.floor(Math.random() * 3)
-    
-    // 胆码优先使用固定红球的前几个
-    const bankers = fixedRed.length > 0 
-      ? fixedRed.slice(0, Math.min(bankerCount, fixedRed.length)) 
-      : generateRed(bankerCount)
+
+    // 胆码：优先使用固定红球，否则随机生成
+    const bankers = fixedRed.length > 0
+      ? fixedRed.slice(0, Math.min(bankerCount, fixedRed.length))
+      : generateRed(bankerCount, false) // 不使用固定号码
 
     // 拖码
     let drags: number[]
@@ -253,7 +327,7 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     return {
       type: 'dantuo',
       red: [...bankers, ...drags].sort((a, b) => a - b),
-      blue: generateBlue(1),
+      blue: generateBlue(1, false), // 蓝球随机生成 1 个
       redBanker: bankers.sort((a, b) => a - b),
       redDrag: drags.sort((a, b) => a - b),
     }
@@ -262,78 +336,145 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
 
 /**
  * 生成大乐透号码 (融合所有"道号"数据)
+ * 根据用户选择的前区/后区数量自动判断模式
  */
 export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single'): DLTResult[] {
   // 获取用户固定的前区(红)和后区(蓝)
   const fixedFront = getUserRedNumbers().value.filter(n => n >= 1 && n <= 35)
   const fixedBack = getUserBlueNumbers().value.filter(n => n >= 1 && n <= 12)
-  
+
   // 获取加权池
   const frontPool = getDivineNumberPools(35)
   const backPool = getDivineNumberPools(12)
 
-  const generateFront = (count: number) => {
-    if (fixedFront.length > 0 && fixedFront.length >= count) {
-      return fixedFront.slice(0, count).sort((a, b) => a - b)
-    }
+  // 根据用户选择的号码自动判断模式
+  let finalMode = mode
+  let targetFrontCount = 5
+  let targetBackCount = 2
 
-    const picked = new Set<number>(fixedFront)
-    if (frontPool.length > 0) {
-      while (picked.size < count) {
-        const idx = Math.floor(Math.random() * frontPool.length)
-        picked.add(frontPool[idx])
-      }
+  if (fixedFront.length === 0 && fixedBack.length === 0) {
+    // 规则1：什么都没选 → 根据用户选择的模式生成
+    if (mode === 'multiple') {
+      // 复式：随机生成 6-9 个前区，3-4 个后区
+      finalMode = 'multiple'
+      targetFrontCount = 6 + Math.floor(Math.random() * 4)
+      targetBackCount = 3 + Math.floor(Math.random() * 2)
+    } else if (mode === 'dantuo') {
+      // 胆拖：保持胆拖模式，在下方胆拖逻辑处理
+      finalMode = 'dantuo'
+      targetFrontCount = 5
+      targetBackCount = 2
+    } else {
+      // 单式：默认 5+2
+      finalMode = 'single'
+      targetFrontCount = 5
+      targetBackCount = 2
     }
-    
-    if (picked.size < count) {
-      const remaining = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !picked.has(n))
-      const randomPick = getRandomNumsFromPool(remaining, count - picked.size)
-      randomPick.forEach(n => picked.add(n))
-    }
-
-    return Array.from(picked).sort((a, b) => a - b)
+  } else if (fixedBack.length >= 3 && fixedFront.length === 0) {
+    // 规则2：后区≥3，前区未选 → 5+复式，前区随机
+    finalMode = 'multiple'
+    targetFrontCount = 5
+    targetBackCount = fixedBack.length
+  } else if (fixedBack.length >= 3 && fixedBack.length < 6 && fixedFront.length > 0) {
+    // 规则3：后区≥3且<6，前区已选 → 复式
+    finalMode = 'multiple'
+    targetFrontCount = Math.max(5, fixedFront.length)
+    targetBackCount = fixedBack.length
+  } else if (fixedBack.length === 2 && fixedFront.length > 5) {
+    // 规则4：后区=2，前区>5 → 复式
+    finalMode = 'multiple'
+    targetFrontCount = fixedFront.length
+    targetBackCount = 2
+  } else if (fixedBack.length === 2 && fixedFront.length > 0 && fixedFront.length <= 5) {
+    // 规则5：后区=2，前区<5 → 单式（选中+随机）
+    finalMode = 'single'
+    targetFrontCount = 5
+    targetBackCount = 2
+  } else if (fixedBack.length === 0 && fixedFront.length > 0 && fixedFront.length <= 5) {
+    // 规则6：后区未选，前区<5 → 单式（后区随机）
+    finalMode = 'single'
+    targetFrontCount = 5
+    targetBackCount = 2
+  } else if (fixedBack.length === 0 && fixedFront.length > 5) {
+    // 规则7：后区未选，前区>5 → 复式（后区随机）
+    finalMode = 'multiple'
+    targetFrontCount = fixedFront.length
+    targetBackCount = 2
+  } else if (fixedFront.length === 0 && fixedBack.length === 2) {
+    // 后区=2，前区未选 → 单式
+    finalMode = 'single'
+    targetFrontCount = 5
+    targetBackCount = 2
+  } else if (fixedFront.length === 0 && fixedBack.length === 1) {
+    // 后区=1，前区未选 → 单式
+    finalMode = 'single'
+    targetFrontCount = 5
+    targetBackCount = 2
+  } else if (fixedBack.length === 1 && fixedFront.length > 0) {
+    // 后区=1，前区已选 → 单式
+    finalMode = 'single'
+    targetFrontCount = Math.max(5, fixedFront.length)
+    targetBackCount = 2
   }
 
-  const generateBack = (count: number) => {
-    if (fixedBack.length > 0 && fixedBack.length >= count) {
-      return fixedBack.slice(0, count).sort((a, b) => a - b)
-    }
+  // 智能合并固定号码和法号推荐（去重+组合）
+  const mergeNumbers = (fixed: number[], pool: number[], range: number, target: number): number[] => {
+    const unique = new Set<number>(fixed)
+    const filteredPool = pool.filter(n => !fixed.includes(n))
 
-    const picked = new Set<number>(fixedBack)
-    if (backPool.length > 0) {
-      while (picked.size < count) {
-        const idx = Math.floor(Math.random() * backPool.length)
-        picked.add(backPool[idx])
+    if (filteredPool.length > 0 && unique.size < target) {
+      const shuffled = [...filteredPool].sort(() => Math.random() - 0.5)
+      for (const n of shuffled) {
+        if (unique.size >= target) break
+        if (Math.random() < 0.6) {
+          unique.add(n)
+        }
       }
     }
-    
-    if (picked.size < count) {
-      const remaining = Array.from({ length: 12 }, (_, i) => i + 1).filter(n => !picked.has(n))
-      const randomPick = getRandomNumsFromPool(remaining, count - picked.size)
-      randomPick.forEach(n => picked.add(n))
+
+    if (unique.size < target) {
+      const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n))
+      const randomPick = getRandomNumsFromPool(remaining, target - unique.size)
+      randomPick.forEach(n => unique.add(n))
     }
 
-    return Array.from(picked).sort((a, b) => a - b)
+    return Array.from(unique).sort((a, b) => a - b)
   }
 
-  if (mode === 'single') {
+  const generateFront = (count: number, useFixed: boolean = true) => {
+    if (!useFixed) {
+      return mergeNumbers([], frontPool, 35, count)
+    }
+    if (fixedFront.length === count) {
+      return [...fixedFront].sort((a, b) => a - b)
+    }
+    return mergeNumbers(fixedFront, frontPool, 35, count)
+  }
+
+  const generateBack = (count: number, useFixed: boolean = true) => {
+    if (!useFixed) {
+      return mergeNumbers([], backPool, 12, count)
+    }
+    if (fixedBack.length === count) {
+      return [...fixedBack].sort((a, b) => a - b)
+    }
+    return mergeNumbers(fixedBack, backPool, 12, count)
+  }
+
+  if (finalMode === 'single') {
     return Array.from({ length: notes }, () => ({
       type: 'single',
-      front: generateFront(5),
-      back: generateBack(2),
+      front: generateFront(targetFrontCount, fixedFront.length > 0),
+      back: generateBack(targetBackCount, fixedBack.length > 0),
     }))
   }
 
-  if (mode === 'multiple') {
-    return Array.from({ length: notes }, () => {
-      const frontCount = Math.max(6, fixedFront.length || (6 + Math.floor(Math.random() * 4)))
-      const backCount = Math.max(3, fixedBack.length || (2 + Math.floor(Math.random() * 2)))
-      return {
-        type: 'multiple',
-        front: generateFront(frontCount),
-        back: generateBack(backCount),
-      }
-    })
+  if (finalMode === 'multiple') {
+    return Array.from({ length: notes }, () => ({
+      type: 'multiple',
+      front: generateFront(targetFrontCount, fixedFront.length > 0),
+      back: generateBack(targetBackCount, fixedBack.length > 0),
+    }))
   }
 
   // 胆拖
@@ -341,10 +482,12 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     const bankerCount = 1 + Math.floor(Math.random() * 2)
     const dragCount = 2 + Math.floor(Math.random() * 2)
 
-    const bankers = fixedFront.length > 0 
-      ? fixedFront.slice(0, Math.min(bankerCount, fixedFront.length)) 
-      : generateFront(bankerCount)
+    // 胆码：优先使用固定前区，否则随机生成
+    const bankers = fixedFront.length > 0
+      ? fixedFront.slice(0, Math.min(bankerCount, fixedFront.length))
+      : generateFront(bankerCount, false) // 不使用固定号码
 
+    // 拖码
     let drags: number[]
     if (fixedFront.length > bankers.length) {
       drags = fixedFront.slice(bankers.length, bankers.length + dragCount)
@@ -361,7 +504,7 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     return {
       type: 'dantuo',
       front: [...bankers, ...drags].sort((a, b) => a - b),
-      back: generateBack(2),
+      back: generateBack(2, false), // 后区随机生成 2 个
       frontBanker: bankers.sort((a, b) => a - b),
       frontDrag: drags.sort((a, b) => a - b),
     }

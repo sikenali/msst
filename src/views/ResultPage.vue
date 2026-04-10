@@ -14,6 +14,7 @@ import RulesCard from '@/components/RulesCard.vue'
 import NumberBall from '@/components/NumberBall.vue'
 import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
 import BaguaFullIcon from '@/components/BaguaFullIcon.vue'
+import Toast, { showToast } from '@/components/Toast.vue'
 import { generateSSQ, generateDLT, formatTime, getIssueNumber, setIssueNumber, currentIssueNumber, currentIssuePrefix, currentIssueSuffix } from '@/composables/useLottery'
 
 const ssqLogo = '/ssq.png'
@@ -66,52 +67,18 @@ const modeLabels = {
 
 const showRulesModal = ref(false)
 const isFloatExpanded = ref(false)
-// 分享模式：识别 share=1 或 autoGenerate=1 参数
-const isShareMode = ref(route.query.share === '1' || route.query.autoGenerate === '1')
+// 分享模式：使用 computed 确保响应式
+const isShareMode = computed(() =>
+  route.query.share === '1' || route.query.autoGenerate === '1' || !!route.query.shareId
+)
 
-// 分享模式下，初始化数据
-if (isShareMode.value) {
-  lotteryType.value = (route.query.type as 'ssq' | 'dlt') || 'ssq'
-  notes.value = Number(route.query.notes) || 5
-  mode.value = (route.query.mode as string) || 'single'
-  
-  // 如果 URL 中有号码数据，直接使用；否则重新生成
-  if (route.query.numbers) {
-    try {
-      numbers.value = JSON.parse(decodeURIComponent(route.query.numbers as string))
-    } catch {
-      refreshData()
-    }
-  } else {
-    refreshData()
-  }
-  
-  issueNumber.value = getIssueNumber(lotteryType.value)
-  issuePrefix.value = currentIssuePrefix.value
-  issueSuffix.value = currentIssueSuffix.value
-  metaTime.value = formatTime()
-  metaMode.value = `注数：${notes.value}注 | 模式：${modeLabels[mode.value as keyof typeof modeLabels]}`
-  ticketCode.value = generateTicketCode()
-  drawDate.value = calculateNextDrawDate(lotteryType.value)
-  
-  // 设置出票时间为系统当前时间
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  const hours = String(now.getHours()).padStart(2, '0')
-  const minutes = String(now.getMinutes()).padStart(2, '0')
-  const seconds = String(now.getSeconds()).padStart(2, '0')
-  ticketTime.value = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-
-  // 分享模式隐藏操作按钮
-  isFloatExpanded.value = false
-}
+// 分享模式下，在 onMounted 中初始化数据，避免重复调用
+let shareModeInitialized = false
 
 const floatIcons = computed(() => [
   { type: 'save', label: '普渡众生', icon: RiDownload2Line, color: '#F59E0B' },
   { type: 'regenerate', label: lotteryType.value === 'ssq' ? '和气生财' : '道亦有道', icon: RiRefreshLine, color: '#10B981' },
-  { type: 'share', label: '分享好运', icon: RiShareForwardFill, color: '#3B82F6' },
+  { type: 'share', label: '好运链链', icon: RiShareForwardFill, color: '#3B82F6' },
 ])
 
 function toggleFloat() {
@@ -129,22 +96,52 @@ function handleFloatIconClick(type: string) {
 }
 
 async function handleShare() {
-  // 将号码数据编码到 URL 中
-  const numbersStr = encodeURIComponent(JSON.stringify(numbers.value))
-  const shareUrl = `${window.location.origin}/?type=${lotteryType.value}&notes=${notes.value}&mode=${mode.value}&autoGenerate=1&numbers=${numbersStr}`
+  // 使用 localStorage 存储完整数据（跨标签页可用），URL 只带短 shareId
+  const shareId = `msst_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+
+  const shareData = {
+    type: lotteryType.value,
+    notes: notes.value,
+    mode: mode.value,
+    numbers: numbers.value,
+    issueNumber: issueNumber.value,
+    issuePrefix: issuePrefix.value,
+    issueSuffix: issueSuffix.value,
+    metaTime: metaTime.value,
+    ticketCode: ticketCode.value,
+    drawDate: drawDate.value,
+    ticketTime: ticketTime.value,
+    time: Date.now()
+  }
+
+  try {
+    localStorage.setItem(shareId, JSON.stringify(shareData))
+  } catch (e) {
+    // localStorage 满了，清理旧数据
+    const keysToRemove: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith('msst_')) {
+        keysToRemove.push(key)
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k))
+    localStorage.setItem(shareId, JSON.stringify(shareData))
+  }
+
+  const shareUrl = `${window.location.origin}/result?shareId=${shareId}`
 
   try {
     await navigator.clipboard.writeText(shareUrl)
-    alert('分享链接已复制到剪贴板！')
+    showToast('分享链接已复制到剪贴板！', 'success')
   } catch {
-    // 降级方案：使用传统方法
     const input = document.createElement('input')
     input.value = shareUrl
     document.body.appendChild(input)
     input.select()
     document.execCommand('copy')
     document.body.removeChild(input)
-    alert('分享链接已复制到剪贴板！')
+    showToast('分享链接已复制到剪贴板！', 'success')
   }
 }
 
@@ -185,10 +182,14 @@ const cardScale = computed(() => {
 
 function refreshData() {
   const currentMode = mode.value as 'single' | 'multiple' | 'dantuo'
+  console.log('🔄 refreshData - mode:', currentMode, 'notes:', notes.value, 'type:', lotteryType.value)
+
   if (lotteryType.value === 'ssq') {
     numbers.value = generateSSQ(notes.value, currentMode)
+    console.log('🎱 Generated SSQ numbers:', numbers.value.length, 'items, first note red count:', numbers.value[0]?.red?.length)
   } else {
     numbers.value = generateDLT(notes.value, currentMode)
+    console.log('🎱 Generated DLT numbers:', numbers.value.length, 'items, first note front count:', numbers.value[0]?.front?.length)
   }
 
   issueNumber.value = getIssueNumber(lotteryType.value)
@@ -245,8 +246,10 @@ function calculateNextDrawDate(type: 'ssq' | 'dlt'): string {
 }
 
 // 计算公益金额（官方规则：双色球/大乐透公益金提取比例为36%，每注2元）
+// 复式/胆拖时使用实际组合注数计算，单式时使用 notes
 const charityAmount = computed(() => {
-  return (notes.value * 2 * 0.36).toFixed(2)
+  const actualNotes = mode.value === 'single' ? notes.value : calculateComboNotes(numbers.value)
+  return (actualNotes * 2 * 0.36).toFixed(2)
 })
 
 // 投注类型显示文本
@@ -265,25 +268,100 @@ const betValueClass = computed(() => {
 })
 
 onMounted(() => {
-  // 确保使用最新的路由参数初始化
+  const shareId = route.query.shareId as string
+  console.log('📋 ResultPage onMounted, shareId:', shareId)
+  console.log('📋 Route query mode:', route.query.mode, 'type:', route.query.type)
+  console.log('📋 Initial mode.value:', mode.value)
+
+  // 分享模式：优先从 shareId 读取完整数据
+  if (shareId) {
+    shareModeInitialized = true
+    try {
+      const storedData = localStorage.getItem(shareId)
+      console.log('📦 localStorage data:', storedData ? 'exists' : 'not found')
+      if (storedData) {
+        const data = JSON.parse(storedData)
+        lotteryType.value = data.type || 'ssq'
+        notes.value = data.notes || 5
+        mode.value = data.mode || 'single'
+        numbers.value = data.numbers || []
+        issueNumber.value = data.issueNumber || getIssueNumber(lotteryType.value)
+        issuePrefix.value = data.issuePrefix || currentIssuePrefix.value
+        issueSuffix.value = data.issueSuffix || currentIssueSuffix.value
+        metaTime.value = data.metaTime || formatTime()
+        metaMode.value = `注数：${notes.value}注 | 模式：${modeLabels[mode.value as keyof typeof modeLabels]}`
+        ticketCode.value = data.ticketCode || generateTicketCode()
+        drawDate.value = data.drawDate || calculateNextDrawDate(lotteryType.value)
+        ticketTime.value = data.ticketTime || (() => {
+          const now = new Date()
+          return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+        })()
+        isFloatExpanded.value = false
+        console.log('✅ Shared data loaded, numbers:', numbers.value.length, 'items')
+        return // 直接返回，不再执行后续逻辑
+      }
+    } catch (e) {
+      console.warn('❌ 分享数据解析失败', e)
+    }
+  }
+
+  // 兼容旧版 URL 参数（numbers 直接编码在 URL 中）
+  if (route.query.numbers) {
+    try {
+      numbers.value = JSON.parse(decodeURIComponent(route.query.numbers as string))
+      lotteryType.value = (route.query.type as 'ssq' | 'dlt') || 'ssq'
+      notes.value = Number(route.query.notes) || 5
+      mode.value = (route.query.mode as string) || 'single'
+      issueNumber.value = getIssueNumber(lotteryType.value)
+      issuePrefix.value = currentIssuePrefix.value
+      issueSuffix.value = currentIssueSuffix.value
+      metaTime.value = formatTime()
+      metaMode.value = `注数：${notes.value}注 | 模式：${modeLabels[mode.value as keyof typeof modeLabels]}`
+      ticketCode.value = generateTicketCode()
+      drawDate.value = calculateNextDrawDate(lotteryType.value)
+      const now = new Date()
+      ticketTime.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+      isFloatExpanded.value = false
+      return
+    } catch (e) {
+      console.warn('旧版参数解析失败', e)
+    }
+  }
+
+  // 默认：正常刷新数据
   lotteryType.value = (route.query.type as 'ssq' | 'dlt') || 'ssq'
   notes.value = Number(route.query.notes) || 5
   mode.value = (route.query.mode as string) || 'single'
   refreshData()
 })
 
-// 监听路由参数变化
+// 监听路由参数变化，添加防抖处理（分享模式下不触发刷新）
+let refreshDebounceTimer: ReturnType<typeof setTimeout> | null = null
 watch([() => route.query.type, () => route.query.notes, () => route.query.mode], ([newType, newNotes, newMode]) => {
+  console.log('👀 Route query watch triggered:', { newType, newNotes, newMode })
+  // 分享模式下不响应路由变化，保护共享数据不被覆盖
+  if (route.query.shareId) return
+
   if (newType === 'ssq' || newType === 'dlt') {
     lotteryType.value = newType
   }
   notes.value = Number(newNotes) || 5
   mode.value = (newMode as string) || 'single'
-  refreshData()
+  console.log('🔄 Updated mode.value to:', mode.value)
+
+  // 防抖处理：300ms 内只执行一次
+  if (refreshDebounceTimer) {
+    clearTimeout(refreshDebounceTimer)
+  }
+  refreshDebounceTimer = setTimeout(() => {
+    refreshData()
+    refreshDebounceTimer = null
+  }, 300)
 }, { immediate: false })
 
-// 监听选项卡切换：如果切换到不同彩种，跳转到对应主页
+// 监听选项卡切换：分享模式下禁止跳转，保护共享数据
 watch(lotteryType, (newType) => {
+  if (route.query.shareId) return // 分享模式下不跳转
   if (newType !== route.query.type) {
     router.push({ path: '/', query: { type: newType } })
   }
@@ -341,8 +419,82 @@ async function handleSaveImage() {
     link.href = canvas.toDataURL('image/png')
     link.click()
   } catch (e) {
-    alert('保存图片失败，请长按截图')
+    showToast('保存图片失败，请长按截图', 'error')
   }
+}
+
+// 根据彩种动态计算组合注数（复式/胆拖）
+function calculateComboNotes(notes: any[]): number {
+  if (mode.value === 'single') return notes.length
+
+  let total = 0
+  for (const note of notes) {
+    if (lotteryType.value === 'ssq') {
+      // 双色球胆拖：C(拖码数量, 6-胆码数量) × 蓝球数量
+      if (note.type === 'dantuo' && note.redBanker && note.redDrag) {
+        const bankerCount = note.redBanker.length
+        const dragCount = note.redDrag.length
+        const needCount = 6 - bankerCount
+        if (needCount > 0 && dragCount >= needCount) {
+          const dragComb = combination(dragCount, needCount)
+          const blueCount = note.blue ? note.blue.length : 1
+          total += dragComb * blueCount
+        } else {
+          total += 1
+        }
+      }
+      // 双色球复式：红球组合数 × 蓝球数量
+      else if (note.red && note.red.length > 6) {
+        const redComb = combination(note.red.length, 6)
+        const blueCount = note.blue ? note.blue.length : 1
+        total += redComb * blueCount
+      } else {
+        total += 1
+      }
+    } else {
+      // 大乐透胆拖：C(拖码数量, 5-胆码数量) × 后区数量
+      if (note.type === 'dantuo' && note.frontBanker && note.frontDrag) {
+        const bankerCount = note.frontBanker.length
+        const dragCount = note.frontDrag.length
+        const needCount = 5 - bankerCount
+        if (needCount > 0 && dragCount >= needCount) {
+          const dragComb = combination(dragCount, needCount)
+          const backCount = note.back ? note.back.length : 1
+          total += dragComb * backCount
+        } else {
+          total += 1
+        }
+      }
+      // 大乐透复式：前区组合数 × 后区数量
+      else if (note.front && note.front.length > 5) {
+        const frontComb = combination(note.front.length, 5)
+        const backCount = note.back ? note.back.length : 1
+        total += frontComb * backCount
+      } else {
+        total += 1
+      }
+    }
+  }
+  return total || notes.length
+}
+
+// 计算组合数 C(n, k)
+function combination(n: number, k: number): number {
+  if (k > n) return 0
+  if (k === 0 || k === n) return 1
+  if (k > n / 2) k = n - k
+  
+  let result = 1
+  for (let i = 0; i < k; i++) {
+    result = result * (n - i) / (i + 1)
+  }
+  return Math.round(result)
+}
+
+// 计算总金额
+function calculateTotalAmount(): number {
+  const comboNotes = calculateComboNotes(numbers.value)
+  return comboNotes * 2
 }
 
 function handleBack() {
@@ -429,6 +581,9 @@ function handleBack() {
                 <div class="bet-row">
                   <div class="bet-type-group">
                     <span class="bet-label">投注类型：</span>
+                    <span class="bet-mode-icon" v-if="mode === 'single'">✓</span>
+                    <span class="bet-mode-icon" v-else-if="mode === 'multiple'">⚡</span>
+                    <span class="bet-mode-icon" v-else>🎯</span>
                     <span class="bet-value" :class="betValueClass">{{ betTypeText }}</span>
                   </div>
                   <div class="multiplier-group">
@@ -436,9 +591,26 @@ function handleBack() {
                     <span class="bet-value" :class="betValueClass">1 倍</span>
                   </div>
                 </div>
+                <!-- 复式/胆拖显示组合注数 -->
+                <div class="bet-row bet-combo-row" v-if="mode !== 'single'">
+                  <span class="bet-label">
+                    <template v-if="mode === 'dantuo'">胆拖组数：</template>
+                    <template v-else>组合注数：</template>
+                  </span>
+                  <span class="bet-combo-count">{{ notes }} 组</span>
+                  <template v-if="mode === 'dantuo'">
+                    <span class="bet-label bet-combo-separator">组合注数：</span>
+                    <span class="bet-combo-count bet-combo-total">{{ calculateComboNotes(numbers) }} 注</span>
+                  </template>
+                </div>
                 <div class="spacer-h8"></div>
                 <div class="amount-row">
-                  <span class="amount-text" :class="lotteryType === 'dlt' ? 'amount-text--dlt' : ''">合计 {{ notes * 2 }} 元</span>
+                  <span class="amount-text" :class="lotteryType === 'dlt' ? 'amount-text--dlt' : ''">合计 {{ calculateTotalAmount() }} 元</span>
+                </div>
+                <!-- 胆拖模式提示 -->
+                <div class="dantuo-tip" v-if="mode === 'dantuo'">
+                  <span class="dantuo-tip-icon">💡</span>
+                  <span class="dantuo-tip-text">胆码为必选号码，拖码为可选号码，系统会自动组合所有可能</span>
                 </div>
               </div>
 
@@ -455,21 +627,24 @@ function handleBack() {
                   <template v-if="lotteryType === 'ssq'">
                     <div class="red-balls">
                       <template v-for="(num, i) in note.red" :key="i">
-                        <div class="ball ball--red" :class="{ 'ball-banker': note.redBanker && note.redBanker.includes(num) }">
+                        <div
+                          class="ball ball--red"
+                          :class="{
+                            'ball-banker': note.redBanker && note.redBanker.includes(num),
+                            'ball-drag': note.redDrag && note.redDrag.includes(num)
+                          }"
+                        >
                           <span class="ball-text">{{ String(num).padStart(2, '0') }}</span>
+                          <!-- 胆拖标识 -->
+                          <span v-if="note.redBanker && note.redBanker.includes(num)" class="ball-tag ball-tag--banker">胆</span>
+                          <span v-else-if="note.redDrag && note.redDrag.includes(num)" class="ball-tag ball-tag--drag">拖</span>
                         </div>
                         <div v-if="Number(i) < note.red.length - 1" class="ball-spacer"></div>
                       </template>
                     </div>
                     <div class="note-separator">+</div>
-                    <div class="spacer-w8"></div>
                     <div class="blue-balls">
                       <template v-if="note.blue && note.blue.length > 0">
-                        <div class="ball ball--blue">
-                          <span class="ball-text">{{ String(note.blue[0]).padStart(2, '0') }}</span>
-                        </div>
-                      </template>
-                      <template v-else-if="note.blue && note.blue.length > 1">
                         <template v-for="(num, i) in note.blue" :key="i">
                           <div class="ball ball--blue">
                             <span class="ball-text">{{ String(num).padStart(2, '0') }}</span>
@@ -484,8 +659,17 @@ function handleBack() {
                   <template v-else>
                     <div class="red-balls">
                       <template v-for="(num, i) in note.front" :key="i">
-                        <div class="ball ball--red" :class="{ 'ball-banker': note.frontBanker && note.frontBanker.includes(num) }">
+                        <div 
+                          class="ball ball--red" 
+                          :class="{ 
+                            'ball-banker': note.frontBanker && note.frontBanker.includes(num),
+                            'ball-drag': note.frontDrag && note.frontDrag.includes(num)
+                          }"
+                        >
                           <span class="ball-text">{{ String(num).padStart(2, '0') }}</span>
+                          <!-- 胆拖标识 -->
+                          <span v-if="note.frontBanker && note.frontBanker.includes(num)" class="ball-tag ball-tag--banker">胆</span>
+                          <span v-else-if="note.frontDrag && note.frontDrag.includes(num)" class="ball-tag ball-tag--drag">拖</span>
                         </div>
                         <div v-if="Number(i) < note.front.length - 1" class="ball-spacer"></div>
                       </template>
@@ -515,7 +699,7 @@ function handleBack() {
               <div class="public-info">
                 <div class="charity-row">
                   <span class="charity-text" :class="lotteryType === 'dlt' ? 'charity-text--dlt' : ''">
-                    <span class="charity-label">感谢您为后续财富的利息贡献</span>
+                    <span class="charity-label">感谢您为社会公益事业贡献</span>
                     <span class="charity-amount">{{ charityAmount }} 元</span>
                   </span>
                 </div>
@@ -665,6 +849,10 @@ function handleBack() {
             :class="{ show: isFloatExpanded }"
             :style="{ transitionDelay: isFloatExpanded ? `${(index + 1) * 0.08}s` : '0s' }"
             @click="handleFloatIconClick(icon.type)"
+            role="button"
+            :aria-label="icon.label"
+            tabindex="0"
+            @keydown.enter="handleFloatIconClick(icon.type)"
           >
             <span class="result-icon-emoji-h" :style="{ color: icon.color }">
               <component :is="icon.icon" class="result-icon-svg-h" />
@@ -672,9 +860,18 @@ function handleBack() {
             <span class="result-icon-item-tooltip-h">{{ icon.label }}</span>
           </div>
         </div>
-        <button class="result-main-btn" @click="toggleFloat">
-          <RiMoneyCnyCircleFill class="result-btn-icon" />
-          <span class="result-main-btn-tooltip">财富自由</span>
+        <button
+          class="result-main-btn"
+          @click="toggleFloat"
+          :aria-label="isFloatExpanded ? '收起操作菜单' : '展开操作菜单'"
+          :aria-expanded="isFloatExpanded"
+        >
+          <span class="result-btn-text" :class="lotteryType === 'dlt' ? 'result-btn-text--dlt' : ''">
+            {{ lotteryType === 'ssq' ? '福' : '财' }}
+          </span>
+          <span class="result-main-btn-tooltip">
+            {{ lotteryType === 'ssq' ? '福气满满' : '财气满满' }}
+          </span>
         </button>
       </div>
 
@@ -695,7 +892,14 @@ function handleBack() {
     </footer>
 
     <!-- 规则弹窗 -->
-    <div class="modal-overlay" v-if="showRulesModal" @click="closeRules">
+    <div 
+      class="modal-overlay" 
+      v-if="showRulesModal" 
+      @click="closeRules"
+      role="dialog"
+      aria-modal="true"
+      aria-label="玩法规则说明"
+    >
       <div class="modal-content" @click.stop>
         <div class="modal-tip-content">
           <div class="tip-icon-wrapper">
@@ -709,8 +913,7 @@ function handleBack() {
           </div>
           <div class="tip-text-wrapper">
             <p class="tip-message">其实你有1000万存款，只不过你忘记了取款密码，每输入一次需要2元，一旦正确，钱就是你的，不着急，不放弃，心若在，梦就在。</p>
-            <p class="tip-copyright">@2026 sikenali  Vibe Coding</p>
-            
+
             <!-- 九字真言 -->
             <div class="nine-syllable-mantra">
               <div class="mantra-item" v-for="(char, index) in mantraChars" :key="index">
@@ -718,10 +921,15 @@ function handleBack() {
                 <span class="mantra-char">{{ char }}</span>
               </div>
             </div>
+
+            <p class="tip-copyright">@2026 主任的机(sui)制(ji)不如机(sui)智(ji)的我</p>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Toast 提示组件 -->
+    <Toast />
   </div>
 </template>
 
@@ -1234,6 +1442,77 @@ function handleBack() {
   -webkit-text-fill-color: transparent;
 }
 
+/* 投注模式图标 */
+.bet-mode-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: #10B981;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.bet-type-group:has(.bet-mode-icon:nth-child(2)) .bet-mode-icon {
+  background: #F59E0B;
+}
+
+.bet-type-group:has(.bet-mode-icon:nth-child(3)) .bet-mode-icon {
+  background: #EF4444;
+}
+
+/* 组合注数行 */
+.bet-combo-row {
+  margin-top: 4px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.bet-combo-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: #D97706;
+  font-family: 'SourceHanSans-Bold';
+}
+
+.bet-combo-total {
+  color: #DC2626;
+}
+
+.bet-combo-separator {
+  margin-left: 8px;
+}
+
+/* 胆拖模式提示 */
+.dantuo-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(254, 243, 199, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(253, 230, 138, 0.8);
+}
+
+.dantuo-tip-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.dantuo-tip-text {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #92400E;
+  font-family: 'SourceHanSans-Regular';
+}
+
 .amount-row {
   width: 100%;
 }
@@ -1260,17 +1539,18 @@ function handleBack() {
 /* 号码展示区 */
 .numbers-section {
   width: 100%;
-  overflow: visible; /* Allow content to define width, no scrolling on PC */
+  overflow: visible;
 }
 
 .note-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0; /* Remove gap to avoid conflict with spacer elements */
+  justify-content: flex-start; /* 左对齐，避免居中导致溢出 */
+  gap: 0;
   margin-bottom: 12px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap; /* 允许换行 */
   width: 100%;
+  padding: 2px 0;
 }
 
 .note-row:last-child {
@@ -1281,8 +1561,8 @@ function handleBack() {
 .blue-balls {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
-  gap: 0; /* Remove gap to avoid conflict with spacer elements */
+  flex-wrap: wrap; /* 允许换行 */
+  gap: 0;
 }
 
 .ball {
@@ -1318,6 +1598,46 @@ function handleBack() {
 .ball-spacer {
   width: 8px; /* Explicit spacing between balls */
   flex-shrink: 0;
+}
+
+/* 胆码球样式 */
+.ball-banker {
+  position: relative;
+  border: 3px solid #F59E0B !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5), 0 2px 4px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+}
+
+/* 拖码球样式 */
+.ball-drag {
+  position: relative;
+  border: 2px dashed #9CA3AF !important;
+  box-shadow: 0 0 6px rgba(156, 163, 175, 0.4);
+  opacity: 0.9;
+}
+
+/* 胆拖标签 */
+.ball-tag {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 8px;
+  font-weight: 900;
+  padding: 0px 3px;
+  border-radius: 3px;
+  line-height: 1.2;
+  color: #FFFFFF;
+  font-family: 'SourceHanSans-Black';
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.ball-tag--banker {
+  background: #F59E0B;
+}
+
+.ball-tag--drag {
+  background: #6B7280;
 }
 
 .note-separator {
@@ -1482,6 +1802,27 @@ function handleBack() {
   width: 32px;
   height: 32px;
   color: #92400E;
+}
+
+/* 结果页主按钮文字（福/财） */
+.result-btn-text {
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #DC2626 0%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  font-family: 'SourceHanSans-Black';
+  line-height: 1;
+}
+
+.result-btn-text--dlt {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 /* 结果页主按钮 Tooltip - 显示在下方 */
@@ -1810,9 +2151,8 @@ function handleBack() {
     height: 50px;
   }
 
-  .result-btn-icon {
-    width: 28px;
-    height: 28px;
+  .result-btn-text {
+    font-size: 24px !important;
   }
 
   .result-icon-item-h {
@@ -1906,12 +2246,12 @@ function handleBack() {
   }
 
   .note-row {
-    overflow-x: hidden; /* Prevent scrolling on mobile */
-    flex-wrap: nowrap;
-    justify-content: center;
+    overflow-x: hidden;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* 左对齐 */
     width: 100%;
-    padding: 2px 0;
-    gap: 0; /* Ensure no extra space */
+    padding: 4px 0;
+    gap: 0;
   }
 
   .numbers-section {
@@ -1919,10 +2259,12 @@ function handleBack() {
     width: 100%;
     padding-bottom: 0;
   }
-  
+
   .red-balls,
   .blue-balls {
-    gap: 0; /* Ensure no extra space */
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .ball {
@@ -1937,7 +2279,14 @@ function handleBack() {
   }
 
   .ball-spacer {
-    width: 4px !important;
+    width: 3px !important;
+  }
+
+  .ball-tag {
+    top: 1px;
+    right: 1px;
+    font-size: 7px;
+    padding: 0px 2px;
   }
 
   .note-separator {
@@ -1947,8 +2296,24 @@ function handleBack() {
   }
 
   .spacer-w8 {
-    width: 8px;
+    width: 6px;
     flex-shrink: 0;
+  }
+
+  /* 多球行进一步缩小（复式/胆拖） */
+  .note-row:has(.ball:nth-child(n+12)) .ball {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .note-row:has(.ball:nth-child(n+12)) .ball-text {
+    font-size: 9px !important;
+  }
+  .note-row:has(.ball:nth-child(n+12)) .ball-spacer {
+    width: 2px !important;
+  }
+  .note-row:has(.ball:nth-child(n+12)) .ball-tag {
+    font-size: 6px;
+    padding: 0px 1px;
   }
 
   .action-btn {
@@ -1988,14 +2353,6 @@ function handleBack() {
     font-size: 18px;
   }
 
-  .dantuo-label {
-    font-size: 11px;
-    margin: 2px 0 1px 0;
-  }
-
-  .ball-banker {
-    border-width: 2px !important;
-  }
 }
 
 /* 中等手机适配 (376px - 480px) */

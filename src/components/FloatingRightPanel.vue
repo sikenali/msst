@@ -261,8 +261,8 @@ function handleIconClick(type: string) {
 @media screen and (max-width: 768px) {
   .float-widget {
     position: fixed;
-    top: 140px;
-    transform: none;
+    top: 50%;
+    transform: translateY(-50%);
     right: 12px;
   }
 

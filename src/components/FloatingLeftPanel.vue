@@ -15,8 +15,8 @@ const emit = defineEmits<{
 const isExpanded = ref(false)
 
 const icons = [
-  { type: 'lanruo', label: '蓝若寺', icon: RiDropLine, color: '#3B82F6' },
   { type: 'hongfolv', label: '红佛女', icon: RiFireLine, color: '#EF4444' },
+  { type: 'lanruo', label: '蓝若寺', icon: RiDropLine, color: '#3B82F6' },
   { type: 'yunshu', label: '运数', icon: RiNumbersLine, color: '#F59E0B' },
   { type: 'yunshi', label: '运式', icon: RiCandleLine, color: '#8B5CF6' },
 ]
@@ -261,8 +261,8 @@ function handleIconClick(type: string) {
 @media screen and (max-width: 768px) {
   .float-widget {
     position: fixed;
-    top: 140px;
-    transform: none;
+    top: 50%;
+    transform: translateY(-50%);
     left: 12px;
   }
 
