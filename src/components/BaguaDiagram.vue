@@ -203,7 +203,7 @@ const trigrams = [
     </div>
 
     <p class="bagua-slogan" :style="{ color: tc.text, opacity: spinning ? '0.5' : '1' }">
-      {{ spinning ? '天机推算中...' : slogan }}
+      {{ spinning ? '天机不可泄露，推背图推算中...' : slogan }}
     </p>
   </div>
 </template>
