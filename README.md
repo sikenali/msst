@@ -197,21 +197,28 @@ const getRandomNumsFromPool = (pool: number[], count: number): number[] => {
 
 ### 3. 加权池算法
 
-将用户设置的生日、星座、幸运数等多个来源的数字合并为加权池：
+将用户设置的**生日、星座、幸运数**等多个来源的数字合并为加权池，提升"法号"命中概率：
 
 ```typescript
-// 合并多个来源的数字，去重后过滤范围
-const getWeightedPool = (sources: number[][], range: [number, number]): number[] => {
-  const pool = new Set<number>()
-  for (const arr of sources) {
-    for (const n of arr) {
-      if (n >= min && n <= max) pool.add(n)
-    }
-  }
-  // 权重增强：每个数字重复 3 次，增加被选中概率
-  return pool.flatMap(n => [n, n, n])
+const getDivineNumberPools = (maxRange: number) => {
+  // 来源1：生日拆解 + 组合运算
+  const birthNums = getBirthdayLuckyNumbers()  // 年月日数字拆解 + 组合数
+
+  // 来源2：星座幸运数字映射表
+  const constNums = getConstellationLuckyNumbers()  // 每个星座4个幸运数
+
+  // 来源3：用户自定义幸运数
+  const luckyNums = getUserLuckyNumbers()  // 蓝若寺/红佛女/幸运数选择器
+
+  // 合并去重，范围过滤，权重增强（每个数字重复3次）
+  return getWeightedPool([birthNums, constNums, luckyNums], [1, maxRange])
 }
 ```
+
+**权重增强逻辑**：
+1. 合并所有来源的数字，去重后过滤范围
+2. 每个数字重复 3 次加入池中
+3. 随机选取时，池中的数字有 3 倍概率被选中
 
 ### 4. 智能合并算法
 
