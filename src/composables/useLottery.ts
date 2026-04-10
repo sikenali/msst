@@ -162,81 +162,13 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
   const redPool = getDivineNumberPools(33)
   const bluePool = getDivineNumberPools(16)
 
-  console.log('🎲 generateSSQ - notes:', notes, 'mode:', mode, 'fixedRed:', fixedRed.length, 'fixedBlue:', fixedBlue.length)
-
-  // 根据用户选择的号码自动判断模式
-  let finalMode = mode
-  let targetRedCount = 6
-  let targetBlueCount = 1
-
-  if (fixedRed.length === 0 && fixedBlue.length === 0) {
-    // 规则1：什么都没选 → 根据用户选择的模式生成
-    if (mode === 'multiple') {
-      // 复式：随机生成 7-9 个红球，2-3 个蓝球
-      finalMode = 'multiple'
-      targetRedCount = 7 + Math.floor(Math.random() * 3)
-      targetBlueCount = 2 + Math.floor(Math.random() * 2)
-    } else if (mode === 'dantuo') {
-      // 胆拖：保持胆拖模式，在下方胆拖逻辑处理
-      finalMode = 'dantuo'
-      targetRedCount = 6
-      targetBlueCount = 1
-    } else {
-      // 单式：默认 6+1
-      finalMode = 'single'
-      targetRedCount = 6
-      targetBlueCount = 1
-    }
-  }
-
-  console.log('🎯 finalMode:', finalMode, 'targetRed:', targetRedCount, 'targetBlue:', targetBlueCount)
-
-  if (fixedBlue.length >= 2 && fixedRed.length === 0) {
-    // 规则2：蓝球≥2，红球未选 → 6+复式，红球随机
-    finalMode = 'multiple'
-    targetRedCount = 6
-    targetBlueCount = fixedBlue.length
-  } else if (fixedBlue.length >= 2 && fixedBlue.length < 6 && fixedRed.length > 0) {
-    // 规则3：蓝球≥2且<6，红球已选 → 复式
-    finalMode = 'multiple'
-    targetRedCount = Math.max(6, fixedRed.length)
-    targetBlueCount = fixedBlue.length
-  } else if (fixedBlue.length === 1 && fixedRed.length > 6) {
-    // 规则4：蓝球=1，红球>6 → 复式
-    finalMode = 'multiple'
-    targetRedCount = fixedRed.length
-    targetBlueCount = 1
-  } else if (fixedBlue.length === 1 && fixedRed.length > 0 && fixedRed.length <= 6) {
-    // 规则5：蓝球=1，红球<6 → 单式（选中+随机）
-    finalMode = 'single'
-    targetRedCount = 6
-    targetBlueCount = 1
-  } else if (fixedBlue.length === 0 && fixedRed.length > 0 && fixedRed.length <= 6) {
-    // 规则6：蓝球未选，红球<6 → 单式（蓝球随机）
-    finalMode = 'single'
-    targetRedCount = 6
-    targetBlueCount = 1
-  } else if (fixedBlue.length === 0 && fixedRed.length > 6) {
-    // 规则7：蓝球未选，红球>6 → 复式（蓝球随机）
-    finalMode = 'multiple'
-    targetRedCount = fixedRed.length
-    targetBlueCount = 1
-  } else if (fixedRed.length === 0 && fixedBlue.length === 1) {
-    // 蓝球=1，红球未选 → 单式
-    finalMode = 'single'
-    targetRedCount = 6
-    targetBlueCount = 1
-  }
-
   // 智能合并固定号码和法号推荐（去重+组合）
   const mergeNumbers = (fixed: number[], pool: number[], range: number, target: number): number[] => {
     const unique = new Set<number>(fixed)
     const filteredPool = pool.filter(n => !fixed.includes(n))
 
-    // 先加入固定号码
-    // 再从加权池中按比例选取（增加命中概率）
+    // 从加权池中选取（60%概率）
     if (filteredPool.length > 0 && unique.size < target) {
-      // 每个加权数字有60%概率被选中
       const shuffled = [...filteredPool].sort(() => Math.random() - 0.5)
       for (const n of shuffled) {
         if (unique.size >= target) break
@@ -256,63 +188,151 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     return Array.from(unique).sort((a, b) => a - b)
   }
 
-  // 辅助生成函数：合并固定号+推荐号，去重后智能补号
-  const generateRed = (count: number, useFixed: boolean = true) => {
-    if (!useFixed) {
-      // 不使用固定号码，直接从池和随机中生成
+  // 辅助生成函数
+  const generateRed = (count: number, useFixed: boolean) => {
+    if (!useFixed || fixedRed.length === 0) {
       return mergeNumbers([], redPool, 33, count)
     }
-
-    // 如果固定号码刚好等于目标数量，直接使用
-    if (fixedRed.length === count) {
-      return [...fixedRed].sort((a, b) => a - b)
+    if (fixedRed.length >= count) {
+      return [...fixedRed].slice(0, count).sort((a, b) => a - b)
     }
-
-    // 智能合并固定号码和推荐号码
     return mergeNumbers(fixedRed, redPool, 33, count)
   }
 
-  const generateBlue = (count: number, useFixed: boolean = true) => {
-    if (!useFixed) {
+  const generateBlue = (count: number, useFixed: boolean) => {
+    if (!useFixed || fixedBlue.length === 0) {
       return mergeNumbers([], bluePool, 16, count)
     }
-
-    if (fixedBlue.length === count) {
-      return [...fixedBlue].sort((a, b) => a - b)
+    if (fixedBlue.length >= count) {
+      return [...fixedBlue].slice(0, count).sort((a, b) => a - b)
     }
-
     return mergeNumbers(fixedBlue, bluePool, 16, count)
   }
 
+  // 判断实际模式和目标数量
+  let finalMode = mode
+  let targetRedCount = 6
+  let targetBlueCount = 1
+  let useFixedRed = fixedRed.length > 0
+  let useFixedBlue = fixedBlue.length > 0
+
+  // ====== 规则判断 ======
+  if (fixedRed.length === 0 && fixedBlue.length === 0) {
+    // 规则1/2/3：都没选，按用户选择的模式
+    if (mode === 'multiple') {
+      finalMode = 'multiple'
+      targetRedCount = 7 + Math.floor(Math.random() * 3) // 7-9
+      targetBlueCount = 2 + Math.floor(Math.random() * 2) // 2-3
+      useFixedRed = false
+      useFixedBlue = false
+    } else if (mode === 'dantuo') {
+      finalMode = 'dantuo'
+      useFixedRed = false
+      useFixedBlue = false
+    } else {
+      finalMode = 'single'
+      targetRedCount = 6
+      targetBlueCount = 1
+      useFixedRed = false
+      useFixedBlue = false
+    }
+  } else if (fixedRed.length > 0 && fixedRed.length < 6 && fixedBlue.length === 0) {
+    // 规则4/5/6：红球<6，蓝球未选
+    if (mode === 'multiple') {
+      finalMode = 'multiple'
+      targetRedCount = 7 + Math.floor(Math.random() * 3) // >6
+      targetBlueCount = 1
+    } else if (mode === 'dantuo') {
+      finalMode = 'dantuo'
+      targetRedCount = 6
+      targetBlueCount = 1
+    } else {
+      finalMode = 'single'
+      targetRedCount = 6
+      targetBlueCount = 1
+    }
+    useFixedRed = true
+    useFixedBlue = false
+  } else if (fixedRed.length >= 6 && fixedBlue.length === 0) {
+    // 规则7/8/9/10：红球≥6，蓝球未选 → 自动复式
+    finalMode = 'multiple'
+    targetRedCount = Math.max(6, fixedRed.length)
+    targetBlueCount = mode === 'dantuo' ? 1 : (1 + Math.floor(Math.random() * 2)) // 胆拖1个，否则1-2个
+    useFixedRed = true
+    useFixedBlue = false
+  } else if (fixedRed.length === 0 && fixedBlue.length === 1) {
+    // 规则11：红球未选，蓝球=1
+    if (mode === 'multiple') {
+      finalMode = 'multiple'
+      targetRedCount = 7 + Math.floor(Math.random() * 3) // >6
+      targetBlueCount = 1
+    } else if (mode === 'dantuo') {
+      finalMode = 'dantuo'
+      targetRedCount = 6
+      targetBlueCount = 1
+    } else {
+      finalMode = 'single'
+      targetRedCount = 6
+      targetBlueCount = 1
+    }
+    useFixedRed = false
+    useFixedBlue = true
+  } else if (fixedRed.length === 0 && fixedBlue.length > 1) {
+    // 规则12：红球未选，蓝球>1 → 自动复式
+    finalMode = 'multiple'
+    targetRedCount = 7 + Math.floor(Math.random() * 3) // >6
+    targetBlueCount = fixedBlue.length
+    useFixedRed = false
+    useFixedBlue = true
+  } else if (fixedRed.length > 0 && fixedBlue.length > 0) {
+    // 规则14/15：都选了，按实际数量判断
+    if (fixedRed.length < 6 && fixedBlue.length === 1) {
+      finalMode = mode === 'dantuo' ? 'dantuo' : (mode === 'multiple' ? 'multiple' : 'single')
+      targetRedCount = mode === 'multiple' ? 7 + Math.floor(Math.random() * 3) : 6
+      targetBlueCount = 1
+    } else if (fixedRed.length >= 6 || fixedBlue.length > 1) {
+      finalMode = 'multiple'
+      targetRedCount = Math.max(6, fixedRed.length)
+      targetBlueCount = Math.max(1, fixedBlue.length)
+    } else {
+      finalMode = mode
+      targetRedCount = 6
+      targetBlueCount = 1
+    }
+    useFixedRed = true
+    useFixedBlue = true
+  }
+
+  // ====== 生成号码 ======
   if (finalMode === 'single') {
     return Array.from({ length: notes }, () => ({
       type: 'single',
-      red: generateRed(targetRedCount, fixedRed.length > 0),
-      blue: generateBlue(targetBlueCount, fixedBlue.length > 0),
+      red: generateRed(targetRedCount, useFixedRed),
+      blue: generateBlue(targetBlueCount, useFixedBlue),
     }))
   }
 
   if (finalMode === 'multiple') {
     return Array.from({ length: notes }, () => ({
       type: 'multiple',
-      red: generateRed(targetRedCount, fixedRed.length > 0),
-      blue: generateBlue(targetBlueCount, fixedBlue.length > 0),
+      red: generateRed(targetRedCount, useFixedRed),
+      blue: generateBlue(targetBlueCount, useFixedBlue),
     }))
   }
 
   // 胆拖
   return Array.from({ length: notes }, () => {
-    const bankerCount = 1 + Math.floor(Math.random() * 3)
-    const dragCount = 2 + Math.floor(Math.random() * 3)
+    const bankerCount = 1 + Math.floor(Math.random() * 3) // 1-3
+    const dragCount = 2 + Math.floor(Math.random() * 3) // 2-4
 
-    // 胆码：优先使用固定红球，否则随机生成
-    const bankers = fixedRed.length > 0
+    // 胆码
+    const bankers = useFixedRed && fixedRed.length > 0
       ? fixedRed.slice(0, Math.min(bankerCount, fixedRed.length))
-      : generateRed(bankerCount, false) // 不使用固定号码
+      : mergeNumbers([], redPool, 33, bankerCount)
 
     // 拖码
     let drags: number[]
-    if (fixedRed.length > bankers.length) {
+    if (useFixedRed && fixedRed.length > bankers.length) {
       drags = fixedRed.slice(bankers.length, bankers.length + dragCount)
       if (drags.length < dragCount) {
         const need = dragCount - drags.length
@@ -324,10 +344,15 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
       drags = getRandomNumsFromPool(pool, dragCount)
     }
 
+    // 蓝球：有固定则使用，否则随机
+    const blues = useFixedBlue && fixedBlue.length > 0
+      ? [...fixedBlue].sort((a, b) => a - b)
+      : mergeNumbers([], bluePool, 16, 1 + Math.floor(Math.random() * 2))
+
     return {
       type: 'dantuo',
       red: [...bankers, ...drags].sort((a, b) => a - b),
-      blue: generateBlue(1, false), // 蓝球随机生成 1 个
+      blue: blues,
       redBanker: bankers.sort((a, b) => a - b),
       redDrag: drags.sort((a, b) => a - b),
     }
@@ -337,6 +362,7 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
 /**
  * 生成大乐透号码 (融合所有"道号"数据)
  * 根据用户选择的前区/后区数量自动判断模式
+ * 规则参考双色球，前区对应红球(5个)，后区对应蓝球(2个)
  */
 export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single'): DLTResult[] {
   // 获取用户固定的前区(红)和后区(蓝)
@@ -346,76 +372,6 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
   // 获取加权池
   const frontPool = getDivineNumberPools(35)
   const backPool = getDivineNumberPools(12)
-
-  // 根据用户选择的号码自动判断模式
-  let finalMode = mode
-  let targetFrontCount = 5
-  let targetBackCount = 2
-
-  if (fixedFront.length === 0 && fixedBack.length === 0) {
-    // 规则1：什么都没选 → 根据用户选择的模式生成
-    if (mode === 'multiple') {
-      // 复式：随机生成 6-9 个前区，3-4 个后区
-      finalMode = 'multiple'
-      targetFrontCount = 6 + Math.floor(Math.random() * 4)
-      targetBackCount = 3 + Math.floor(Math.random() * 2)
-    } else if (mode === 'dantuo') {
-      // 胆拖：保持胆拖模式，在下方胆拖逻辑处理
-      finalMode = 'dantuo'
-      targetFrontCount = 5
-      targetBackCount = 2
-    } else {
-      // 单式：默认 5+2
-      finalMode = 'single'
-      targetFrontCount = 5
-      targetBackCount = 2
-    }
-  } else if (fixedBack.length >= 3 && fixedFront.length === 0) {
-    // 规则2：后区≥3，前区未选 → 5+复式，前区随机
-    finalMode = 'multiple'
-    targetFrontCount = 5
-    targetBackCount = fixedBack.length
-  } else if (fixedBack.length >= 3 && fixedBack.length < 6 && fixedFront.length > 0) {
-    // 规则3：后区≥3且<6，前区已选 → 复式
-    finalMode = 'multiple'
-    targetFrontCount = Math.max(5, fixedFront.length)
-    targetBackCount = fixedBack.length
-  } else if (fixedBack.length === 2 && fixedFront.length > 5) {
-    // 规则4：后区=2，前区>5 → 复式
-    finalMode = 'multiple'
-    targetFrontCount = fixedFront.length
-    targetBackCount = 2
-  } else if (fixedBack.length === 2 && fixedFront.length > 0 && fixedFront.length <= 5) {
-    // 规则5：后区=2，前区<5 → 单式（选中+随机）
-    finalMode = 'single'
-    targetFrontCount = 5
-    targetBackCount = 2
-  } else if (fixedBack.length === 0 && fixedFront.length > 0 && fixedFront.length <= 5) {
-    // 规则6：后区未选，前区<5 → 单式（后区随机）
-    finalMode = 'single'
-    targetFrontCount = 5
-    targetBackCount = 2
-  } else if (fixedBack.length === 0 && fixedFront.length > 5) {
-    // 规则7：后区未选，前区>5 → 复式（后区随机）
-    finalMode = 'multiple'
-    targetFrontCount = fixedFront.length
-    targetBackCount = 2
-  } else if (fixedFront.length === 0 && fixedBack.length === 2) {
-    // 后区=2，前区未选 → 单式
-    finalMode = 'single'
-    targetFrontCount = 5
-    targetBackCount = 2
-  } else if (fixedFront.length === 0 && fixedBack.length === 1) {
-    // 后区=1，前区未选 → 单式
-    finalMode = 'single'
-    targetFrontCount = 5
-    targetBackCount = 2
-  } else if (fixedBack.length === 1 && fixedFront.length > 0) {
-    // 后区=1，前区已选 → 单式
-    finalMode = 'single'
-    targetFrontCount = Math.max(5, fixedFront.length)
-    targetBackCount = 2
-  }
 
   // 智能合并固定号码和法号推荐（去重+组合）
   const mergeNumbers = (fixed: number[], pool: number[], range: number, target: number): number[] => {
@@ -441,55 +397,151 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     return Array.from(unique).sort((a, b) => a - b)
   }
 
-  const generateFront = (count: number, useFixed: boolean = true) => {
-    if (!useFixed) {
+  // 辅助生成函数
+  const generateFront = (count: number, useFixed: boolean) => {
+    if (!useFixed || fixedFront.length === 0) {
       return mergeNumbers([], frontPool, 35, count)
     }
-    if (fixedFront.length === count) {
-      return [...fixedFront].sort((a, b) => a - b)
+    if (fixedFront.length >= count) {
+      return [...fixedFront].slice(0, count).sort((a, b) => a - b)
     }
     return mergeNumbers(fixedFront, frontPool, 35, count)
   }
 
-  const generateBack = (count: number, useFixed: boolean = true) => {
-    if (!useFixed) {
+  const generateBack = (count: number, useFixed: boolean) => {
+    if (!useFixed || fixedBack.length === 0) {
       return mergeNumbers([], backPool, 12, count)
     }
-    if (fixedBack.length === count) {
-      return [...fixedBack].sort((a, b) => a - b)
+    if (fixedBack.length >= count) {
+      return [...fixedBack].slice(0, count).sort((a, b) => a - b)
     }
     return mergeNumbers(fixedBack, backPool, 12, count)
   }
 
+  // 判断实际模式和目标数量
+  let finalMode = mode
+  let targetFrontCount = 5
+  let targetBackCount = 2
+  let useFixedFront = fixedFront.length > 0
+  let useFixedBack = fixedBack.length > 0
+
+  // ====== 规则判断（参考双色球规则，前区5个，后区2个） ======
+  if (fixedFront.length === 0 && fixedBack.length === 0) {
+    // 规则1：都没选，按用户选择的模式
+    if (mode === 'multiple') {
+      finalMode = 'multiple'
+      targetFrontCount = 6 + Math.floor(Math.random() * 4) // 6-9
+      targetBackCount = 3 + Math.floor(Math.random() * 2) // 3-4
+      useFixedFront = false
+      useFixedBack = false
+    } else if (mode === 'dantuo') {
+      finalMode = 'dantuo'
+      useFixedFront = false
+      useFixedBack = false
+    } else {
+      finalMode = 'single'
+      targetFrontCount = 5
+      targetBackCount = 2
+      useFixedFront = false
+      useFixedBack = false
+    }
+  } else if (fixedFront.length > 0 && fixedFront.length < 5 && fixedBack.length === 0) {
+    // 规则2：前区<5，后区未选
+    if (mode === 'multiple') {
+      finalMode = 'multiple'
+      targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
+      targetBackCount = 2
+    } else if (mode === 'dantuo') {
+      finalMode = 'dantuo'
+      targetFrontCount = 5
+      targetBackCount = 2
+    } else {
+      finalMode = 'single'
+      targetFrontCount = 5
+      targetBackCount = 2
+    }
+    useFixedFront = true
+    useFixedBack = false
+  } else if (fixedFront.length >= 5 && fixedBack.length === 0) {
+    // 规则3/4：前区≥5，后区未选 → 自动复式
+    finalMode = 'multiple'
+    targetFrontCount = Math.max(5, fixedFront.length)
+    targetBackCount = mode === 'dantuo' ? 2 : (2 + Math.floor(Math.random() * 2)) // 胆拖2个，否则2-3个
+    useFixedFront = true
+    useFixedBack = false
+  } else if (fixedFront.length === 0 && fixedBack.length === 2) {
+    // 规则5：前区未选，后区=2
+    if (mode === 'multiple') {
+      finalMode = 'multiple'
+      targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
+      targetBackCount = 2
+    } else if (mode === 'dantuo') {
+      finalMode = 'dantuo'
+      targetFrontCount = 5
+      targetBackCount = 2
+    } else {
+      finalMode = 'single'
+      targetFrontCount = 5
+      targetBackCount = 2
+    }
+    useFixedFront = false
+    useFixedBack = true
+  } else if (fixedFront.length === 0 && fixedBack.length > 2) {
+    // 规则6：前区未选，后区>2 → 自动复式
+    finalMode = 'multiple'
+    targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
+    targetBackCount = fixedBack.length
+    useFixedFront = false
+    useFixedBack = true
+  } else if (fixedFront.length > 0 && fixedBack.length > 0) {
+    // 规则8/9：都选了，按实际数量判断
+    if (fixedFront.length < 5 && fixedBack.length === 2) {
+      finalMode = mode === 'dantuo' ? 'dantuo' : (mode === 'multiple' ? 'multiple' : 'single')
+      targetFrontCount = mode === 'multiple' ? 6 + Math.floor(Math.random() * 4) : 5
+      targetBackCount = 2
+    } else if (fixedFront.length >= 5 || fixedBack.length > 2) {
+      finalMode = 'multiple'
+      targetFrontCount = Math.max(5, fixedFront.length)
+      targetBackCount = Math.max(2, fixedBack.length)
+    } else {
+      finalMode = mode
+      targetFrontCount = 5
+      targetBackCount = 2
+    }
+    useFixedFront = true
+    useFixedBack = true
+  }
+
+  // ====== 生成号码 ======
   if (finalMode === 'single') {
     return Array.from({ length: notes }, () => ({
       type: 'single',
-      front: generateFront(targetFrontCount, fixedFront.length > 0),
-      back: generateBack(targetBackCount, fixedBack.length > 0),
+      front: generateFront(targetFrontCount, useFixedFront),
+      back: generateBack(targetBackCount, useFixedBack),
     }))
   }
 
   if (finalMode === 'multiple') {
     return Array.from({ length: notes }, () => ({
       type: 'multiple',
-      front: generateFront(targetFrontCount, fixedFront.length > 0),
-      back: generateBack(targetBackCount, fixedBack.length > 0),
+      front: generateFront(targetFrontCount, useFixedFront),
+      back: generateBack(targetBackCount, useFixedBack),
     }))
   }
 
   // 胆拖
   return Array.from({ length: notes }, () => {
-    const bankerCount = 1 + Math.floor(Math.random() * 2)
-    const dragCount = 2 + Math.floor(Math.random() * 2)
+    const bankerCount = 1 + Math.floor(Math.random() * 2) // 1-2
+    const dragCount = 2 + Math.floor(Math.random() * 2) // 2-3
 
-    // 胆码：优先使用固定前区，否则随机生成
-    const bankers = fixedFront.length > 0
+    // 胆码
+    const bankers = useFixedFront && fixedFront.length > 0
       ? fixedFront.slice(0, Math.min(bankerCount, fixedFront.length))
-      : generateFront(bankerCount, false) // 不使用固定号码
+      : mergeNumbers([], frontPool, 35, bankerCount)
 
     // 拖码
     let drags: number[]
-    if (fixedFront.length > bankers.length) {
+    if (useFixedFront && fixedFront.length > bankers.length) {
       drags = fixedFront.slice(bankers.length, bankers.length + dragCount)
       if (drags.length < dragCount) {
         const need = dragCount - drags.length
@@ -501,10 +553,15 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
       drags = getRandomNumsFromPool(pool, dragCount)
     }
 
+    // 后区：有固定则使用，否则随机
+    const backs = useFixedBack && fixedBack.length > 0
+      ? [...fixedBack].sort((a, b) => a - b)
+      : mergeNumbers([], backPool, 12, 2 + Math.floor(Math.random() * 2))
+
     return {
       type: 'dantuo',
       front: [...bankers, ...drags].sort((a, b) => a - b),
-      back: generateBack(2, false), // 后区随机生成 2 个
+      back: backs,
       frontBanker: bankers.sort((a, b) => a - b),
       frontDrag: drags.sort((a, b) => a - b),
     }
