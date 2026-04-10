@@ -383,6 +383,7 @@ function reload() {
               <path d="M10 18L12 22L14 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
             </svg>
           </div>
+          <p class="tip-copyright">©2099  彩友所有  主任的机(sui)制(ji)不如机智的我</p>
           <div class="tip-text-wrapper">
             <p class="tip-message">其实你有1000万存款，只不过你忘记了取款密码，每输入一次需要2元，一旦正确，钱就是你的，不着急，不放弃，心若在，梦就在。</p>
 
@@ -393,8 +394,6 @@ function reload() {
                 <span class="mantra-char">{{ char }}</span>
               </div>
             </div>
-
-            <p class="tip-copyright">©2099  彩友所有  主任的机(sui)制(ji)不如机智的我</p>
           </div>
         </div>
       </div>
