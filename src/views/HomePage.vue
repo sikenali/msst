@@ -394,7 +394,7 @@ function reload() {
               </div>
             </div>
 
-            <p class="tip-copyright">@2026 主任的机(sui)制(ji)不如机(sui)智(ji)的我</p>
+            <p class="tip-copyright">©2099  彩友所有  主任的机(sui)制(ji)不如机智的我</p>
           </div>
         </div>
       </div>
