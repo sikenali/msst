@@ -120,9 +120,30 @@ export function useUserSelections() {
   }
 
   function clearAll() {
+    // 只清除生日、星座、生辰、幸运数
+    ssqBirthday.value = null
+    ssqConstellation.value = ''
+    ssqLuckyNumbers.value = []
+
+    dltBirthday.value = null
+    dltConstellation.value = ''
+    dltLuckyNumbers.value = []
+  }
+
+  function clearRedBlueNumbers() {
+    // 专门清空红球蓝球
     ssqBlueNumbers.value = []
     ssqRedNumbers.value = []
-    ssqNotes.value = 1
+    
+    dltBlueNumbers.value = []
+    dltRedNumbers.value = []
+  }
+
+  function clearAllIncludingRedBlue() {
+    // 清除所有数据（包括红球蓝球、注数、模式）
+    ssqBlueNumbers.value = []
+    ssqRedNumbers.value = []
+    ssqNotes.value = 5
     ssqMode.value = 'single'
     ssqBirthday.value = null
     ssqConstellation.value = ''
@@ -130,7 +151,7 @@ export function useUserSelections() {
 
     dltBlueNumbers.value = []
     dltRedNumbers.value = []
-    dltNotes.value = 1
+    dltNotes.value = 5
     dltMode.value = 'single'
     dltBirthday.value = null
     dltConstellation.value = ''
@@ -154,5 +175,7 @@ export function useUserSelections() {
     setConstellation,
     setLuckyNumbers,
     clearAll,
+    clearRedBlueNumbers,
+    clearAllIncludingRedBlue,
   }
 }

@@ -22,8 +22,6 @@ const emit = defineEmits<{
 }>()
 
 const typeLabels: Record<string, string> = {
-  lanruo: '蓝若是',
-  hongfolv: '红佛侣',
   yunshu: '运数',
   yunshi: '运式',
   shengri: '生日',

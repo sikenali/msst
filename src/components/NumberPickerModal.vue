@@ -53,6 +53,9 @@ function isSelected(num: number) {
 
 function handleClear() {
   selected.value = []
+  // 清空后立即确认，同步到全局状态
+  emit('confirm', [])
+  emit('close')
 }
 
 function handleConfirm() {

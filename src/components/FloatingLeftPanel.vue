@@ -37,19 +37,20 @@ function handleIconClick(type: string) {
       <span class="main-btn-tooltip">法号</span>
     </button>
     <div class="icon-list" :class="{ show: isExpanded }">
-      <div
+      <button
         v-for="(icon, index) in icons"
         :key="icon.type"
         class="icon-item"
         :class="{ show: isExpanded }"
         :style="{ transitionDelay: isExpanded ? `${(index + 1) * 0.08}s` : '0s' }"
         @click="handleIconClick(icon.type)"
+        :aria-label="icon.label"
       >
         <span class="icon-emoji" :style="{ color: icon.color }">
           <component :is="icon.icon" class="icon-svg" />
         </span>
         <span class="icon-item-tooltip">{{ icon.label }}</span>
-      </div>
+      </button>
     </div>
   </div>
 </template>

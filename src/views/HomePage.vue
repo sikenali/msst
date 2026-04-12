@@ -32,7 +32,7 @@ watch(lotteryType, (newType) => {
 }, { immediate: true })
 
 // 在顶层解构一次 composable，避免重复调用
-const { userNotes, setNotes, userRedNumbers, userBlueNumbers, setMode, userMode } = useUserSelections()
+const { userNotes, setNotes, userRedNumbers, userBlueNumbers, setMode, userMode, setBlueNumbers, setRedNumbers } = useUserSelections()
 
 // 使用 computed 动态获取当前彩种的注数
 const notes = computed({
@@ -72,6 +72,8 @@ function handleOpenModal(type: string) {
   if (type === 'lanruo') {
     pickerType.value = 'blue'
     pickerTitle.value = '蓝若寺'
+    // 从全局状态初始化选中号码，确保弹框显示与全局状态同步
+    pickerSelectedBlue.value = [...userBlueNumbers.value]
     showPickerModal.value = true
     return
   }
@@ -79,6 +81,8 @@ function handleOpenModal(type: string) {
   if (type === 'hongfolv') {
     pickerType.value = 'red'
     pickerTitle.value = '红佛女'
+    // 从全局状态初始化选中号码，确保弹框显示与全局状态同步
+    pickerSelectedRed.value = [...userRedNumbers.value]
     showPickerModal.value = true
     return
   }
@@ -102,8 +106,7 @@ function handlePickerConfirm(numbers: number[]) {
     pickerSelectedRed.value = [...numbers]
   }
 
-  // 同时保存到全局状态（用于号码生成）
-  const { setRedNumbers, setBlueNumbers } = useUserSelections()
+  // 使用顶层已解构的函数保存到全局状态（用于号码生成）
   if (pickerType.value === 'blue') {
     setBlueNumbers(numbers)
   } else if (pickerType.value === 'red') {
@@ -223,13 +226,11 @@ watch(autoGenerate, async (shouldAutoGenerate) => {
 // 同步路由参数到本地状态
 watch(() => route.query.notes, (val) => {
   const notesNum = Number(val) || 5
-  const { setNotes } = useUserSelections()
   setNotes(notesNum)
 }, { immediate: true })
 
 watch(() => route.query.mode, (val) => {
   if (val === 'single' || val === 'multiple' || val === 'dantuo') {
-    const { setMode } = useUserSelections()
     setMode(val)
   }
 }, { immediate: true })

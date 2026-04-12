@@ -16,6 +16,7 @@ import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
 import BaguaFullIcon from '@/components/BaguaFullIcon.vue'
 import Toast, { showToast } from '@/components/Toast.vue'
 import { generateSSQ, generateDLT, formatTime, getIssueNumber, setIssueNumber, currentIssueNumber, currentIssuePrefix, currentIssueSuffix } from '@/composables/useLottery'
+import { useUserSelections } from '@/composables/useUserSelections'
 
 const ssqLogo = '/ssq.png'
 const dltLogo = '/dlt.png'
@@ -45,8 +46,28 @@ const dltRain = generateRain(20, 'dlt')
 const currentRain = computed(() => lotteryType.value === 'ssq' ? ssqRain : dltRain)
 
 const lotteryType = ref<'ssq' | 'dlt'>((route.query.type as 'ssq' | 'dlt') || 'ssq')
-const notes = ref(Number(route.query.notes) || 5)
-const mode = ref((route.query.mode as string) || 'single')
+
+// 使用 useUserSelections 获取响应式的注数和模式
+const { userNotes, setNotes, userMode, setMode, clearAll } = useUserSelections()
+
+// 使用 computed 动态获取当前彩种的注数和模式
+const notes = computed({
+  get: () => userNotes.value,
+  set: (val: number) => setNotes(val)
+})
+
+const mode = computed({
+  get: () => userMode.value,
+  set: (val: 'single' | 'multiple' | 'dantuo') => setMode(val)
+})
+
+// 初始化注数和模式（从路由参数）
+if (route.query.notes) {
+  setNotes(Number(route.query.notes) || 5)
+}
+if (route.query.mode) {
+  setMode(route.query.mode as 'single' | 'multiple' | 'dantuo')
+}
 
 const resultCardRef = ref<HTMLElement | null>(null)
 const numbers = ref<any[]>([])
@@ -310,8 +331,8 @@ onMounted(() => {
     try {
       numbers.value = JSON.parse(decodeURIComponent(route.query.numbers as string))
       lotteryType.value = (route.query.type as 'ssq' | 'dlt') || 'ssq'
-      notes.value = Number(route.query.notes) || 5
-      mode.value = (route.query.mode as string) || 'single'
+      setNotes(Number(route.query.notes) || 5)
+      setMode((route.query.mode as 'single' | 'multiple' | 'dantuo') || 'single')
       issueNumber.value = getIssueNumber(lotteryType.value)
       issuePrefix.value = currentIssuePrefix.value
       issueSuffix.value = currentIssueSuffix.value
@@ -330,8 +351,23 @@ onMounted(() => {
 
   // 默认：正常刷新数据
   lotteryType.value = (route.query.type as 'ssq' | 'dlt') || 'ssq'
-  notes.value = Number(route.query.notes) || 5
-  mode.value = (route.query.mode as string) || 'single'
+  
+  // 从路由参数初始化注数和模式
+  if (route.query.notes) {
+    setNotes(Number(route.query.notes) || 5)
+  } else {
+    setNotes(5)
+  }
+  
+  if (route.query.mode === 'single' || route.query.mode === 'multiple' || route.query.mode === 'dantuo') {
+    setMode(route.query.mode)
+  } else {
+    setMode('single')
+  }
+  
+  // 刷新页面时只清除生日、星座、生辰、幸运数，保留红球蓝球选中状态
+  clearAll()
+  
   refreshData()
 })
 
@@ -345,8 +381,15 @@ watch([() => route.query.type, () => route.query.notes, () => route.query.mode],
   if (newType === 'ssq' || newType === 'dlt') {
     lotteryType.value = newType
   }
-  notes.value = Number(newNotes) || 5
-  mode.value = (newMode as string) || 'single'
+  
+  // 更新全局状态
+  if (newNotes) {
+    setNotes(Number(newNotes) || 5)
+  }
+  if (newMode === 'single' || newMode === 'multiple' || newMode === 'dantuo') {
+    setMode(newMode)
+  }
+  
   console.log('🔄 Updated mode.value to:', mode.value)
 
   // 防抖处理：300ms 内只执行一次
@@ -498,6 +541,9 @@ function calculateTotalAmount(): number {
 }
 
 function handleBack() {
+  // 返回主页时只清除生日、星座、生辰、幸运数，保留红球蓝球选中状态
+  clearAll()
+  
   router.push({ path: '/', query: { type: lotteryType.value, autoGenerate: '1' } })
 }
 </script>
