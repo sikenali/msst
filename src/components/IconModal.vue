@@ -45,10 +45,10 @@ watch(() => props.visible, (val) => {
     if (props.lotteryType) {
       setCurrentType(props.lotteryType)
     }
-    
-    // 重新获取当前彩种的数据
+
+    // 在类型同步后获取当前彩种的数据
     const { userNotes, userMode } = useUserSelections()
-    
+
     // 运数：恢复上次保存的注数
     if (props.type === 'yunshu') {
       notesCount.value = userNotes.value
@@ -71,14 +71,26 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 function handleNotesConfirm() {
-  const { setNotes } = useUserSelections()
+  // 确保在正确的彩种类型下保存
+  if (props.lotteryType) {
+    setCurrentType(props.lotteryType)
+  }
+  const { setNotes, userNotes } = useUserSelections()
+  console.log('💾 保存运数:', notesCount.value, '当前彩种:', props.lotteryType)
   setNotes(notesCount.value)
+  console.log('✅ 保存后全局状态:', userNotes.value)
   handleClose()
 }
 
 function handleYunshiConfirm() {
-  const { setMode } = useUserSelections()
+  // 确保在正确的彩种类型下保存
+  if (props.lotteryType) {
+    setCurrentType(props.lotteryType)
+  }
+  const { setMode, userMode } = useUserSelections()
+  console.log('💾 保存运式:', yunshiMode.value, '当前彩种:', props.lotteryType)
   setMode(yunshiMode.value)
+  console.log('✅ 保存后全局状态:', userMode.value)
   handleClose()
 }
 
@@ -88,12 +100,18 @@ function handleBirthdayConfirm() {
 }
 
 function handleConstellationConfirm(constellation: string) {
+  if (props.lotteryType) {
+    setCurrentType(props.lotteryType)
+  }
   const { setConstellation } = useUserSelections()
   setConstellation(constellation)
   handleClose()
 }
 
 function handleLuckyNumberConfirm(data: { type: string; numbers: number[] }) {
+  if (props.lotteryType) {
+    setCurrentType(props.lotteryType)
+  }
   const { setLuckyNumbers } = useUserSelections()
   setLuckyNumbers(data.numbers)
   handleClose()

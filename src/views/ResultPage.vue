@@ -48,7 +48,7 @@ const currentRain = computed(() => lotteryType.value === 'ssq' ? ssqRain : dltRa
 const lotteryType = ref<'ssq' | 'dlt'>((route.query.type as 'ssq' | 'dlt') || 'ssq')
 
 // 使用 useUserSelections 获取响应式的注数和模式
-const { userNotes, setNotes, userMode, setMode, clearAll } = useUserSelections()
+const { userNotes, setNotes, userMode, setMode, clearAllIncludingRedBlue } = useUserSelections()
 
 // 使用 computed 动态获取当前彩种的注数和模式
 const notes = computed({
@@ -365,8 +365,8 @@ onMounted(() => {
     setMode('single')
   }
   
-  // 刷新页面时只清除生日、星座、生辰、幸运数，保留红球蓝球选中状态
-  clearAll()
+  // 刷新页面时清除所有数据（包括号码），确保重新选择
+  clearAllIncludingRedBlue()
   
   refreshData()
 })
@@ -541,9 +541,9 @@ function calculateTotalAmount(): number {
 }
 
 function handleBack() {
-  // 返回主页时只清除生日、星座、生辰、幸运数，保留红球蓝球选中状态
-  clearAll()
-  
+  // 返回主页时清除所有数据（包括号码），确保用户重新选择
+  clearAllIncludingRedBlue()
+
   router.push({ path: '/', query: { type: lotteryType.value, autoGenerate: '1' } })
 }
 </script>
