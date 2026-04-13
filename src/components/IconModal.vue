@@ -38,6 +38,9 @@ const notesCount = ref(1)
 // 运式状态
 const yunshiMode = ref<'single' | 'multiple' | 'dantuo'>('single')
 
+// 使用 computed 动态获取当前彩种的注数和模式
+const { userNotes, userMode } = useUserSelections()
+
 // 监听弹窗打开，从全局状态加载数据
 watch(() => props.visible, (val) => {
   if (val) {
@@ -45,9 +48,6 @@ watch(() => props.visible, (val) => {
     if (props.lotteryType) {
       setCurrentType(props.lotteryType)
     }
-
-    // 在类型同步后获取当前彩种的数据
-    const { userNotes, userMode } = useUserSelections()
 
     // 运数：恢复上次保存的注数
     if (props.type === 'yunshu') {
@@ -71,26 +71,16 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 function handleNotesConfirm() {
-  // 确保在正确的彩种类型下保存
-  if (props.lotteryType) {
-    setCurrentType(props.lotteryType)
-  }
-  const { setNotes, userNotes } = useUserSelections()
+  const { setNotes } = useUserSelections()
   console.log('💾 保存运数:', notesCount.value, '当前彩种:', props.lotteryType)
   setNotes(notesCount.value)
-  console.log('✅ 保存后全局状态:', userNotes.value)
   handleClose()
 }
 
 function handleYunshiConfirm() {
-  // 确保在正确的彩种类型下保存
-  if (props.lotteryType) {
-    setCurrentType(props.lotteryType)
-  }
-  const { setMode, userMode } = useUserSelections()
+  const { setMode } = useUserSelections()
   console.log('💾 保存运式:', yunshiMode.value, '当前彩种:', props.lotteryType)
   setMode(yunshiMode.value)
-  console.log('✅ 保存后全局状态:', userMode.value)
   handleClose()
 }
 

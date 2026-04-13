@@ -39,13 +39,17 @@ watch(lotteryType, (newType) => {
 // 使用 computed 动态获取当前彩种的注数
 const notes = computed({
   get: () => userNotes.value,
-  set: (val: number) => setNotes(val)
+  set: (val: number) => {
+    userNotes.value = val
+  }
 })
 
 // 模式：使用全局状态的 userMode，确保运式选择器的修改能生效
 const mode = computed({
   get: () => userMode.value,
-  set: (val: 'single' | 'multiple' | 'dantuo') => setMode(val)
+  set: (val: 'single' | 'multiple' | 'dantuo') => {
+    userMode.value = val
+  }
 })
 const showRulesModal = ref(false)
 const isSpinning = ref(false)

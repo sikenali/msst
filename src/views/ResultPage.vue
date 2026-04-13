@@ -53,12 +53,16 @@ const { userNotes, setNotes, userMode, setMode, clearAllIncludingRedBlue } = use
 // 使用 computed 动态获取当前彩种的注数和模式
 const notes = computed({
   get: () => userNotes.value,
-  set: (val: number) => setNotes(val)
+  set: (val: number) => {
+    userNotes.value = val
+  }
 })
 
 const mode = computed({
   get: () => userMode.value,
-  set: (val: 'single' | 'multiple' | 'dantuo') => setMode(val)
+  set: (val: 'single' | 'multiple' | 'dantuo') => {
+    userMode.value = val
+  }
 })
 
 // 初始化注数和模式（从路由参数）
@@ -351,23 +355,38 @@ onMounted(() => {
 
   // 默认：正常刷新数据
   lotteryType.value = (route.query.type as 'ssq' | 'dlt') || 'ssq'
-  
-  // 从路由参数初始化注数和模式
-  if (route.query.notes) {
-    setNotes(Number(route.query.notes) || 5)
+
+  // 从路由参数初始化注数和模式（确保优先级：路由参数 > 默认值）
+  const routeNotes = Number(route.query.notes)
+  const routeMode = route.query.mode as 'single' | 'multiple' | 'dantuo'
+
+  // 先设置注数和模式，确保 refreshData 能获取到正确的值
+  if (!Number.isNaN(routeNotes) && routeNotes > 0) {
+    setNotes(routeNotes)
   } else {
     setNotes(5)
   }
-  
-  if (route.query.mode === 'single' || route.query.mode === 'multiple' || route.query.mode === 'dantuo') {
-    setMode(route.query.mode)
+
+  if (routeMode === 'single' || routeMode === 'multiple' || routeMode === 'dantuo') {
+    setMode(routeMode)
   } else {
     setMode('single')
   }
-  
+
+  console.log('🎯 onMounted 设置后的全局状态 - notes:', userNotes.value, 'mode:', userMode.value)
+
   // 刷新页面时清除所有数据（包括号码），确保重新选择
   clearAllIncludingRedBlue()
-  
+
+  // 再次确认 mode 和 notes 正确（clearAllIncludingRedBlue 会重置为默认值 5 和 single）
+  if (!Number.isNaN(routeNotes) && routeNotes > 0) {
+    setNotes(routeNotes)
+  }
+  if (routeMode === 'single' || routeMode === 'multiple' || routeMode === 'dantuo') {
+    setMode(routeMode)
+  }
+
+  console.log('🚀 调用 refreshData - notes:', notes.value, 'mode:', mode.value)
   refreshData()
 })
 

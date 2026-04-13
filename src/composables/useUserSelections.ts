@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 export interface BirthdayInfo {
   year: number
@@ -158,15 +158,50 @@ export function useUserSelections() {
     dltLuckyNumbers.value = []
   }
 
-  const refs = getCurrentRefs()
+  // 使用 computed 动态获取当前彩种的引用，确保切换彩种后自动更新
+  const userNotes = computed({
+    get: () => getNotes().value,
+    set: (val: number) => setNotes(val)
+  })
+
+  const userMode = computed({
+    get: () => getMode().value,
+    set: (val: 'single' | 'multiple' | 'dantuo') => setMode(val)
+  })
+
+  const userRedNumbers = computed({
+    get: () => getRedNumbers().value,
+    set: (val: number[]) => setRedNumbers(val)
+  })
+
+  const userBlueNumbers = computed({
+    get: () => getBlueNumbers().value,
+    set: (val: number[]) => setBlueNumbers(val)
+  })
+
+  const userBirthday = computed({
+    get: () => getBirthday().value,
+    set: (val: BirthdayInfo | null) => { if (val) setBirthday(val) }
+  })
+
+  const userConstellation = computed({
+    get: () => getConstellation().value,
+    set: (val: string) => setConstellation(val)
+  })
+
+  const userLuckyNumbers = computed({
+    get: () => getLuckyNumbers().value,
+    set: (val: number[]) => setLuckyNumbers(val)
+  })
+
   return {
-    userBlueNumbers: refs.blueNumbers,
-    userRedNumbers: refs.redNumbers,
-    userNotes: refs.notes,
-    userMode: refs.mode,
-    userBirthday: refs.birthday,
-    userConstellation: refs.constellation,
-    userLuckyNumbers: refs.luckyNumbers,
+    userBlueNumbers,
+    userRedNumbers,
+    userNotes,
+    userMode,
+    userBirthday,
+    userConstellation,
+    userLuckyNumbers,
     setBlueNumbers,
     setRedNumbers,
     setNotes,
