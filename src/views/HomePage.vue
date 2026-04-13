@@ -444,52 +444,92 @@ function reload() {
         <!-- 锦鲤特效 -->
         <div class="koi-container">
           <svg class="koi koi--left" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 锦鲤胡须 -->
+            <path d="M18 33 Q15 38 12 36" stroke="#D97706" stroke-width="0.8" fill="none" opacity="0.6" />
+            <path d="M18 35 Q14 39 11 38" stroke="#D97706" stroke-width="0.8" fill="none" opacity="0.6" />
             <!-- 锦鲤身体 -->
-            <ellipse cx="50" cy="30" rx="35" ry="15" fill="url(#koiGoldGrad1)" />
+            <path d="M15 30 Q20 15 50 14 Q80 13 95 25 Q105 30 95 35 Q80 47 50 46 Q20 45 15 30Z" fill="url(#koiGoldGrad1)" />
             <!-- 锦鲤尾巴 -->
-            <path d="M85 30L110 10L105 30L110 50L85 30Z" fill="url(#koiGoldGrad1)" opacity="0.9" />
+            <path d="M95 28 Q108 15 118 10 Q112 25 116 30 Q112 35 118 50 Q108 45 95 32Z" fill="url(#koiTailGrad1)" opacity="0.85" />
             <!-- 锦鲤背鳍 -->
-            <path d="M45 15L55 5L65 15" fill="#D97706" opacity="0.7" />
+            <path d="M40 16 Q50 2 60 14" fill="#D97706" opacity="0.6" />
+            <path d="M45 14 Q52 6 58 15" fill="#F59E0B" opacity="0.4" />
+            <!-- 锦鲤胸鳍 -->
+            <path d="M30 38 Q35 48 42 42" fill="#F59E0B" opacity="0.5" />
+            <!-- 锦鲤腹鳍 -->
+            <path d="M55 44 Q58 50 65 46" fill="#D97706" opacity="0.4" />
             <!-- 锦鲤眼睛 -->
-            <circle cx="25" cy="28" r="3" fill="#1F2937" />
-            <circle cx="26" cy="27" r="1" fill="white" />
+            <circle cx="22" cy="27" r="3.5" fill="#1F2937" />
+            <circle cx="23" cy="26" r="1.2" fill="white" />
+            <circle cx="21" cy="28" r="0.6" fill="#FCD34D" opacity="0.8" />
+            <!-- 锦鲤嘴巴 -->
+            <path d="M15 30 Q13 32 15 34" stroke="#B45309" stroke-width="1" fill="none" />
             <!-- 锦鲤鳞片 -->
-            <circle cx="40" cy="25" r="2" fill="#F59E0B" opacity="0.5" />
-            <circle cx="48" cy="22" r="2" fill="#F59E0B" opacity="0.5" />
-            <circle cx="56" cy="25" r="2" fill="#F59E0B" opacity="0.5" />
-            <circle cx="44" cy="32" r="2" fill="#F59E0B" opacity="0.5" />
-            <circle cx="52" cy="30" r="2" fill="#F59E0B" opacity="0.5" />
-            <circle cx="60" cy="32" r="2" fill="#F59E0B" opacity="0.5" />
+            <circle cx="35" cy="24" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="45" cy="20" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="55" cy="22" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="65" cy="24" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="75" cy="26" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="40" cy="32" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="50" cy="30" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="60" cy="32" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="70" cy="34" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="80" cy="36" r="2.5" fill="#F59E0B" opacity="0.35" />
             <defs>
-              <linearGradient id="koiGoldGrad1" x1="15" y1="15" x2="105" y2="45">
-                <stop offset="0%" stop-color="#FCD34D" />
-                <stop offset="50%" stop-color="#F59E0B" />
+              <linearGradient id="koiGoldGrad1" x1="15" y1="14" x2="95" y2="46">
+                <stop offset="0%" stop-color="#FDE68A" />
+                <stop offset="30%" stop-color="#FCD34D" />
+                <stop offset="60%" stop-color="#F59E0B" />
                 <stop offset="100%" stop-color="#D97706" />
+              </linearGradient>
+              <linearGradient id="koiTailGrad1" x1="95" y1="10" x2="118" y2="50">
+                <stop offset="0%" stop-color="#F59E0B" />
+                <stop offset="100%" stop-color="#B45309" />
               </linearGradient>
             </defs>
           </svg>
           <svg class="koi koi--right" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 锦鲤胡须 -->
+            <path d="M102 33 Q105 38 108 36" stroke="#B45309" stroke-width="0.8" fill="none" opacity="0.6" />
+            <path d="M102 35 Q106 39 109 38" stroke="#B45309" stroke-width="0.8" fill="none" opacity="0.6" />
             <!-- 锦鲤身体 -->
-            <ellipse cx="70" cy="30" rx="35" ry="15" fill="url(#koiGoldGrad2)" />
+            <path d="M105 30 Q100 15 70 14 Q40 13 25 25 Q15 30 25 35 Q40 47 70 46 Q100 45 105 30Z" fill="url(#koiGoldGrad2)" />
             <!-- 锦鲤尾巴 -->
-            <path d="M35 30L10 10L15 30L10 50L35 30Z" fill="url(#koiGoldGrad2)" opacity="0.9" />
+            <path d="M25 28 Q12 15 2 10 Q8 25 4 30 Q8 35 2 50 Q12 45 25 32Z" fill="url(#koiTailGrad2)" opacity="0.85" />
             <!-- 锦鲤背鳍 -->
-            <path d="M75 15L65 5L55 15" fill="#F59E0B" opacity="0.7" />
+            <path d="M80 16 Q70 2 60 14" fill="#F59E0B" opacity="0.6" />
+            <path d="M75 14 Q68 6 62 15" fill="#FBBF24" opacity="0.4" />
+            <!-- 锦鲤胸鳍 -->
+            <path d="M90 38 Q85 48 78 42" fill="#F59E0B" opacity="0.5" />
+            <!-- 锦鲤腹鳍 -->
+            <path d="M65 44 Q62 50 55 46" fill="#F59E0B" opacity="0.4" />
             <!-- 锦鲤眼睛 -->
-            <circle cx="95" cy="28" r="3" fill="#1F2937" />
-            <circle cx="94" cy="27" r="1" fill="white" />
+            <circle cx="98" cy="27" r="3.5" fill="#1F2937" />
+            <circle cx="97" cy="26" r="1.2" fill="white" />
+            <circle cx="99" cy="28" r="0.6" fill="#FBBF24" opacity="0.8" />
+            <!-- 锦鲤嘴巴 -->
+            <path d="M105 30 Q107 32 105 34" stroke="#92400E" stroke-width="1" fill="none" />
             <!-- 锦鲤鳞片 -->
-            <circle cx="80" cy="25" r="2" fill="#FBBF24" opacity="0.5" />
-            <circle cx="72" cy="22" r="2" fill="#FBBF24" opacity="0.5" />
-            <circle cx="64" cy="25" r="2" fill="#FBBF24" opacity="0.5" />
-            <circle cx="76" cy="32" r="2" fill="#FBBF24" opacity="0.5" />
-            <circle cx="68" cy="30" r="2" fill="#FBBF24" opacity="0.5" />
-            <circle cx="60" cy="32" r="2" fill="#FBBF24" opacity="0.5" />
+            <circle cx="85" cy="24" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="75" cy="20" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="65" cy="22" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="55" cy="24" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="45" cy="26" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="80" cy="32" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="70" cy="30" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="60" cy="32" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="50" cy="34" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="40" cy="36" r="2.5" fill="#FBBF24" opacity="0.35" />
             <defs>
-              <linearGradient id="koiGoldGrad2" x1="15" y1="15" x2="105" y2="45">
-                <stop offset="0%" stop-color="#FBBF24" />
-                <stop offset="50%" stop-color="#F59E0B" />
-                <stop offset="100%" stop-color="#B45309" />
+              <linearGradient id="koiGoldGrad2" x1="25" y1="14" x2="105" y2="46">
+                <stop offset="0%" stop-color="#FDE68A" />
+                <stop offset="30%" stop-color="#FCD34D" />
+                <stop offset="60%" stop-color="#F59E0B" />
+                <stop offset="100%" stop-color="#92400E" />
+              </linearGradient>
+              <linearGradient id="koiTailGrad2" x1="25" y1="10" x2="2" y2="50">
+                <stop offset="0%" stop-color="#F59E0B" />
+                <stop offset="100%" stop-color="#78350F" />
               </linearGradient>
             </defs>
           </svg>
