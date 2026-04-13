@@ -443,8 +443,8 @@ function reload() {
     <footer class="home-footer">
       <!-- 金色蚂蚁特效 - 在 footer 上方爬行 -->
       <div class="ant-swim-area">
-        <GoldenAnt direction="left" class="ant ant--left" />
-        <GoldenAnt direction="right" class="ant ant--right" />
+        <GoldenAnt direction="right" class="ant ant--left" />
+        <GoldenAnt direction="left" class="ant ant--right" />
       </div>
       <div class="footer-inner">
         <p class="footer-text">
