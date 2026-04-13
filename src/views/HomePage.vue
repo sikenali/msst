@@ -443,37 +443,42 @@ function reload() {
       <!-- 锦鲤特效 - 在 footer 上方游动 -->
       <div class="koi-swim-area">
         <svg class="koi koi--left-facing" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- 锦鲤胡须 -->
-          <path d="M18 33 Q15 38 12 36" stroke="#D97706" stroke-width="0.8" fill="none" opacity="0.6" />
-          <path d="M18 35 Q14 39 11 38" stroke="#D97706" stroke-width="0.8" fill="none" opacity="0.6" />
           <!-- 锦鲤身体 -->
-          <path d="M15 30 Q20 15 50 14 Q80 13 95 25 Q105 30 95 35 Q80 47 50 46 Q20 45 15 30Z" fill="url(#koiGoldGrad1)" />
-          <!-- 锦鲤尾巴 -->
-          <path d="M95 28 Q108 15 118 10 Q112 25 116 30 Q112 35 118 50 Q108 45 95 32Z" fill="url(#koiTailGrad1)" opacity="0.85" />
-          <!-- 锦鲤背鳍 -->
-          <path d="M40 16 Q50 2 60 14" fill="#D97706" opacity="0.6" />
-          <path d="M45 14 Q52 6 58 15" fill="#F59E0B" opacity="0.4" />
-          <!-- 锦鲤胸鳍 -->
-          <path d="M30 38 Q35 48 42 42" fill="#F59E0B" opacity="0.5" />
-          <!-- 锦鲤腹鳍 -->
-          <path d="M55 44 Q58 50 65 46" fill="#D97706" opacity="0.4" />
-          <!-- 锦鲤眼睛 -->
-          <circle cx="22" cy="27" r="3.5" fill="#1F2937" />
-          <circle cx="23" cy="26" r="1.2" fill="white" />
-          <circle cx="21" cy="28" r="0.6" fill="#FCD34D" opacity="0.8" />
-          <!-- 锦鲤嘴巴 -->
-          <path d="M15 30 Q13 32 15 34" stroke="#B45309" stroke-width="1" fill="none" />
-          <!-- 锦鲤鳞片 -->
-          <circle cx="35" cy="24" r="2.5" fill="#F59E0B" opacity="0.35" />
-          <circle cx="45" cy="20" r="2.5" fill="#F59E0B" opacity="0.35" />
-          <circle cx="55" cy="22" r="2.5" fill="#F59E0B" opacity="0.35" />
-          <circle cx="65" cy="24" r="2.5" fill="#F59E0B" opacity="0.35" />
-          <circle cx="75" cy="26" r="2.5" fill="#F59E0B" opacity="0.35" />
-          <circle cx="40" cy="32" r="2.5" fill="#F59E0B" opacity="0.35" />
-          <circle cx="50" cy="30" r="2.5" fill="#F59E0B" opacity="0.35" />
-          <circle cx="60" cy="32" r="2.5" fill="#F59E0B" opacity="0.35" />
-          <circle cx="70" cy="34" r="2.5" fill="#F59E0B" opacity="0.35" />
-          <circle cx="80" cy="36" r="2.5" fill="#F59E0B" opacity="0.35" />
+          <g class="koi-body">
+            <!-- 胡须 -->
+            <path d="M18 33 Q15 38 12 36" stroke="#D97706" stroke-width="0.8" fill="none" opacity="0.6" />
+            <path d="M18 35 Q14 39 11 38" stroke="#D97706" stroke-width="0.8" fill="none" opacity="0.6" />
+            <!-- 身体 -->
+            <path d="M15 30 Q20 15 50 14 Q80 13 95 25 Q105 30 95 35 Q80 47 50 46 Q20 45 15 30Z" fill="url(#koiGoldGrad1)" />
+            <!-- 背鳍 -->
+            <path d="M40 16 Q50 2 60 14" fill="#D97706" opacity="0.6" class="koi-fin" />
+            <path d="M45 14 Q52 6 58 15" fill="#F59E0B" opacity="0.4" class="koi-fin" />
+            <!-- 胸鳍 -->
+            <path d="M30 38 Q35 48 42 42" fill="#F59E0B" opacity="0.5" class="koi-fin" />
+            <!-- 腹鳍 -->
+            <path d="M55 44 Q58 50 65 46" fill="#D97706" opacity="0.4" class="koi-fin" />
+            <!-- 眼睛 -->
+            <circle cx="22" cy="27" r="3.5" fill="#1F2937" />
+            <circle cx="23" cy="26" r="1.2" fill="white" />
+            <circle cx="21" cy="28" r="0.6" fill="#FCD34D" opacity="0.8" />
+            <!-- 嘴巴 -->
+            <path d="M15 30 Q13 32 15 34" stroke="#B45309" stroke-width="1" fill="none" />
+            <!-- 鳞片 -->
+            <circle cx="35" cy="24" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="45" cy="20" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="55" cy="22" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="65" cy="24" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="75" cy="26" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="40" cy="32" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="50" cy="30" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="60" cy="32" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="70" cy="34" r="2.5" fill="#F59E0B" opacity="0.35" />
+            <circle cx="80" cy="36" r="2.5" fill="#F59E0B" opacity="0.35" />
+          </g>
+          <!-- 尾巴独立动画 -->
+          <g class="koi-tail">
+            <path d="M95 28 Q108 15 118 10 Q112 25 116 30 Q112 35 118 50 Q108 45 95 32Z" fill="url(#koiTailGrad1)" opacity="0.85" />
+          </g>
           <defs>
             <linearGradient id="koiGoldGrad1" x1="15" y1="14" x2="95" y2="46">
               <stop offset="0%" stop-color="#FDE68A" />
@@ -488,37 +493,42 @@ function reload() {
           </defs>
         </svg>
         <svg class="koi koi--right-facing" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- 锦鲤胡须 -->
-          <path d="M102 33 Q105 38 108 36" stroke="#B45309" stroke-width="0.8" fill="none" opacity="0.6" />
-          <path d="M102 35 Q106 39 109 38" stroke="#B45309" stroke-width="0.8" fill="none" opacity="0.6" />
           <!-- 锦鲤身体 -->
-          <path d="M105 30 Q100 15 70 14 Q40 13 25 25 Q15 30 25 35 Q40 47 70 46 Q100 45 105 30Z" fill="url(#koiGoldGrad2)" />
-          <!-- 锦鲤尾巴 -->
-          <path d="M25 28 Q12 15 2 10 Q8 25 4 30 Q8 35 2 50 Q12 45 25 32Z" fill="url(#koiTailGrad2)" opacity="0.85" />
-          <!-- 锦鲤背鳍 -->
-          <path d="M80 16 Q70 2 60 14" fill="#F59E0B" opacity="0.6" />
-          <path d="M75 14 Q68 6 62 15" fill="#FBBF24" opacity="0.4" />
-          <!-- 锦鲤胸鳍 -->
-          <path d="M90 38 Q85 48 78 42" fill="#F59E0B" opacity="0.5" />
-          <!-- 锦鲤腹鳍 -->
-          <path d="M65 44 Q62 50 55 46" fill="#F59E0B" opacity="0.4" />
-          <!-- 锦鲤眼睛 -->
-          <circle cx="98" cy="27" r="3.5" fill="#1F2937" />
-          <circle cx="97" cy="26" r="1.2" fill="white" />
-          <circle cx="99" cy="28" r="0.6" fill="#FBBF24" opacity="0.8" />
-          <!-- 锦鲤嘴巴 -->
-          <path d="M105 30 Q107 32 105 34" stroke="#92400E" stroke-width="1" fill="none" />
-          <!-- 锦鲤鳞片 -->
-          <circle cx="85" cy="24" r="2.5" fill="#FBBF24" opacity="0.35" />
-          <circle cx="75" cy="20" r="2.5" fill="#FBBF24" opacity="0.35" />
-          <circle cx="65" cy="22" r="2.5" fill="#FBBF24" opacity="0.35" />
-          <circle cx="55" cy="24" r="2.5" fill="#FBBF24" opacity="0.35" />
-          <circle cx="45" cy="26" r="2.5" fill="#FBBF24" opacity="0.35" />
-          <circle cx="80" cy="32" r="2.5" fill="#FBBF24" opacity="0.35" />
-          <circle cx="70" cy="30" r="2.5" fill="#FBBF24" opacity="0.35" />
-          <circle cx="60" cy="32" r="2.5" fill="#FBBF24" opacity="0.35" />
-          <circle cx="50" cy="34" r="2.5" fill="#FBBF24" opacity="0.35" />
-          <circle cx="40" cy="36" r="2.5" fill="#FBBF24" opacity="0.35" />
+          <g class="koi-body">
+            <!-- 胡须 -->
+            <path d="M102 33 Q105 38 108 36" stroke="#B45309" stroke-width="0.8" fill="none" opacity="0.6" />
+            <path d="M102 35 Q106 39 109 38" stroke="#B45309" stroke-width="0.8" fill="none" opacity="0.6" />
+            <!-- 身体 -->
+            <path d="M105 30 Q100 15 70 14 Q40 13 25 25 Q15 30 25 35 Q40 47 70 46 Q100 45 105 30Z" fill="url(#koiGoldGrad2)" />
+            <!-- 背鳍 -->
+            <path d="M80 16 Q70 2 60 14" fill="#F59E0B" opacity="0.6" class="koi-fin" />
+            <path d="M75 14 Q68 6 62 15" fill="#FBBF24" opacity="0.4" class="koi-fin" />
+            <!-- 胸鳍 -->
+            <path d="M90 38 Q85 48 78 42" fill="#F59E0B" opacity="0.5" class="koi-fin" />
+            <!-- 腹鳍 -->
+            <path d="M65 44 Q62 50 55 46" fill="#F59E0B" opacity="0.4" class="koi-fin" />
+            <!-- 眼睛 -->
+            <circle cx="98" cy="27" r="3.5" fill="#1F2937" />
+            <circle cx="97" cy="26" r="1.2" fill="white" />
+            <circle cx="99" cy="28" r="0.6" fill="#FBBF24" opacity="0.8" />
+            <!-- 嘴巴 -->
+            <path d="M105 30 Q107 32 105 34" stroke="#92400E" stroke-width="1" fill="none" />
+            <!-- 鳞片 -->
+            <circle cx="85" cy="24" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="75" cy="20" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="65" cy="22" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="55" cy="24" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="45" cy="26" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="80" cy="32" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="70" cy="30" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="60" cy="32" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="50" cy="34" r="2.5" fill="#FBBF24" opacity="0.35" />
+            <circle cx="40" cy="36" r="2.5" fill="#FBBF24" opacity="0.35" />
+          </g>
+          <!-- 尾巴独立动画 -->
+          <g class="koi-tail">
+            <path d="M25 28 Q12 15 2 10 Q8 25 4 30 Q8 35 2 50 Q12 45 25 32Z" fill="url(#koiTailGrad2)" opacity="0.85" />
+          </g>
           <defs>
             <linearGradient id="koiGoldGrad2" x1="25" y1="14" x2="105" y2="46">
               <stop offset="0%" stop-color="#FDE68A" />
@@ -891,17 +901,75 @@ function reload() {
   height: 35px;
   opacity: 0.85;
   filter: drop-shadow(0 3px 8px rgba(217, 119, 6, 0.5));
-  will-change: transform, left, right, top, opacity;
+}
+
+/* 锦鲤身体各部位动画 */
+.koi-body {
+  transform-origin: center;
+  animation: koi-body-wiggle 0.8s ease-in-out infinite;
+}
+
+.koi-tail {
+  transform-origin: center left;
+  animation: koi-tail-swish 0.5s ease-in-out infinite alternate;
+}
+
+.koi-fin {
+  transform-origin: center top;
+  animation: koi-fin-flap 0.6s ease-in-out infinite alternate;
+}
+
+/* 锦鲤整体游动动画容器 */
+.koi-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 /* 左侧锦鲤 - 头朝右（向中间） */
 .koi--left-facing {
-  animation: koi-swim-left-facing 20s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  animation: koi-swim-left-facing 22s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
 /* 右侧锦鲤 - 头朝左（向中间） */
 .koi--right-facing {
-  animation: koi-swim-right-facing 25s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  animation: koi-swim-right-facing 28s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* 锦鲤身体扭动动画 */
+@keyframes koi-body-wiggle {
+  0%, 100% {
+    transform: rotate(0deg) scaleX(1);
+  }
+  25% {
+    transform: rotate(1deg) scaleX(0.98);
+  }
+  50% {
+    transform: rotate(0deg) scaleX(1.01);
+  }
+  75% {
+    transform: rotate(-1deg) scaleX(0.99);
+  }
+}
+
+/* 锦鲤尾巴摆动动画 */
+@keyframes koi-tail-swish {
+  0% {
+    transform: rotate(-8deg) scaleY(0.95);
+  }
+  100% {
+    transform: rotate(8deg) scaleY(1.05);
+  }
+}
+
+/* 锦鲤鳍划水动画 */
+@keyframes koi-fin-flap {
+  0% {
+    transform: rotate(-12deg);
+  }
+  100% {
+    transform: rotate(12deg);
+  }
 }
 
 /* 左侧锦鲤游动动画 - 头始终朝右（向中间） */
@@ -919,51 +987,51 @@ function reload() {
   15% {
     left: 15%;
     top: 50%;
-    transform: rotate(-5deg) scale(0.9);
+    transform: rotate(-8deg) scale(0.9);
   }
   25% {
     left: 25%;
     top: 25%;
-    transform: rotate(4deg) scale(0.92);
+    transform: rotate(6deg) scale(0.92);
   }
   /* 轻微跳跃 */
   35% {
     left: 35%;
     top: 60%;
-    transform: rotate(-6deg) scale(0.95);
+    transform: rotate(-10deg) scale(0.95);
   }
   45% {
     left: 42%;
     top: 35%;
-    transform: rotate(3deg) scale(0.9);
+    transform: rotate(5deg) scale(0.9);
   }
   /* 接近中间减速 */
   55% {
     left: 48%;
     top: 45%;
-    transform: rotate(-3deg) scale(0.88);
+    transform: rotate(-5deg) scale(0.88);
   }
   /* 中间转身 */
   60% {
     left: 50%;
     top: 40%;
-    transform: rotate(15deg) scale(0.82);
+    transform: rotate(20deg) scale(0.82);
   }
   /* 转身后返回 */
   65% {
     left: 48%;
     top: 50%;
-    transform: rotate(-10deg) scale(0.85);
+    transform: rotate(-12deg) scale(0.85);
   }
   75% {
     left: 40%;
     top: 30%;
-    transform: rotate(5deg) scale(0.88);
+    transform: rotate(8deg) scale(0.88);
   }
   85% {
     left: 25%;
     top: 55%;
-    transform: rotate(-4deg) scale(0.85);
+    transform: rotate(-6deg) scale(0.85);
   }
   95% {
     left: 10%;
@@ -992,51 +1060,51 @@ function reload() {
   15% {
     right: 15%;
     top: 50%;
-    transform: scaleX(-1) rotate(5deg) scale(0.85);
+    transform: scaleX(-1) rotate(8deg) scale(0.85);
   }
   25% {
     right: 25%;
     top: 25%;
-    transform: scaleX(-1) rotate(-4deg) scale(0.88);
+    transform: scaleX(-1) rotate(-6deg) scale(0.88);
   }
   /* 轻微跳跃 */
   35% {
     right: 35%;
     top: 60%;
-    transform: scaleX(-1) rotate(6deg) scale(0.9);
+    transform: scaleX(-1) rotate(10deg) scale(0.9);
   }
   45% {
     right: 42%;
     top: 35%;
-    transform: scaleX(-1) rotate(-3deg) scale(0.85);
+    transform: scaleX(-1) rotate(-5deg) scale(0.85);
   }
   /* 接近中间减速 */
   55% {
     right: 48%;
     top: 45%;
-    transform: scaleX(-1) rotate(3deg) scale(0.83);
+    transform: scaleX(-1) rotate(5deg) scale(0.83);
   }
   /* 中间转身 */
   60% {
     right: 50%;
     top: 40%;
-    transform: scaleX(-1) rotate(-15deg) scale(0.78);
+    transform: scaleX(-1) rotate(-20deg) scale(0.78);
   }
   /* 转身后返回 */
   65% {
     right: 48%;
     top: 50%;
-    transform: scaleX(-1) rotate(10deg) scale(0.8);
+    transform: scaleX(-1) rotate(12deg) scale(0.8);
   }
   75% {
     right: 40%;
     top: 30%;
-    transform: scaleX(-1) rotate(-5deg) scale(0.83);
+    transform: scaleX(-1) rotate(-8deg) scale(0.83);
   }
   85% {
     right: 25%;
     top: 55%;
-    transform: scaleX(-1) rotate(4deg) scale(0.8);
+    transform: scaleX(-1) rotate(6deg) scale(0.8);
   }
   95% {
     right: 10%;
