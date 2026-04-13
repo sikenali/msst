@@ -1,70 +1,88 @@
 <template>
-  <svg :class="['golden-ant', directionClass]" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 蚂蚁身体 - 三段式 -->
-    <g class="ant-body-group">
-      <!-- 头部 -->
-      <ellipse cx="18" cy="32" rx="10" ry="8" :fill="headColor" />
-      <!-- 胸部 -->
-      <ellipse cx="38" cy="32" rx="8" ry="7" :fill="thoraxColor" />
-      <!-- 腹部 -->
-      <ellipse cx="60" cy="32" rx="14" ry="10" :fill="abdomenColor" />
-      
-      <!-- 头部连接 -->
-      <path d="M28 32 L30 32" stroke="#D97706" stroke-width="3" stroke-linecap="round"/>
-      <!-- 胸腹连接 -->
-      <path d="M46 32 L46 32" stroke="#D97706" stroke-width="2.5" stroke-linecap="round"/>
+  <svg :class="['golden-ant', directionClass]" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 腿部（在身体下方，先绘制） -->
+    <g class="ant-legs">
+      <!-- 前腿 -->
+      <g class="ant-leg ant-leg-fl">
+        <path d="M42 42 L36 28 L30 22" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M42 42 L38 55 L34 62" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <!-- 中腿 -->
+      <g class="ant-leg ant-leg-ml">
+        <path d="M62 44 L56 30 L50 24" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M62 44 L58 57 L54 64" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <!-- 后腿 -->
+      <g class="ant-leg ant-leg-bl">
+        <path d="M82 44 L76 30 L70 24" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M82 44 L78 57 L74 64" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
     </g>
-    
-    <!-- 触角 -->
+
+    <!-- 触角（在头部上方，先绘制） -->
     <g class="ant-antennae">
-      <path d="M12 26 C8 20, 4 18, 2 15" stroke="#B45309" stroke-width="1.5" fill="none" stroke-linecap="round" class="antenna-left"/>
-      <path d="M14 24 C12 16, 8 12, 6 8" stroke="#B45309" stroke-width="1.5" fill="none" stroke-linecap="round" class="antenna-right"/>
-      <!-- 触角末端小球 -->
-      <circle cx="2" cy="15" r="1.5" fill="#F59E0B" class="antenna-ball"/>
-      <circle cx="6" cy="8" r="1.5" fill="#F59E0B" class="antenna-ball"/>
+      <path d="M22 32 C18 20, 10 12, 4 8" stroke="#B45309" stroke-width="2" fill="none" stroke-linecap="round" class="antenna-l"/>
+      <path d="M26 30 C24 18, 18 8, 14 2" stroke="#B45309" stroke-width="2" fill="none" stroke-linecap="round" class="antenna-r"/>
+      <!-- 触角末端发光小球 -->
+      <circle cx="4" cy="8" r="2.5" fill="#FCD34D" class="antenna-ball"/>
+      <circle cx="14" cy="2" r="2.5" fill="#FCD34D" class="antenna-ball"/>
     </g>
-    
-    <!-- 眼睛 -->
-    <circle cx="14" cy="30" r="2" fill="#1F2937"/>
-    <circle cx="15" cy="29" r="0.8" fill="white"/>
-    <circle cx="20" cy="30" r="2" fill="#1F2937"/>
-    <circle cx="21" cy="29" r="0.8" fill="white"/>
-    
-    <!-- 大颚 -->
-    <path d="M8 34 C5 36, 3 38, 4 40" stroke="#92400E" stroke-width="1.5" fill="none" stroke-linecap="round" class="ant-mandible-left"/>
-    <path d="M10 34 C7 36, 5 38, 6 40" stroke="#92400E" stroke-width="1.5" fill="none" stroke-linecap="round" class="ant-mandible-right"/>
-    
-    <!-- 前腿 -->
-    <g class="ant-legs ant-legs-front">
-      <path d="M32 26 C28 18, 24 14, 20 12" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M32 38 C28 46, 24 50, 20 52" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M36 26 C34 18, 30 14, 26 12" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M36 38 C34 46, 30 50, 26 52" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    </g>
-    
-    <!-- 中腿 -->
-    <g class="ant-legs ant-legs-middle">
-      <path d="M42 26 C38 18, 34 14, 30 12" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M42 38 C38 46, 34 50, 30 52" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M46 26 C44 18, 40 14, 36 12" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M46 38 C44 46, 40 50, 36 52" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    </g>
-    
-    <!-- 后腿 -->
-    <g class="ant-legs ant-legs-back">
-      <path d="M56 26 C52 18, 48 14, 44 12" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M56 38 C52 46, 48 50, 44 52" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M60 26 C58 18, 54 14, 50 12" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M60 38 C58 46, 54 50, 50 52" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    </g>
-    
+
+    <!-- 身体三段式 -->
+    <!-- 腹部（最后面） -->
+    <ellipse cx="88" cy="44" rx="22" ry="16" fill="url(#abdomenGrad)" class="ant-abdomen"/>
+    <!-- 腹部高光 -->
+    <ellipse cx="82" cy="38" rx="10" ry="8" fill="#FDE68A" opacity="0.5"/>
     <!-- 腹部纹理 -->
-    <path d="M52 28 C56 26, 64 26, 68 28" stroke="#FCD34D" stroke-width="1" fill="none" opacity="0.6"/>
-    <path d="M50 32 C55 30, 65 30, 70 32" stroke="#FCD34D" stroke-width="1" fill="none" opacity="0.6"/>
-    <path d="M52 36 C56 38, 64 38, 68 36" stroke="#FCD34D" stroke-width="1" fill="none" opacity="0.6"/>
-    
-    <!-- 金色光泽 -->
-    <ellipse cx="60" cy="30" rx="8" ry="6" fill="#FDE68A" opacity="0.4"/>
+    <path d="M78 38 C82 36, 94 36, 98 38" stroke="#FCD34D" stroke-width="1.5" fill="none" opacity="0.7"/>
+    <path d="M76 44 C82 42, 94 42, 100 44" stroke="#FCD34D" stroke-width="1.5" fill="none" opacity="0.7"/>
+    <path d="M78 50 C82 52, 94 52, 98 50" stroke="#FCD34D" stroke-width="1.5" fill="none" opacity="0.7"/>
+
+    <!-- 腰部连接 -->
+    <rect x="58" y="40" width="12" height="6" rx="3" fill="#B45309"/>
+
+    <!-- 胸部 -->
+    <ellipse cx="56" cy="44" rx="14" ry="12" fill="url(#thoraxGrad)" class="ant-thorax"/>
+    <!-- 胸部高光 -->
+    <ellipse cx="52" cy="38" rx="6" ry="5" fill="#FDE68A" opacity="0.5"/>
+
+    <!-- 颈部连接 -->
+    <rect x="36" y="40" width="10" height="7" rx="3.5" fill="#D97706"/>
+
+    <!-- 头部 -->
+    <ellipse cx="26" cy="44" rx="14" ry="11" fill="url(#headGrad)" class="ant-head"/>
+    <!-- 头部高光 -->
+    <ellipse cx="22" cy="39" rx="5" ry="4" fill="#FDE68A" opacity="0.6"/>
+
+    <!-- 眼睛 -->
+    <circle cx="20" cy="42" r="3.5" fill="#1F2937"/>
+    <circle cx="21" cy="41" r="1.5" fill="white"/>
+    <circle cx="30" cy="42" r="3.5" fill="#1F2937"/>
+    <circle cx="31" cy="41" r="1.5" fill="white"/>
+
+    <!-- 大颚 -->
+    <path d="M12 46 C8 48, 6 52, 8 54" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" class="mandible-l"/>
+    <path d="M14 46 C10 48, 8 52, 10 54" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" class="mandible-r"/>
+
+    <!-- 渐变定义 -->
+    <defs>
+      <radialGradient id="headGrad" cx="0.4" cy="0.3">
+        <stop offset="0%" stop-color="#FDE68A"/>
+        <stop offset="40%" stop-color="#F59E0B"/>
+        <stop offset="100%" stop-color="#B45309"/>
+      </radialGradient>
+      <radialGradient id="thoraxGrad" cx="0.4" cy="0.3">
+        <stop offset="0%" stop-color="#FDE68A"/>
+        <stop offset="40%" stop-color="#D97706"/>
+        <stop offset="100%" stop-color="#92400E"/>
+      </radialGradient>
+      <radialGradient id="abdomenGrad" cx="0.35" cy="0.3">
+        <stop offset="0%" stop-color="#FDE68A"/>
+        <stop offset="30%" stop-color="#F59E0B"/>
+        <stop offset="70%" stop-color="#B45309"/>
+        <stop offset="100%" stop-color="#78350F"/>
+      </radialGradient>
+    </defs>
   </svg>
 </template>
 
@@ -79,110 +97,103 @@ const props = withDefaults(defineProps<Props>(), {
   direction: 'left'
 })
 
-// 配色方案 - 金色蚂蚁
-const headColor = '#F59E0B'
-const thoraxColor = '#D97706'
-const abdomenColor = '#B45309'
-
 const directionClass = computed(() => props.direction === 'right' ? 'ant--facing-right' : 'ant--facing-left')
 </script>
 
 <style scoped>
 .golden-ant {
-  width: 60px;
-  height: 36px;
-  filter: drop-shadow(0 2px 4px rgba(217, 119, 6, 0.5));
+  width: 72px;
+  height: 48px;
+  filter: drop-shadow(0 3px 6px rgba(180, 83, 9, 0.5));
 }
 
 .ant--facing-right {
   transform: scaleX(-1);
 }
 
-/* 蚂蚁整体爬行摇摆 */
-.ant-body-group {
-  animation: ant-crawl-wobble 0.4s ease-in-out infinite;
+/* 爬行时身体上下摇摆 */
+.ant-abdomen,
+.ant-thorax,
+.ant-head {
+  animation: ant-body-bounce 0.35s ease-in-out infinite;
 }
 
-@keyframes ant-crawl-wobble {
-  0%, 100% { transform: rotate(0deg) translateY(0); }
-  25% { transform: rotate(1deg) translateY(-1px); }
-  75% { transform: rotate(-1deg) translateY(1px); }
+@keyframes ant-body-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
 }
 
 /* 触角摆动 */
 .ant-antennae {
-  transform-origin: 12px 24px;
-  animation: ant-antennae-wave 0.6s ease-in-out infinite;
+  transform-origin: 24px 30px;
+  animation: antennae-wave 0.5s ease-in-out infinite alternate;
 }
 
-@keyframes ant-antennae-wave {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(8deg); }
+@keyframes antennae-wave {
+  0% { transform: rotate(-6deg); }
+  100% { transform: rotate(6deg); }
 }
 
 /* 触角小球闪烁 */
 .antenna-ball {
-  animation: antenna-ball-glow 1s ease-in-out infinite alternate;
+  animation: ball-glow 0.8s ease-in-out infinite alternate;
 }
 
-@keyframes antenna-ball-glow {
-  0% { opacity: 0.6; }
-  100% { opacity: 1; }
+@keyframes ball-glow {
+  0% { opacity: 0.5; filter: brightness(0.8); }
+  100% { opacity: 1; filter: brightness(1.2); }
 }
 
 /* 大颚开合 */
-.ant-mandible-left {
-  transform-origin: 8px 34px;
-  animation: mandible-chomp-left 0.8s ease-in-out infinite;
+.mandible-l {
+  transform-origin: 12px 46px;
+  animation: mandible-l-chomp 0.6s ease-in-out infinite;
 }
 
-.ant-mandible-right {
-  transform-origin: 10px 34px;
-  animation: mandible-chomp-right 0.8s ease-in-out infinite;
+.mandible-r {
+  transform-origin: 14px 46px;
+  animation: mandible-r-chomp 0.6s ease-in-out infinite;
 }
 
-@keyframes mandible-chomp-left {
+@keyframes mandible-l-chomp {
   0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-5deg); }
+  50% { transform: rotate(-8deg); }
 }
 
-@keyframes mandible-chomp-right {
+@keyframes mandible-r-chomp {
   0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(5deg); }
+  50% { transform: rotate(8deg); }
 }
 
-/* 前腿爬行 */
-.ant-legs-front {
-  transform-origin: 32px 32px;
-  animation: leg-move-front 0.3s ease-in-out infinite alternate;
+/* 腿部交替爬行 */
+.ant-leg-fl {
+  transform-origin: 42px 42px;
+  animation: leg-fl 0.3s ease-in-out infinite alternate;
 }
 
-@keyframes leg-move-front {
-  0% { transform: rotate(-3deg); }
-  100% { transform: rotate(3deg); }
+@keyframes leg-fl {
+  0% { transform: rotate(-4deg); }
+  100% { transform: rotate(4deg); }
 }
 
-/* 中腿爬行 */
-.ant-legs-middle {
-  transform-origin: 42px 32px;
-  animation: leg-move-middle 0.3s ease-in-out infinite alternate;
-  animation-delay: 0.1s;
+.ant-leg-ml {
+  transform-origin: 62px 44px;
+  animation: leg-ml 0.3s ease-in-out infinite alternate;
+  animation-delay: 0.15s;
 }
 
-@keyframes leg-move-middle {
-  0% { transform: rotate(3deg); }
-  100% { transform: rotate(-3deg); }
+@keyframes leg-ml {
+  0% { transform: rotate(4deg); }
+  100% { transform: rotate(-4deg); }
 }
 
-/* 后腿爬行 */
-.ant-legs-back {
-  transform-origin: 56px 32px;
-  animation: leg-move-back 0.3s ease-in-out infinite alternate;
-  animation-delay: 0.2s;
+.ant-leg-bl {
+  transform-origin: 82px 44px;
+  animation: leg-bl 0.3s ease-in-out infinite alternate;
 }
 
-@keyframes leg-move-back {
-  0% { transform: rotate(-3deg); }
-  100% { transform: rotate(3deg); }
+@keyframes leg-bl {
+  0% { transform: rotate(-4deg); }
+  100% { transform: rotate(4deg); }
 }
 </style>

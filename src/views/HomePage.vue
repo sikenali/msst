@@ -792,7 +792,7 @@ function reload() {
   position: relative;
   max-width: 1158px;
   margin: 0 auto 8px;
-  height: 40px;
+  height: 50px;
   overflow: hidden;
   border-radius: 12px;
 }
@@ -800,8 +800,8 @@ function reload() {
 /* 金色蚂蚁基础样式 */
 .ant {
   position: absolute;
-  width: 60px;
-  height: 36px;
+  width: 72px;
+  height: 48px;
   opacity: 0.9;
 }
 
