@@ -903,213 +903,116 @@ function reload() {
   position: absolute;
   width: 70px;
   height: 35px;
-  opacity: 0.85;
+  opacity: 0;
   filter: drop-shadow(0 3px 8px rgba(217, 119, 6, 0.5));
 }
 
-/* 锦鲤整体位置动画（只控制位置，不改变 transform） */
+/* 锦鲤整体位置动画 */
 .koi--left-facing {
-  animation: koi-move-left 18s ease-in-out infinite;
+  animation: koi-move-left 16s linear infinite;
 }
 
 .koi--right-facing {
-  animation: koi-move-right 24s ease-in-out infinite;
+  animation: koi-move-right 22s linear infinite;
 }
 
 /* 左侧锦鲤位置移动 */
 @keyframes koi-move-left {
-  0% {
-    left: 2%;
-    top: 45%;
-    opacity: 0;
-  }
-  3% {
-    opacity: 0.85;
-  }
-  15% {
-    left: 15%;
-    top: 55%;
-  }
-  28% {
-    left: 28%;
-    top: 30%;
-  }
-  40% {
-    left: 38%;
-    top: 60%;
-  }
-  50% {
-    left: 47%;
-    top: 40%;
-  }
-  /* 中间停顿 */
-  58% {
-    left: 46%;
-    top: 48%;
-  }
-  /* 返回 */
-  68% {
-    left: 38%;
-    top: 35%;
-  }
-  78% {
-    left: 28%;
-    top: 55%;
-  }
-  88% {
-    left: 15%;
-    top: 40%;
-  }
-  95% {
-    opacity: 0.85;
-  }
-  100% {
-    left: 2%;
-    top: 45%;
-    opacity: 0;
-  }
+  0% { left: 2%; top: 45%; opacity: 0; }
+  3% { opacity: 0.85; }
+  15% { left: 15%; top: 55%; }
+  28% { left: 28%; top: 30%; }
+  40% { left: 38%; top: 60%; }
+  50% { left: 47%; top: 40%; }
+  58% { left: 46%; top: 48%; }
+  68% { left: 38%; top: 35%; }
+  78% { left: 28%; top: 55%; }
+  88% { left: 15%; top: 40%; }
+  95% { opacity: 0.85; }
+  100% { left: 2%; top: 45%; opacity: 0; }
 }
 
 /* 右侧锦鲤位置移动 */
 @keyframes koi-move-right {
-  0% {
-    right: 2%;
-    top: 45%;
-    opacity: 0;
-  }
-  3% {
-    opacity: 0.75;
-  }
-  15% {
-    right: 15%;
-    top: 55%;
-  }
-  28% {
-    right: 28%;
-    top: 30%;
-  }
-  40% {
-    right: 38%;
-    top: 60%;
-  }
-  50% {
-    right: 47%;
-    top: 40%;
-  }
-  /* 中间停顿 */
-  58% {
-    right: 46%;
-    top: 48%;
-  }
-  /* 返回 */
-  68% {
-    right: 38%;
-    top: 35%;
-  }
-  78% {
-    right: 28%;
-    top: 55%;
-  }
-  88% {
-    right: 15%;
-    top: 40%;
-  }
-  95% {
-    opacity: 0.75;
-  }
-  100% {
-    right: 2%;
-    top: 45%;
-    opacity: 0;
-  }
+  0% { right: 2%; top: 45%; opacity: 0; }
+  3% { opacity: 0.75; }
+  15% { right: 15%; top: 55%; }
+  28% { right: 28%; top: 30%; }
+  40% { right: 38%; top: 60%; }
+  50% { right: 47%; top: 40%; }
+  58% { right: 46%; top: 48%; }
+  68% { right: 38%; top: 35%; }
+  78% { right: 28%; top: 55%; }
+  88% { right: 15%; top: 40%; }
+  95% { opacity: 0.75; }
+  100% { right: 2%; top: 45%; opacity: 0; }
 }
 
-/* 锦鲤身体容器 - 控制朝向和身体动画 */
+/* 锦鲤身体容器 */
 .koi-fish {
   width: 100%;
   height: 100%;
 }
 
-/* 左侧锦鲤身体 - 头朝右 */
-.koi--left-facing .koi-fish {
-  animation: koi-wiggle-left 0.4s ease-in-out infinite;
-}
-
-/* 右侧锦鲤身体 - 头朝左 */
+/* 右侧锦鲤翻转（静态，不在动画里） */
 .koi--right-facing .koi-fish {
   transform: scaleX(-1);
-  animation: koi-wiggle-right 0.45s ease-in-out infinite;
 }
 
-/* 左侧锦鲤身体扭动 */
-@keyframes koi-wiggle-left {
-  0%, 100% {
-    transform: rotate(0deg) scale(0.9);
-  }
-  30% {
-    transform: rotate(2deg) scale(0.92);
-  }
-  60% {
-    transform: rotate(-1.5deg) scale(0.88);
-  }
+/* 身体扭动 - 左侧 */
+.koi-body {
+  transform-origin: 50% 50%;
+  animation: koi-body-wave-l 0.5s ease-in-out infinite;
 }
 
-/* 右侧锦鲤身体扭动 */
-@keyframes koi-wiggle-right {
-  0%, 100% {
-    transform: scaleX(-1) rotate(0deg) scale(0.85);
-  }
-  30% {
-    transform: scaleX(-1) rotate(2deg) scale(0.87);
-  }
-  60% {
-    transform: scaleX(-1) rotate(-1.5deg) scale(0.83);
-  }
+@keyframes koi-body-wave-l {
+  0%, 100% { transform: rotate(0deg) scaleX(1); }
+  25% { transform: rotate(1.5deg) scaleX(0.98); }
+  75% { transform: rotate(-1.5deg) scaleX(1.01); }
 }
 
-/* 锦鲤尾巴摆动 */
+/* 身体扭动 - 右侧（保持翻转） */
+.koi--right-facing .koi-body {
+  animation: koi-body-wave-r 0.55s ease-in-out infinite;
+}
+
+@keyframes koi-body-wave-r {
+  0%, 100% { transform: scaleX(-1) rotate(0deg); }
+  25% { transform: scaleX(-1) rotate(1.5deg); }
+  75% { transform: scaleX(-1) rotate(-1.5deg); }
+}
+
+/* 尾巴摆动 */
 .koi-tail {
   transform-origin: 0% 50%;
-  animation: koi-tail-swish 0.25s ease-in-out infinite alternate;
+  animation: koi-tail-wag 0.2s ease-in-out infinite alternate;
 }
 
-@keyframes koi-tail-swish {
-  0% {
-    transform: rotate(-18deg);
-  }
-  100% {
-    transform: rotate(18deg);
-  }
+@keyframes koi-tail-wag {
+  0% { transform: rotate(-20deg); }
+  100% { transform: rotate(20deg); }
 }
 
 /* 背鳍摆动 */
 .koi-fin-back {
   transform-origin: 50% 100%;
-  animation: koi-fin-flap 0.35s ease-in-out infinite alternate;
+  animation: koi-fin-flutter 0.3s ease-in-out infinite alternate;
 }
 
-@keyframes koi-fin-flap {
-  0% {
-    transform: rotate(-6deg);
-  }
-  100% {
-    transform: rotate(6deg);
-  }
+@keyframes koi-fin-flutter {
+  0% { transform: rotate(-8deg); }
+  100% { transform: rotate(8deg); }
 }
 
 /* 胸鳍划水 */
 .koi-fin-pectoral {
   transform-origin: 0% 0%;
-  animation: koi-pectoral-sweep 0.4s ease-in-out infinite alternate;
+  animation: koi-pectoral-paddle 0.35s ease-in-out infinite alternate;
 }
 
-@keyframes koi-pectoral-sweep {
-  0% {
-    transform: rotate(-10deg) translateY(-1px);
-  }
-  100% {
-    transform: rotate(10deg) translateY(1px);
-  }
+@keyframes koi-pectoral-paddle {
+  0% { transform: rotate(-12deg) translateY(-1px); }
+  100% { transform: rotate(12deg) translateY(1px); }
 }
 
 .footer-inner {
