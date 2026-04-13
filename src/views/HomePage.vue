@@ -16,6 +16,7 @@ import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
 import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
 import IconModal from '@/components/IconModal.vue'
 import NumberPickerModal from '@/components/NumberPickerModal.vue'
+import GoldenDragon from '@/components/GoldenDragon.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -440,111 +441,94 @@ function reload() {
 
     <!-- 底部版权 -->
     <footer class="home-footer">
-      <!-- 锦鲤特效 - 在 footer 上方游动 -->
-      <div class="koi-swim-area">
-        <svg class="koi koi--left-facing" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g class="koi-fish">
-            <!-- 锦鲤身体 -->
-            <g class="koi-body">
-              <!-- 胡须 -->
-              <path d="M18 33 Q15 38 12 36" stroke="#D97706" stroke-width="0.8" fill="none" opacity="0.6" />
-              <path d="M18 35 Q14 39 11 38" stroke="#D97706" stroke-width="0.8" fill="none" opacity="0.6" />
-              <!-- 身体 -->
-              <path d="M15 30 Q20 15 50 14 Q80 13 95 25 Q105 30 95 35 Q80 47 50 46 Q20 45 15 30Z" fill="url(#koiGoldGrad1)" />
-              <!-- 眼睛 -->
-              <circle cx="22" cy="27" r="3.5" fill="#1F2937" />
-              <circle cx="23" cy="26" r="1.2" fill="white" />
-              <circle cx="21" cy="28" r="0.6" fill="#FCD34D" opacity="0.8" />
-              <!-- 嘴巴 -->
-              <path d="M15 30 Q13 32 15 34" stroke="#B45309" stroke-width="1" fill="none" />
-              <!-- 鳞片 -->
-              <circle cx="35" cy="24" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <circle cx="45" cy="20" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <circle cx="55" cy="22" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <circle cx="65" cy="24" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <circle cx="75" cy="26" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <circle cx="40" cy="32" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <circle cx="50" cy="30" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <circle cx="60" cy="32" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <circle cx="70" cy="34" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <circle cx="80" cy="36" r="2.5" fill="#F59E0B" opacity="0.35" />
-              <!-- 背鳍 -->
-              <path d="M40 16 Q50 2 60 14" fill="#D97706" opacity="0.6" class="koi-fin-back" />
-              <path d="M45 14 Q52 6 58 15" fill="#F59E0B" opacity="0.4" class="koi-fin-back" />
-              <!-- 胸鳍 -->
-              <path d="M30 38 Q35 48 42 42" fill="#F59E0B" opacity="0.5" class="koi-fin-pectoral" />
-              <!-- 腹鳍 -->
-              <path d="M55 44 Q58 50 65 46" fill="#D97706" opacity="0.4" class="koi-fin-back" />
-            </g>
-            <!-- 尾巴独立动画 -->
-            <g class="koi-tail">
-              <path d="M95 28 Q108 15 118 10 Q112 25 116 30 Q112 35 118 50 Q108 45 95 32Z" fill="url(#koiTailGrad1)" opacity="0.85" />
-            </g>
+      <!-- 金龙特效 - 在 footer 上方游动 -->
+      <div class="dragon-swim-area">
+        <svg class="dragon dragon--left" viewBox="0 0 160 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g class="dragon-body-wave">
+          <!-- 龙身体 -->
+          <path d="M10 40 Q20 20 40 25 Q60 30 80 25 Q100 20 120 30 Q135 35 145 40" stroke="#F59E0B" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path d="M10 40 Q20 20 40 25 Q60 30 80 25 Q100 20 120 30 Q135 35 145 40" stroke="#D97706" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <!-- 龙鳞片 -->
+          <circle cx="30" cy="28" r="3" fill="#FCD34D" opacity="0.6"/>
+          <circle cx="50" cy="32" r="3" fill="#FCD34D" opacity="0.6"/>
+          <circle cx="70" cy="30" r="3" fill="#FCD34D" opacity="0.6"/>
+          <circle cx="90" cy="26" r="3" fill="#FCD34D" opacity="0.6"/>
+          <circle cx="110" cy="30" r="3" fill="#FCD34D" opacity="0.6"/>
+          <!-- 龙尾巴 -->
+          <path d="M145 40 Q152 35 158 30 Q155 38 158 45 Q152 42 145 40Z" fill="#F59E0B" class="dragon-tail"/>
+          <!-- 龙鳍 -->
+          <path d="M50 25 Q55 15 60 25" fill="#D97706" class="dragon-fin"/>
+          <path d="M80 25 Q85 15 90 25" fill="#D97706" class="dragon-fin"/>
+          <path d="M110 28 Q115 18 120 28" fill="#D97706" class="dragon-fin"/>
+          <!-- 龙头 -->
+          <g class="dragon-head">
+            <!-- 龙角 -->
+            <path d="M20 25 Q15 10 10 8" stroke="#B45309" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M25 23 Q22 8 18 5" stroke="#B45309" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- 龙脸 -->
+            <ellipse cx="18" cy="38" rx="12" ry="10" fill="#F59E0B"/>
+            <!-- 龙眼 -->
+            <circle cx="14" cy="35" r="4" fill="#1F2937"/>
+            <circle cx="15" cy="34" r="1.5" fill="white"/>
+            <!-- 龙须 -->
+            <path d="M8 40 Q3 42 0 40" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M10 43 Q5 46 2 44" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <!-- 龙嘴 -->
+            <path d="M6 40 Q8 42 12 41" stroke="#B45309" stroke-width="1" fill="none"/>
+            <!-- 龙鼻 -->
+            <circle cx="10" cy="38" r="1" fill="#B45309"/>
+            <circle cx="12" cy="38" r="1" fill="#B45309"/>
           </g>
-          <defs>
-            <linearGradient id="koiGoldGrad1" x1="15" y1="14" x2="95" y2="46">
-              <stop offset="0%" stop-color="#FDE68A" />
-              <stop offset="30%" stop-color="#FCD34D" />
-              <stop offset="60%" stop-color="#F59E0B" />
-              <stop offset="100%" stop-color="#D97706" />
-            </linearGradient>
-            <linearGradient id="koiTailGrad1" x1="95" y1="10" x2="118" y2="50">
-              <stop offset="0%" stop-color="#F59E0B" />
-              <stop offset="100%" stop-color="#B45309" />
-            </linearGradient>
-          </defs>
+          <!-- 龙爪 -->
+          <g class="dragon-claw">
+            <path d="M40 30 Q35 38 30 40 Q33 38 35 35" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M80 28 Q75 36 70 38 Q73 36 75 33" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M120 32 Q115 40 110 42 Q113 40 115 37" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </g>
         </svg>
-        <svg class="koi koi--right-facing" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g class="koi-fish">
-            <!-- 锦鲤身体 -->
-            <g class="koi-body">
-              <!-- 胡须 -->
-              <path d="M102 33 Q105 38 108 36" stroke="#B45309" stroke-width="0.8" fill="none" opacity="0.6" />
-              <path d="M102 35 Q106 39 109 38" stroke="#B45309" stroke-width="0.8" fill="none" opacity="0.6" />
-              <!-- 身体 -->
-              <path d="M105 30 Q100 15 70 14 Q40 13 25 25 Q15 30 25 35 Q40 47 70 46 Q100 45 105 30Z" fill="url(#koiGoldGrad2)" />
-              <!-- 眼睛 -->
-              <circle cx="98" cy="27" r="3.5" fill="#1F2937" />
-              <circle cx="97" cy="26" r="1.2" fill="white" />
-              <circle cx="99" cy="28" r="0.6" fill="#FBBF24" opacity="0.8" />
-              <!-- 嘴巴 -->
-              <path d="M105 30 Q107 32 105 34" stroke="#92400E" stroke-width="1" fill="none" />
-              <!-- 鳞片 -->
-              <circle cx="85" cy="24" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <circle cx="75" cy="20" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <circle cx="65" cy="22" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <circle cx="55" cy="24" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <circle cx="45" cy="26" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <circle cx="80" cy="32" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <circle cx="70" cy="30" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <circle cx="60" cy="32" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <circle cx="50" cy="34" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <circle cx="40" cy="36" r="2.5" fill="#FBBF24" opacity="0.35" />
-              <!-- 背鳍 -->
-              <path d="M80 16 Q70 2 60 14" fill="#F59E0B" opacity="0.6" class="koi-fin-back" />
-              <path d="M75 14 Q68 6 62 15" fill="#FBBF24" opacity="0.4" class="koi-fin-back" />
-              <!-- 胸鳍 -->
-              <path d="M90 38 Q85 48 78 42" fill="#F59E0B" opacity="0.5" class="koi-fin-pectoral" />
-              <!-- 腹鳍 -->
-              <path d="M65 44 Q62 50 55 46" fill="#F59E0B" opacity="0.4" class="koi-fin-back" />
-            </g>
-            <!-- 尾巴独立动画 -->
-            <g class="koi-tail">
-              <path d="M25 28 Q12 15 2 10 Q8 25 4 30 Q8 35 2 50 Q12 45 25 32Z" fill="url(#koiTailGrad2)" opacity="0.85" />
-            </g>
+        <svg class="dragon dragon--right" viewBox="0 0 160 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g class="dragon-body-wave">
+          <!-- 龙身体 -->
+          <path d="M150 40 Q140 20 120 25 Q100 30 80 25 Q60 20 40 30 Q25 35 15 40" stroke="#FBBF24" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path d="M150 40 Q140 20 120 25 Q100 30 80 25 Q60 20 40 30 Q25 35 15 40" stroke="#D97706" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <!-- 龙鳞片 -->
+          <circle cx="130" cy="28" r="3" fill="#FDE68A" opacity="0.6"/>
+          <circle cx="110" cy="32" r="3" fill="#FDE68A" opacity="0.6"/>
+          <circle cx="90" cy="30" r="3" fill="#FDE68A" opacity="0.6"/>
+          <circle cx="70" cy="26" r="3" fill="#FDE68A" opacity="0.6"/>
+          <circle cx="50" cy="30" r="3" fill="#FDE68A" opacity="0.6"/>
+          <!-- 龙尾巴 -->
+          <path d="M15 40 Q8 35 2 30 Q5 38 2 45 Q8 42 15 40Z" fill="#FBBF24" class="dragon-tail"/>
+          <!-- 龙鳍 -->
+          <path d="M110 25 Q105 15 100 25" fill="#D97706" class="dragon-fin"/>
+          <path d="M80 25 Q75 15 70 25" fill="#D97706" class="dragon-fin"/>
+          <path d="M50 28 Q45 18 40 28" fill="#D97706" class="dragon-fin"/>
+          <!-- 龙头 -->
+          <g class="dragon-head">
+            <!-- 龙角 -->
+            <path d="M140 25 Q145 10 150 8" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M135 23 Q138 8 142 5" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- 龙脸 -->
+            <ellipse cx="142" cy="38" rx="12" ry="10" fill="#FBBF24"/>
+            <!-- 龙眼 -->
+            <circle cx="146" cy="35" r="4" fill="#1F2937"/>
+            <circle cx="145" cy="34" r="1.5" fill="white"/>
+            <!-- 龙须 -->
+            <path d="M152 40 Q157 42 160 40" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M150 43 Q155 46 158 44" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <!-- 龙嘴 -->
+            <path d="M154 40 Q152 42 148 41" stroke="#92400E" stroke-width="1" fill="none"/>
+            <!-- 龙鼻 -->
+            <circle cx="150" cy="38" r="1" fill="#92400E"/>
+            <circle cx="148" cy="38" r="1" fill="#92400E"/>
           </g>
-          <defs>
-            <linearGradient id="koiGoldGrad2" x1="25" y1="14" x2="105" y2="46">
-              <stop offset="0%" stop-color="#FDE68A" />
-              <stop offset="30%" stop-color="#FCD34D" />
-              <stop offset="60%" stop-color="#F59E0B" />
-              <stop offset="100%" stop-color="#92400E" />
-            </linearGradient>
-            <linearGradient id="koiTailGrad2" x1="25" y1="10" x2="2" y2="50">
-              <stop offset="0%" stop-color="#F59E0B" />
-              <stop offset="100%" stop-color="#78350F" />
-            </linearGradient>
-          </defs>
+          <!-- 龙爪 -->
+          <g class="dragon-claw">
+            <path d="M120 30 Q125 38 130 40 Q127 38 125 35" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M80 28 Q85 36 90 38 Q87 36 85 33" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M40 32 Q45 40 50 42 Q47 40 45 37" stroke="#D97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </g>
+          </g>
         </svg>
       </div>
       <div class="footer-inner">
@@ -888,131 +872,125 @@ function reload() {
   z-index: 10;
 }
 
-/* 锦鲤游动区域 - 在 footer-inner 上方 */
-.koi-swim-area {
+/* 金龙游动区域 - 在 footer-inner 上方 */
+.dragon-swim-area {
   position: relative;
   max-width: 1158px;
   margin: 0 auto 8px;
-  height: 50px;
+  height: 60px;
   overflow: hidden;
   border-radius: 12px;
 }
 
-/* 锦鲤基础样式 */
-.koi {
+/* 金龙基础样式 */
+.dragon {
   position: absolute;
-  width: 70px;
-  height: 35px;
-  opacity: 0;
-  filter: drop-shadow(0 3px 8px rgba(217, 119, 6, 0.5));
+  width: 100px;
+  height: 50px;
+  opacity: 0.9;
+  filter: drop-shadow(0 4px 12px rgba(217, 119, 6, 0.6));
 }
 
-/* 锦鲤整体位置动画 */
-.koi--left-facing {
-  animation: koi-move-left 16s linear infinite;
+/* 左侧金龙 - 头朝右 */
+.dragon--left {
+  animation: dragon-fly-left 20s ease-in-out infinite;
 }
 
-.koi--right-facing {
-  animation: koi-move-right 22s linear infinite;
+/* 右侧金龙 - 头朝左 */
+.dragon--right {
+  animation: dragon-fly-right 26s ease-in-out infinite;
 }
 
-/* 左侧锦鲤位置移动 */
-@keyframes koi-move-left {
-  0% { left: 2%; top: 45%; opacity: 0; }
+/* 左侧金龙游动路径 */
+@keyframes dragon-fly-left {
+  0% { left: 0%; top: 40%; opacity: 0; }
+  3% { opacity: 0.9; }
+  12% { left: 12%; top: 20%; }
+  22% { left: 25%; top: 50%; }
+  32% { left: 38%; top: 15%; }
+  42% { left: 48%; top: 35%; }
+  /* 中间盘旋 */
+  50% { left: 45%; top: 25%; }
+  55% { left: 42%; top: 45%; }
+  /* 返回 */
+  65% { left: 35%; top: 30%; }
+  75% { left: 25%; top: 50%; }
+  85% { left: 15%; top: 25%; }
+  95% { opacity: 0.9; }
+  100% { left: 0%; top: 40%; opacity: 0; }
+}
+
+/* 右侧金龙游动路径 */
+@keyframes dragon-fly-right {
+  0% { right: 0%; top: 40%; opacity: 0; }
   3% { opacity: 0.85; }
-  15% { left: 15%; top: 55%; }
-  28% { left: 28%; top: 30%; }
-  40% { left: 38%; top: 60%; }
-  50% { left: 47%; top: 40%; }
-  58% { left: 46%; top: 48%; }
-  68% { left: 38%; top: 35%; }
-  78% { left: 28%; top: 55%; }
-  88% { left: 15%; top: 40%; }
+  12% { right: 12%; top: 20%; }
+  22% { right: 25%; top: 50%; }
+  32% { right: 38%; top: 15%; }
+  42% { right: 48%; top: 35%; }
+  /* 中间盘旋 */
+  50% { right: 45%; top: 25%; }
+  55% { right: 42%; top: 45%; }
+  /* 返回 */
+  65% { right: 35%; top: 30%; }
+  75% { right: 25%; top: 50%; }
+  85% { right: 15%; top: 25%; }
   95% { opacity: 0.85; }
-  100% { left: 2%; top: 45%; opacity: 0; }
+  100% { right: 0%; top: 40%; opacity: 0; }
 }
 
-/* 右侧锦鲤位置移动 */
-@keyframes koi-move-right {
-  0% { right: 2%; top: 45%; opacity: 0; }
-  3% { opacity: 0.75; }
-  15% { right: 15%; top: 55%; }
-  28% { right: 28%; top: 30%; }
-  40% { right: 38%; top: 60%; }
-  50% { right: 47%; top: 40%; }
-  58% { right: 46%; top: 48%; }
-  68% { right: 38%; top: 35%; }
-  78% { right: 28%; top: 55%; }
-  88% { right: 15%; top: 40%; }
-  95% { opacity: 0.75; }
-  100% { right: 2%; top: 45%; opacity: 0; }
+/* 龙身体扭动 */
+.dragon-body-wave {
+  animation: dragon-wiggle 0.6s ease-in-out infinite;
 }
 
-/* 锦鲤身体容器 */
-.koi-fish {
-  width: 100%;
-  height: 100%;
+@keyframes dragon-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(2deg); }
+  75% { transform: rotate(-2deg); }
 }
 
-/* 右侧锦鲤翻转（静态，不在动画里） */
-.koi--right-facing .koi-fish {
-  transform: scaleX(-1);
-}
-
-/* 身体扭动 - 左侧 */
-.koi-body {
-  transform-origin: 50% 50%;
-  animation: koi-body-wave-l 0.5s ease-in-out infinite;
-}
-
-@keyframes koi-body-wave-l {
-  0%, 100% { transform: rotate(0deg) scaleX(1); }
-  25% { transform: rotate(1.5deg) scaleX(0.98); }
-  75% { transform: rotate(-1.5deg) scaleX(1.01); }
-}
-
-/* 身体扭动 - 右侧（保持翻转） */
-.koi--right-facing .koi-body {
-  animation: koi-body-wave-r 0.55s ease-in-out infinite;
-}
-
-@keyframes koi-body-wave-r {
-  0%, 100% { transform: scaleX(-1) rotate(0deg); }
-  25% { transform: scaleX(-1) rotate(1.5deg); }
-  75% { transform: scaleX(-1) rotate(-1.5deg); }
-}
-
-/* 尾巴摆动 */
-.koi-tail {
+/* 龙尾巴摆动 */
+.dragon-tail {
   transform-origin: 0% 50%;
-  animation: koi-tail-wag 0.2s ease-in-out infinite alternate;
+  animation: dragon-tail-swish 0.3s ease-in-out infinite alternate;
 }
 
-@keyframes koi-tail-wag {
-  0% { transform: rotate(-20deg); }
-  100% { transform: rotate(20deg); }
+@keyframes dragon-tail-swish {
+  0% { transform: rotate(-10deg); }
+  100% { transform: rotate(10deg); }
 }
 
-/* 背鳍摆动 */
-.koi-fin-back {
+/* 龙鳍摆动 */
+.dragon-fin {
   transform-origin: 50% 100%;
-  animation: koi-fin-flutter 0.3s ease-in-out infinite alternate;
+  animation: dragon-fin-flap 0.4s ease-in-out infinite alternate;
 }
 
-@keyframes koi-fin-flutter {
-  0% { transform: rotate(-8deg); }
-  100% { transform: rotate(8deg); }
+@keyframes dragon-fin-flap {
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
 }
 
-/* 胸鳍划水 */
-.koi-fin-pectoral {
-  transform-origin: 0% 0%;
-  animation: koi-pectoral-paddle 0.35s ease-in-out infinite alternate;
+/* 龙须飘动 */
+.dragon-head {
+  animation: dragon-whisker-wave 0.8s ease-in-out infinite;
 }
 
-@keyframes koi-pectoral-paddle {
-  0% { transform: rotate(-12deg) translateY(-1px); }
-  100% { transform: rotate(12deg) translateY(1px); }
+@keyframes dragon-whisker-wave {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+}
+
+/* 龙爪伸缩 */
+.dragon-claw {
+  transform-origin: center;
+  animation: dragon-claw-reach 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes dragon-claw-reach {
+  0% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
 }
 
 .footer-inner {
