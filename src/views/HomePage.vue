@@ -791,10 +791,11 @@ function reload() {
 .ant-swim-area {
   position: relative;
   max-width: 1158px;
-  margin: -8px auto -6px;
-  height: 40px;
-  overflow: hidden;
+  margin: 0 auto 0;
+  height: 50px;
+  overflow: visible;
   border-radius: 12px 12px 0 0;
+  z-index: 2;
 }
 
 /* 金色蚂蚁基础样式 */
