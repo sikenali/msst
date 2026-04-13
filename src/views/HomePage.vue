@@ -16,7 +16,6 @@ import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
 import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
 import IconModal from '@/components/IconModal.vue'
 import NumberPickerModal from '@/components/NumberPickerModal.vue'
-import GoldenAnt from '@/components/GoldenAnt.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -441,11 +440,6 @@ function reload() {
 
     <!-- 底部版权 -->
     <footer class="home-footer">
-      <!-- 金色蚂蚁特效 - 在 footer 上方爬行 -->
-      <div class="ant-swim-area">
-        <GoldenAnt direction="right" class="ant ant--left" />
-        <GoldenAnt direction="left" class="ant ant--right" />
-      </div>
       <div class="footer-inner">
         <p class="footer-text">
           <span v-if="lotteryType === 'ssq'">一花一世界 · 一叶一菩提</span>
@@ -785,67 +779,6 @@ function reload() {
   padding: 12px 0;
   position: relative;
   z-index: 10;
-}
-
-/* 金色蚂蚁爬行区域 - 在 footer-inner 上方 */
-.ant-swim-area {
-  position: relative;
-  max-width: 1158px;
-  margin: 0 auto 0;
-  height: 50px;
-  overflow: visible;
-  border-radius: 12px 12px 0 0;
-  z-index: 2;
-}
-
-/* 金色蚂蚁基础样式 */
-.ant {
-  position: absolute;
-  width: 52px;
-  height: 39px;
-  opacity: 0.9;
-}
-
-/* 左侧金色蚂蚁 - 头朝右，爬到右边后转身返回 */
-.ant--left {
-  animation: ant-crawl-left 30s ease-in-out infinite;
-}
-
-/* 右侧金色蚂蚁 - 头朝左，爬到左边后转身返回 */
-.ant--right {
-  animation: ant-crawl-right 36s ease-in-out infinite;
-}
-
-/* 左侧蚂蚁爬行路径 - 头朝右，爬到边界后转身返回 */
-@keyframes ant-crawl-left {
-  0% { left: -10%; top: 50%; transform: scaleX(1); opacity: 0; }
-  5% { opacity: 0.9; transform: scaleX(1); }
-  25% { left: 20%; top: 45%; transform: scaleX(1); }
-  40% { left: 45%; top: 35%; transform: scaleX(1); }
-  /* 到达右侧边界，转身 */
-  48% { left: 55%; top: 50%; transform: scaleX(1); }
-  50% { left: 55%; top: 50%; transform: scaleX(-1); }
-  /* 返回 */
-  65% { left: 40%; top: 40%; transform: scaleX(-1); }
-  80% { left: 15%; top: 55%; transform: scaleX(-1); }
-  95% { left: -10%; top: 50%; transform: scaleX(-1); opacity: 0.9; }
-  100% { left: -10%; top: 50%; transform: scaleX(1); opacity: 0; }
-}
-
-/* 右侧蚂蚁爬行路径 - 头朝左，爬到边界后转身返回 */
-@keyframes ant-crawl-right {
-  0% { right: -10%; top: 50%; transform: scaleX(-1); opacity: 0; }
-  5% { opacity: 0.9; transform: scaleX(-1); }
-  25% { right: 20%; top: 45%; transform: scaleX(-1); }
-  40% { right: 45%; top: 35%; transform: scaleX(-1); }
-  /* 到达左侧边界，转身 */
-  48% { right: 55%; top: 50%; transform: scaleX(-1); }
-  50% { right: 55%; top: 50%; transform: scaleX(1); }
-  /* 返回 */
-  65% { right: 40%; top: 40%; transform: scaleX(1); }
-  80% { right: 15%; top: 55%; transform: scaleX(1); }
-  95% { right: -10%; top: 50%; transform: scaleX(1); opacity: 0.9; }
-  100% { right: -10%; top: 50%; transform: scaleX(-1); opacity: 0; }
 }
 
 .footer-inner {
