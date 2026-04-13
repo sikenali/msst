@@ -875,6 +875,7 @@ function reload() {
 }
 
 .footer-inner {
+  position: relative;
   padding: 0 24px;
   max-width: 1158px;
   margin: 0 auto;
@@ -887,6 +888,7 @@ function reload() {
   box-sizing: border-box;
   padding-top: 10px;
   padding-bottom: 10px;
+  overflow: hidden;
 }
 
 .footer-text {
@@ -901,232 +903,225 @@ function reload() {
   z-index: 2;
 }
 
-/* 锦鲤容器 */
+/* 锦鲤容器 - 相对于 footer-inner 定位 */
 .koi-container {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
+  border-radius: 16px;
 }
 
 /* 锦鲤基础样式 */
 .koi {
   position: absolute;
-  width: 80px;
-  height: 40px;
+  width: 90px;
+  height: 45px;
   opacity: 0;
-  filter: drop-shadow(0 2px 6px rgba(217, 119, 6, 0.4));
+  filter: drop-shadow(0 3px 8px rgba(217, 119, 6, 0.5));
+  will-change: transform, left, right, top, opacity;
 }
 
 /* 左侧锦鲤 - 从左往右游（带波浪形、跳跃、转头） */
 .koi--left {
-  animation: koi-swim-left 25s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  top: 20%;
+  animation: koi-swim-left 28s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
 /* 右侧锦鲤 - 从右往左游（带波浪形、跳跃、转身） */
 .koi--right {
-  animation: koi-swim-right 30s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  top: 55%;
+  animation: koi-swim-right 35s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
-/* 锦鲤游动动画 - 从左到右（复杂路径） */
+/* 锦鲤游动动画 - 从左到右（复杂路径，限制在容器内） */
 @keyframes koi-swim-left {
   0% {
-    left: -100px;
-    top: 50%;
-    transform: rotate(0deg) scale(0.7);
+    left: 5%;
+    transform: rotate(0deg) scale(0.85);
     opacity: 0;
   }
-  3% {
-    opacity: 0.7;
+  5% {
+    opacity: 0.8;
   }
   /* 波浪形游动 - 第一波 */
-  10% {
-    left: 10%;
+  12% {
+    left: 15%;
     top: 35%;
-    transform: rotate(-8deg) scale(0.75);
+    transform: rotate(-6deg) scale(0.9);
   }
-  15% {
-    left: 18%;
-    top: 55%;
-    transform: rotate(5deg) scale(0.8);
-  }
-  /* 轻微跳跃 */
   20% {
     left: 25%;
-    top: 25%;
-    transform: rotate(-12deg) scale(0.85) translateY(-8px);
+    top: 65%;
+    transform: rotate(4deg) scale(0.92);
   }
-  22% {
-    left: 27%;
-    top: 40%;
-    transform: rotate(3deg) scale(0.8) translateY(0px);
+  /* 轻微跳跃 */
+  28% {
+    left: 32%;
+    top: 25%;
+    transform: rotate(-10deg) scale(0.95);
+  }
+  32% {
+    left: 36%;
+    top: 45%;
+    transform: rotate(2deg) scale(0.9);
   }
   /* 平稳游动 */
-  30% {
-    left: 35%;
-    top: 45%;
-    transform: rotate(-3deg) scale(0.82);
+  40% {
+    left: 45%;
+    top: 60%;
+    transform: rotate(-3deg) scale(0.92);
   }
   /* 快速摆尾转弯 */
-  35% {
-    left: 42%;
+  48% {
+    left: 52%;
     top: 30%;
-    transform: rotate(-15deg) scale(0.78);
+    transform: rotate(-12deg) scale(0.88);
   }
   /* 波浪形游动 - 第二波 */
-  45% {
-    left: 52%;
-    top: 60%;
-    transform: rotate(8deg) scale(0.85);
-  }
-  50% {
+  56% {
     left: 60%;
+    top: 65%;
+    transform: rotate(7deg) scale(0.93);
+  }
+  64% {
+    left: 68%;
     top: 40%;
-    transform: rotate(-5deg) scale(0.88);
+    transform: rotate(-4deg) scale(0.95);
   }
   /* 转身动作 */
-  55% {
-    left: 65%;
+  70% {
+    left: 72%;
     top: 35%;
-    transform: rotate(25deg) scale(0.75);
+    transform: rotate(18deg) scale(0.85);
   }
-  58% {
-    left: 63%;
-    top: 45%;
-    transform: rotate(-10deg) scale(0.78);
+  74% {
+    left: 70%;
+    top: 50%;
+    transform: rotate(-8deg) scale(0.88);
   }
   /* 继续前进 */
-  65% {
-    left: 72%;
-    top: 55%;
-    transform: rotate(5deg) scale(0.82);
+  80% {
+    left: 78%;
+    top: 65%;
+    transform: rotate(5deg) scale(0.92);
   }
   /* 小跳跃 */
-  72% {
-    left: 80%;
+  86% {
+    left: 84%;
     top: 30%;
-    transform: rotate(-10deg) scale(0.85) translateY(-12px);
+    transform: rotate(-8deg) scale(0.95);
   }
-  75% {
-    left: 83%;
-    top: 45%;
-    transform: rotate(3deg) scale(0.8) translateY(0px);
-  }
-  /* 摆尾减速 */
-  85% {
-    left: 90%;
-    top: 40%;
-    transform: rotate(-6deg) scale(0.78);
+  90% {
+    left: 87%;
+    top: 50%;
+    transform: rotate(2deg) scale(0.9);
   }
   95% {
-    opacity: 0.7;
+    left: 90%;
+    opacity: 0.8;
   }
   100% {
-    left: calc(100% + 100px);
+    left: 5%;
     top: 50%;
-    transform: rotate(0deg) scale(0.7);
+    transform: rotate(0deg) scale(0.85);
     opacity: 0;
   }
 }
 
-/* 锦鲤游动动画 - 从右到左（复杂路径） */
+/* 锦鲤游动动画 - 从右到左（复杂路径，限制在容器内） */
 @keyframes koi-swim-right {
   0% {
-    right: -100px;
+    right: 5%;
     top: 50%;
-    transform: scaleX(-1) rotate(0deg) scale(0.65);
+    transform: scaleX(-1) rotate(0deg) scale(0.8);
     opacity: 0;
   }
-  3% {
-    opacity: 0.6;
+  5% {
+    opacity: 0.7;
   }
   /* 波浪形游动 - 第一波 */
-  10% {
-    right: 10%;
-    top: 40%;
-    transform: scaleX(-1) rotate(6deg) scale(0.7);
+  12% {
+    right: 15%;
+    top: 65%;
+    transform: scaleX(-1) rotate(5deg) scale(0.85);
   }
-  15% {
-    right: 18%;
-    top: 60%;
-    transform: scaleX(-1) rotate(-8deg) scale(0.75);
-  }
-  /* 轻微跳跃 */
   20% {
     right: 25%;
-    top: 30%;
-    transform: scaleX(-1) rotate(10deg) scale(0.8) translateY(-10px);
+    top: 35%;
+    transform: scaleX(-1) rotate(-7deg) scale(0.88);
   }
-  22% {
-    right: 27%;
-    top: 45%;
-    transform: scaleX(-1) rotate(-4deg) scale(0.75) translateY(0px);
+  /* 轻微跳跃 */
+  28% {
+    right: 32%;
+    top: 70%;
+    transform: scaleX(-1) rotate(8deg) scale(0.9);
+  }
+  32% {
+    right: 36%;
+    top: 50%;
+    transform: scaleX(-1) rotate(-3deg) scale(0.85);
   }
   /* 平稳游动 */
-  30% {
-    right: 35%;
-    top: 50%;
-    transform: scaleX(-1) rotate(4deg) scale(0.78);
+  40% {
+    right: 45%;
+    top: 35%;
+    transform: scaleX(-1) rotate(4deg) scale(0.88);
   }
   /* 快速摆尾转弯 */
-  35% {
-    right: 42%;
-    top: 35%;
-    transform: scaleX(-1) rotate(12deg) scale(0.73);
+  48% {
+    right: 52%;
+    top: 65%;
+    transform: scaleX(-1) rotate(-10deg) scale(0.83);
   }
   /* 波浪形游动 - 第二波 */
-  45% {
-    right: 52%;
-    top: 55%;
-    transform: scaleX(-1) rotate(-7deg) scale(0.8);
-  }
-  50% {
+  56% {
     right: 60%;
-    top: 38%;
-    transform: scaleX(-1) rotate(6deg) scale(0.83);
+    top: 30%;
+    transform: scaleX(-1) rotate(6deg) scale(0.9);
+  }
+  64% {
+    right: 68%;
+    top: 55%;
+    transform: scaleX(-1) rotate(-5deg) scale(0.92);
   }
   /* 转身动作 */
-  55% {
-    right: 65%;
-    top: 32%;
-    transform: scaleX(-1) rotate(-20deg) scale(0.7);
+  70% {
+    right: 72%;
+    top: 60%;
+    transform: scaleX(-1) rotate(-15deg) scale(0.8);
   }
-  58% {
-    right: 63%;
-    top: 42%;
-    transform: scaleX(-1) rotate(8deg) scale(0.73);
+  74% {
+    right: 70%;
+    top: 45%;
+    transform: scaleX(-1) rotate(6deg) scale(0.83);
   }
   /* 继续前进 */
-  65% {
-    right: 72%;
-    top: 58%;
-    transform: scaleX(-1) rotate(-6deg) scale(0.78);
+  80% {
+    right: 78%;
+    top: 30%;
+    transform: scaleX(-1) rotate(-4deg) scale(0.88);
   }
   /* 小跳跃 */
-  72% {
-    right: 80%;
-    top: 35%;
-    transform: scaleX(-1) rotate(12deg) scale(0.8) translateY(-10px);
+  86% {
+    right: 84%;
+    top: 65%;
+    transform: scaleX(-1) rotate(10deg) scale(0.9);
   }
-  75% {
-    right: 83%;
-    top: 48%;
-    transform: scaleX(-1) rotate(-3deg) scale(0.75) translateY(0px);
-  }
-  /* 摆尾减速 */
-  85% {
-    right: 90%;
-    top: 42%;
-    transform: scaleX(-1) rotate(5deg) scale(0.72);
+  90% {
+    right: 87%;
+    top: 50%;
+    transform: scaleX(-1) rotate(-2deg) scale(0.85);
   }
   95% {
-    opacity: 0.6;
+    right: 90%;
+    opacity: 0.7;
   }
   100% {
-    right: calc(100% + 100px);
+    right: 5%;
     top: 50%;
-    transform: scaleX(-1) rotate(0deg) scale(0.65);
+    transform: scaleX(-1) rotate(0deg) scale(0.8);
     opacity: 0;
   }
 }
