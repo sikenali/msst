@@ -427,7 +427,7 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
 
   // ====== 规则判断（参考双色球规则，前区5个，后区2个） ======
   if (fixedFront.length === 0 && fixedBack.length === 0) {
-    // 规则1：都没选，按用户选择的模式
+    // 规则1/2/3：都没选，按用户选择的模式
     if (mode === 'multiple') {
       finalMode = 'multiple'
       targetFrontCount = 6 + Math.floor(Math.random() * 4) // 6-9
@@ -446,7 +446,7 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
       useFixedBack = false
     }
   } else if (fixedFront.length > 0 && fixedFront.length < 5 && fixedBack.length === 0) {
-    // 规则2：前区<5，后区未选
+    // 规则4/5/6：前区<5，后区未选
     if (mode === 'multiple') {
       finalMode = 'multiple'
       targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
@@ -463,14 +463,14 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     useFixedFront = true
     useFixedBack = false
   } else if (fixedFront.length >= 5 && fixedBack.length === 0) {
-    // 规则3/4：前区≥5，后区未选 → 自动复式
+    // 规则7/8/9/10：前区≥5，后区未选 → 自动复式
     finalMode = 'multiple'
     targetFrontCount = Math.max(5, fixedFront.length)
     targetBackCount = mode === 'dantuo' ? 2 : (2 + Math.floor(Math.random() * 2)) // 胆拖2个，否则2-3个
     useFixedFront = true
     useFixedBack = false
   } else if (fixedFront.length === 0 && fixedBack.length === 2) {
-    // 规则5：前区未选，后区=2
+    // 规则11：前区未选，后区=2
     if (mode === 'multiple') {
       finalMode = 'multiple'
       targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
@@ -487,14 +487,14 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     useFixedFront = false
     useFixedBack = true
   } else if (fixedFront.length === 0 && fixedBack.length > 2) {
-    // 规则6：前区未选，后区>2 → 自动复式
+    // 规则12：前区未选，后区>2 → 自动复式
     finalMode = 'multiple'
     targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
     targetBackCount = fixedBack.length
     useFixedFront = false
     useFixedBack = true
   } else if (fixedFront.length > 0 && fixedBack.length > 0) {
-    // 规则8/9：都选了，按实际数量判断
+    // 规则14/15：都选了，按实际数量判断
     if (fixedFront.length < 5 && fixedBack.length === 2) {
       finalMode = mode === 'dantuo' ? 'dantuo' : (mode === 'multiple' ? 'multiple' : 'single')
       targetFrontCount = mode === 'multiple' ? 6 + Math.floor(Math.random() * 4) : 5
