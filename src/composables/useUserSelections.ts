@@ -24,44 +24,44 @@ export const dltBirthday = ref<BirthdayInfo | null>(null)
 export const dltConstellation = ref<string>('')
 export const dltLuckyNumbers = ref<number[]>([])
 
-// 当前激活的引用（根据彩种动态切换）
-let currentType: 'ssq' | 'dlt' = 'ssq'
+// 当前激活的引用（根据彩种动态切换）- 使用 ref 保持响应式
+const currentType = ref<'ssq' | 'dlt'>('ssq')
 
 export function setCurrentType(type: 'ssq' | 'dlt') {
-  currentType = type
+  currentType.value = type
 }
 
 function getBlueNumbers() {
-  return currentType === 'ssq' ? ssqBlueNumbers : dltBlueNumbers
+  return currentType.value === 'ssq' ? ssqBlueNumbers : dltBlueNumbers
 }
 
 function getRedNumbers() {
-  return currentType === 'ssq' ? ssqRedNumbers : dltRedNumbers
+  return currentType.value === 'ssq' ? ssqRedNumbers : dltRedNumbers
 }
 
 function getNotes() {
-  return currentType === 'ssq' ? ssqNotes : dltNotes
+  return currentType.value === 'ssq' ? ssqNotes : dltNotes
 }
 
 function getMode() {
-  return currentType === 'ssq' ? ssqMode : dltMode
+  return currentType.value === 'ssq' ? ssqMode : dltMode
 }
 
 function getBirthday() {
-  return currentType === 'ssq' ? ssqBirthday : dltBirthday
+  return currentType.value === 'ssq' ? ssqBirthday : dltBirthday
 }
 
 function getConstellation() {
-  return currentType === 'ssq' ? ssqConstellation : dltConstellation
+  return currentType.value === 'ssq' ? ssqConstellation : dltConstellation
 }
 
 function getLuckyNumbers() {
-  return currentType === 'ssq' ? ssqLuckyNumbers : dltLuckyNumbers
+  return currentType.value === 'ssq' ? ssqLuckyNumbers : dltLuckyNumbers
 }
 
 // 获取当前激活的响应式引用
 function getCurrentRefs() {
-  if (currentType === 'ssq') {
+  if (currentType.value === 'ssq') {
     return {
       blueNumbers: ssqBlueNumbers,
       redNumbers: ssqRedNumbers,
