@@ -792,7 +792,7 @@ function reload() {
   position: relative;
   max-width: 1158px;
   margin: 0 auto 8px;
-  height: 50px;
+  height: 60px;
   overflow: hidden;
   border-radius: 12px;
 }
@@ -800,51 +800,45 @@ function reload() {
 /* 金色蚂蚁基础样式 */
 .ant {
   position: absolute;
-  width: 72px;
-  height: 48px;
-  opacity: 0.9;
+  width: 76px;
+  height: 57px;
+  opacity: 0.95;
 }
 
 /* 左侧金色蚂蚁 - 头朝右 */
 .ant--left {
-  animation: ant-crawl-left 15s linear infinite;
+  animation: ant-crawl-left 18s ease-in-out infinite;
 }
 
 /* 右侧金色蚂蚁 - 头朝左 */
 .ant--right {
-  animation: ant-crawl-right 20s linear infinite;
+  animation: ant-crawl-right 24s ease-in-out infinite;
 }
 
-/* 左侧蚂蚁爬行路径 */
+/* 左侧蚂蚁爬行路径 - 头朝右，活动范围在左侧到中间 */
 @keyframes ant-crawl-left {
-  0% { left: 0%; top: 50%; opacity: 0; }
-  3% { opacity: 0.9; }
-  15% { left: 15%; top: 30%; }
-  25% { left: 25%; top: 60%; }
-  35% { left: 35%; top: 40%; }
-  45% { left: 45%; top: 55%; }
-  55% { left: 42%; top: 35%; }
-  65% { left: 35%; top: 50%; }
-  75% { left: 25%; top: 40%; }
-  85% { left: 15%; top: 55%; }
-  95% { opacity: 0.9; }
-  100% { left: 0%; top: 50%; opacity: 0; }
+  0% { left: -5%; top: 50%; opacity: 0; }
+  5% { opacity: 0.95; }
+  20% { left: 10%; top: 40%; }
+  35% { left: 22%; top: 55%; }
+  50% { left: 35%; top: 35%; }
+  65% { left: 30%; top: 50%; }
+  80% { left: 20%; top: 45%; }
+  95% { opacity: 0.95; }
+  100% { left: -5%; top: 50%; opacity: 0; }
 }
 
-/* 右侧蚂蚁爬行路径 */
+/* 右侧蚂蚁爬行路径 - 头朝左，活动范围在右侧到中间 */
 @keyframes ant-crawl-right {
-  0% { right: 0%; top: 50%; opacity: 0; }
-  3% { opacity: 0.85; }
-  15% { right: 15%; top: 30%; }
-  25% { right: 25%; top: 60%; }
-  35% { right: 35%; top: 40%; }
-  45% { right: 45%; top: 55%; }
-  55% { right: 42%; top: 35%; }
-  65% { right: 35%; top: 50%; }
-  75% { right: 25%; top: 40%; }
-  85% { right: 15%; top: 55%; }
-  95% { opacity: 0.85; }
-  100% { right: 0%; top: 50%; opacity: 0; }
+  0% { right: -5%; top: 50%; opacity: 0; }
+  5% { opacity: 0.95; }
+  20% { right: 10%; top: 40%; }
+  35% { right: 22%; top: 55%; }
+  50% { right: 35%; top: 35%; }
+  65% { right: 30%; top: 50%; }
+  80% { right: 20%; top: 45%; }
+  95% { opacity: 0.95; }
+  100% { right: -5%; top: 50%; opacity: 0; }
 }
 
 .footer-inner {

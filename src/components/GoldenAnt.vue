@@ -1,68 +1,62 @@
 <template>
-  <svg :class="['golden-ant', directionClass]" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg :class="['golden-ant', directionClass]" viewBox="0 0 140 80" fill="none" xmlns="http://www.w3.org/2000/svg">
     <!-- 腿部（在身体下方，先绘制） -->
     <g class="ant-legs">
       <!-- 前腿 -->
-      <g class="ant-leg ant-leg-fl">
-        <path d="M42 42 L36 28 L30 22" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M42 42 L38 55 L34 62" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </g>
+      <path d="M42 48 C38 38, 34 32, 30 28" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" class="ant-leg ant-leg-fl"/>
+      <path d="M42 48 C38 58, 34 64, 30 68" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" class="ant-leg ant-leg-fr"/>
       <!-- 中腿 -->
-      <g class="ant-leg ant-leg-ml">
-        <path d="M62 44 L56 30 L50 24" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M62 44 L58 57 L54 64" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </g>
+      <path d="M64 50 C60 40, 56 34, 52 30" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" class="ant-leg ant-leg-ml"/>
+      <path d="M64 50 C60 60, 56 66, 52 70" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" class="ant-leg ant-leg-mr"/>
       <!-- 后腿 -->
-      <g class="ant-leg ant-leg-bl">
-        <path d="M82 44 L76 30 L70 24" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M82 44 L78 57 L74 64" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </g>
+      <path d="M86 48 C82 38, 78 32, 74 28" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" class="ant-leg ant-leg-bl"/>
+      <path d="M86 48 C82 58, 78 64, 74 68" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round" class="ant-leg ant-leg-br"/>
     </g>
 
-    <!-- 触角（在头部上方，先绘制） -->
+    <!-- 触角 -->
     <g class="ant-antennae">
-      <path d="M22 32 C18 20, 10 12, 4 8" stroke="#B45309" stroke-width="2" fill="none" stroke-linecap="round" class="antenna-l"/>
-      <path d="M26 30 C24 18, 18 8, 14 2" stroke="#B45309" stroke-width="2" fill="none" stroke-linecap="round" class="antenna-r"/>
+      <path d="M24 38 C20 26, 14 18, 8 12" stroke="#B45309" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M28 36 C26 24, 22 14, 18 8" stroke="#B45309" stroke-width="2" fill="none" stroke-linecap="round"/>
       <!-- 触角末端发光小球 -->
-      <circle cx="4" cy="8" r="2.5" fill="#FCD34D" class="antenna-ball"/>
-      <circle cx="14" cy="2" r="2.5" fill="#FCD34D" class="antenna-ball"/>
+      <circle cx="8" cy="12" r="2.5" fill="#FCD34D" class="antenna-ball"/>
+      <circle cx="18" cy="8" r="2.5" fill="#FCD34D" class="antenna-ball"/>
     </g>
 
     <!-- 身体三段式 -->
     <!-- 腹部（最后面） -->
-    <ellipse cx="88" cy="44" rx="22" ry="16" fill="url(#abdomenGrad)" class="ant-abdomen"/>
+    <ellipse cx="96" cy="50" rx="24" ry="18" fill="url(#abdomenGrad)"/>
     <!-- 腹部高光 -->
-    <ellipse cx="82" cy="38" rx="10" ry="8" fill="#FDE68A" opacity="0.5"/>
+    <ellipse cx="88" cy="42" rx="12" ry="9" fill="#FDE68A" opacity="0.5"/>
     <!-- 腹部纹理 -->
-    <path d="M78 38 C82 36, 94 36, 98 38" stroke="#FCD34D" stroke-width="1.5" fill="none" opacity="0.7"/>
-    <path d="M76 44 C82 42, 94 42, 100 44" stroke="#FCD34D" stroke-width="1.5" fill="none" opacity="0.7"/>
-    <path d="M78 50 C82 52, 94 52, 98 50" stroke="#FCD34D" stroke-width="1.5" fill="none" opacity="0.7"/>
+    <path d="M84 44 C88 42, 104 42, 108 44" stroke="#FCD34D" stroke-width="1.5" fill="none" opacity="0.7"/>
+    <path d="M82 50 C88 48, 104 48, 110 50" stroke="#FCD34D" stroke-width="1.5" fill="none" opacity="0.7"/>
+    <path d="M84 56 C88 58, 104 58, 108 56" stroke="#FCD34D" stroke-width="1.5" fill="none" opacity="0.7"/>
 
     <!-- 腰部连接 -->
-    <rect x="58" y="40" width="12" height="6" rx="3" fill="#B45309"/>
+    <rect x="64" y="46" width="14" height="8" rx="4" fill="#B45309"/>
 
     <!-- 胸部 -->
-    <ellipse cx="56" cy="44" rx="14" ry="12" fill="url(#thoraxGrad)" class="ant-thorax"/>
+    <ellipse cx="58" cy="50" rx="16" ry="14" fill="url(#thoraxGrad)"/>
     <!-- 胸部高光 -->
-    <ellipse cx="52" cy="38" rx="6" ry="5" fill="#FDE68A" opacity="0.5"/>
+    <ellipse cx="52" cy="42" rx="8" ry="6" fill="#FDE68A" opacity="0.5"/>
 
     <!-- 颈部连接 -->
-    <rect x="36" y="40" width="10" height="7" rx="3.5" fill="#D97706"/>
+    <rect x="40" y="46" width="12" height="9" rx="4.5" fill="#D97706"/>
 
     <!-- 头部 -->
-    <ellipse cx="26" cy="44" rx="14" ry="11" fill="url(#headGrad)" class="ant-head"/>
+    <ellipse cx="28" cy="50" rx="16" ry="13" fill="url(#headGrad)"/>
     <!-- 头部高光 -->
-    <ellipse cx="22" cy="39" rx="5" ry="4" fill="#FDE68A" opacity="0.6"/>
+    <ellipse cx="22" cy="42" rx="6" ry="5" fill="#FDE68A" opacity="0.6"/>
 
     <!-- 眼睛 -->
-    <circle cx="20" cy="42" r="3.5" fill="#1F2937"/>
-    <circle cx="21" cy="41" r="1.5" fill="white"/>
-    <circle cx="30" cy="42" r="3.5" fill="#1F2937"/>
-    <circle cx="31" cy="41" r="1.5" fill="white"/>
+    <circle cx="22" cy="48" r="4" fill="#1F2937"/>
+    <circle cx="23" cy="46" r="1.8" fill="white"/>
+    <circle cx="34" cy="48" r="4" fill="#1F2937"/>
+    <circle cx="35" cy="46" r="1.8" fill="white"/>
 
     <!-- 大颚 -->
-    <path d="M12 46 C8 48, 6 52, 8 54" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" class="mandible-l"/>
-    <path d="M14 46 C10 48, 8 52, 10 54" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" class="mandible-r"/>
+    <path d="M12 52 C8 55, 6 60, 8 62" stroke="#92400E" stroke-width="2.5" fill="none" stroke-linecap="round" class="mandible-l"/>
+    <path d="M14 52 C10 55, 8 60, 10 62" stroke="#92400E" stroke-width="2.5" fill="none" stroke-linecap="round" class="mandible-r"/>
 
     <!-- 渐变定义 -->
     <defs>
@@ -102,36 +96,43 @@ const directionClass = computed(() => props.direction === 'right' ? 'ant--facing
 
 <style scoped>
 .golden-ant {
-  width: 72px;
-  height: 48px;
-  filter: drop-shadow(0 3px 6px rgba(180, 83, 9, 0.5));
+  width: 76px;
+  height: 57px;
+  filter: drop-shadow(0 3px 8px rgba(180, 83, 9, 0.5));
 }
 
 .ant--facing-right {
   transform: scaleX(-1);
 }
 
-/* 爬行时身体上下摇摆 */
-.ant-abdomen,
-.ant-thorax,
-.ant-head {
-  animation: ant-body-bounce 0.35s ease-in-out infinite;
+/* 爬行时身体上下摇摆 - 更自然的颠簸 */
+.golden-ant {
+  animation: ant-body-bounce 0.4s ease-in-out infinite;
 }
 
 @keyframes ant-body-bounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-1.5px); }
+  50% { transform: translateY(-2px); }
+}
+
+.ant--facing-right {
+  animation: ant-body-bounce-r 0.4s ease-in-out infinite;
+}
+
+@keyframes ant-body-bounce-r {
+  0%, 100% { transform: scaleX(-1) translateY(0); }
+  50% { transform: scaleX(-1) translateY(-2px); }
 }
 
 /* 触角摆动 */
 .ant-antennae {
-  transform-origin: 24px 30px;
+  transform-origin: 26px 36px;
   animation: antennae-wave 0.5s ease-in-out infinite alternate;
 }
 
 @keyframes antennae-wave {
-  0% { transform: rotate(-6deg); }
-  100% { transform: rotate(6deg); }
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
 }
 
 /* 触角小球闪烁 */
@@ -146,54 +147,88 @@ const directionClass = computed(() => props.direction === 'right' ? 'ant--facing
 
 /* 大颚开合 */
 .mandible-l {
-  transform-origin: 12px 46px;
+  transform-origin: 12px 52px;
   animation: mandible-l-chomp 0.6s ease-in-out infinite;
 }
 
 .mandible-r {
-  transform-origin: 14px 46px;
+  transform-origin: 14px 52px;
   animation: mandible-r-chomp 0.6s ease-in-out infinite;
 }
 
 @keyframes mandible-l-chomp {
   0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-8deg); }
+  50% { transform: rotate(-6deg); }
 }
 
 @keyframes mandible-r-chomp {
   0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(8deg); }
+  50% { transform: rotate(6deg); }
 }
 
 /* 腿部交替爬行 */
 .ant-leg-fl {
-  transform-origin: 42px 42px;
-  animation: leg-fl 0.3s ease-in-out infinite alternate;
+  transform-origin: 42px 48px;
+  animation: leg-fl 0.35s ease-in-out infinite alternate;
 }
 
 @keyframes leg-fl {
-  0% { transform: rotate(-4deg); }
-  100% { transform: rotate(4deg); }
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
+}
+
+.ant-leg-fr {
+  transform-origin: 42px 48px;
+  animation: leg-fr 0.35s ease-in-out infinite alternate;
+  animation-delay: 0.17s;
+}
+
+@keyframes leg-fr {
+  0% { transform: rotate(5deg); }
+  100% { transform: rotate(-5deg); }
 }
 
 .ant-leg-ml {
-  transform-origin: 62px 44px;
-  animation: leg-ml 0.3s ease-in-out infinite alternate;
-  animation-delay: 0.15s;
+  transform-origin: 64px 50px;
+  animation: leg-ml 0.35s ease-in-out infinite alternate;
+  animation-delay: 0.35s;
 }
 
 @keyframes leg-ml {
-  0% { transform: rotate(4deg); }
-  100% { transform: rotate(-4deg); }
+  0% { transform: rotate(5deg); }
+  100% { transform: rotate(-5deg); }
+}
+
+.ant-leg-mr {
+  transform-origin: 64px 50px;
+  animation: leg-mr 0.35s ease-in-out infinite alternate;
+  animation-delay: 0.52s;
+}
+
+@keyframes leg-mr {
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
 }
 
 .ant-leg-bl {
-  transform-origin: 82px 44px;
-  animation: leg-bl 0.3s ease-in-out infinite alternate;
+  transform-origin: 86px 48px;
+  animation: leg-bl 0.35s ease-in-out infinite alternate;
+  animation-delay: 0.7s;
 }
 
 @keyframes leg-bl {
-  0% { transform: rotate(-4deg); }
-  100% { transform: rotate(4deg); }
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
+}
+
+.ant-leg-br {
+  transform-origin: 86px 48px;
+  animation: leg-br 0.35s ease-in-out infinite alternate;
+  animation-delay: 0.87s;
+}
+
+@keyframes leg-br {
+  0% { transform: rotate(5deg); }
+  100% { transform: rotate(-5deg); }
 }
 </style>
