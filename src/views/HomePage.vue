@@ -16,7 +16,7 @@ import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
 import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
 import IconModal from '@/components/IconModal.vue'
 import NumberPickerModal from '@/components/NumberPickerModal.vue'
-import GoldenDragon from '@/components/GoldenDragon.vue'
+import GoldenAnt from '@/components/GoldenAnt.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -441,10 +441,10 @@ function reload() {
 
     <!-- 底部版权 -->
     <footer class="home-footer">
-      <!-- 金龙特效 - 在 footer 上方游动 -->
-      <div class="dragon-swim-area">
-        <GoldenDragon facing="left" class="dragon dragon--left" />
-        <GoldenDragon facing="right" class="dragon dragon--right" />
+      <!-- 金色蚂蚁特效 - 在 footer 上方爬行 -->
+      <div class="ant-swim-area">
+        <GoldenAnt direction="left" class="ant ant--left" />
+        <GoldenAnt direction="right" class="ant ant--right" />
       </div>
       <div class="footer-inner">
         <p class="footer-text">
@@ -787,125 +787,64 @@ function reload() {
   z-index: 10;
 }
 
-/* 金龙游动区域 - 在 footer-inner 上方 */
-.dragon-swim-area {
+/* 金色蚂蚁爬行区域 - 在 footer-inner 上方 */
+.ant-swim-area {
   position: relative;
   max-width: 1158px;
   margin: 0 auto 8px;
-  height: 60px;
+  height: 40px;
   overflow: hidden;
   border-radius: 12px;
 }
 
-/* 金龙基础样式 */
-.dragon {
+/* 金色蚂蚁基础样式 */
+.ant {
   position: absolute;
-  width: 100px;
-  height: 50px;
+  width: 60px;
+  height: 36px;
   opacity: 0.9;
-  filter: drop-shadow(0 4px 12px rgba(217, 119, 6, 0.6));
 }
 
-/* 左侧金龙 - 头朝右 */
-.dragon--left {
-  animation: dragon-fly-left 20s ease-in-out infinite;
+/* 左侧金色蚂蚁 - 头朝右 */
+.ant--left {
+  animation: ant-crawl-left 15s linear infinite;
 }
 
-/* 右侧金龙 - 头朝左 */
-.dragon--right {
-  animation: dragon-fly-right 26s ease-in-out infinite;
+/* 右侧金色蚂蚁 - 头朝左 */
+.ant--right {
+  animation: ant-crawl-right 20s linear infinite;
 }
 
-/* 左侧金龙游动路径 */
-@keyframes dragon-fly-left {
-  0% { left: 0%; top: 40%; opacity: 0; }
+/* 左侧蚂蚁爬行路径 */
+@keyframes ant-crawl-left {
+  0% { left: 0%; top: 50%; opacity: 0; }
   3% { opacity: 0.9; }
-  12% { left: 12%; top: 20%; }
-  22% { left: 25%; top: 50%; }
-  32% { left: 38%; top: 15%; }
-  42% { left: 48%; top: 35%; }
-  /* 中间盘旋 */
-  50% { left: 45%; top: 25%; }
-  55% { left: 42%; top: 45%; }
-  /* 返回 */
-  65% { left: 35%; top: 30%; }
-  75% { left: 25%; top: 50%; }
-  85% { left: 15%; top: 25%; }
+  15% { left: 15%; top: 30%; }
+  25% { left: 25%; top: 60%; }
+  35% { left: 35%; top: 40%; }
+  45% { left: 45%; top: 55%; }
+  55% { left: 42%; top: 35%; }
+  65% { left: 35%; top: 50%; }
+  75% { left: 25%; top: 40%; }
+  85% { left: 15%; top: 55%; }
   95% { opacity: 0.9; }
-  100% { left: 0%; top: 40%; opacity: 0; }
+  100% { left: 0%; top: 50%; opacity: 0; }
 }
 
-/* 右侧金龙游动路径 */
-@keyframes dragon-fly-right {
-  0% { right: 0%; top: 40%; opacity: 0; }
+/* 右侧蚂蚁爬行路径 */
+@keyframes ant-crawl-right {
+  0% { right: 0%; top: 50%; opacity: 0; }
   3% { opacity: 0.85; }
-  12% { right: 12%; top: 20%; }
-  22% { right: 25%; top: 50%; }
-  32% { right: 38%; top: 15%; }
-  42% { right: 48%; top: 35%; }
-  /* 中间盘旋 */
-  50% { right: 45%; top: 25%; }
-  55% { right: 42%; top: 45%; }
-  /* 返回 */
-  65% { right: 35%; top: 30%; }
-  75% { right: 25%; top: 50%; }
-  85% { right: 15%; top: 25%; }
+  15% { right: 15%; top: 30%; }
+  25% { right: 25%; top: 60%; }
+  35% { right: 35%; top: 40%; }
+  45% { right: 45%; top: 55%; }
+  55% { right: 42%; top: 35%; }
+  65% { right: 35%; top: 50%; }
+  75% { right: 25%; top: 40%; }
+  85% { right: 15%; top: 55%; }
   95% { opacity: 0.85; }
-  100% { right: 0%; top: 40%; opacity: 0; }
-}
-
-/* 龙身体扭动 */
-.dragon-body-wave {
-  animation: dragon-wiggle 0.6s ease-in-out infinite;
-}
-
-@keyframes dragon-wiggle {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(2deg); }
-  75% { transform: rotate(-2deg); }
-}
-
-/* 龙尾巴摆动 */
-.dragon-tail {
-  transform-origin: 0% 50%;
-  animation: dragon-tail-swish 0.3s ease-in-out infinite alternate;
-}
-
-@keyframes dragon-tail-swish {
-  0% { transform: rotate(-10deg); }
-  100% { transform: rotate(10deg); }
-}
-
-/* 龙鳍摆动 */
-.dragon-fin {
-  transform-origin: 50% 100%;
-  animation: dragon-fin-flap 0.4s ease-in-out infinite alternate;
-}
-
-@keyframes dragon-fin-flap {
-  0% { transform: rotate(-5deg); }
-  100% { transform: rotate(5deg); }
-}
-
-/* 龙须飘动 */
-.dragon-head {
-  animation: dragon-whisker-wave 0.8s ease-in-out infinite;
-}
-
-@keyframes dragon-whisker-wave {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(2px); }
-}
-
-/* 龙爪伸缩 */
-.dragon-claw {
-  transform-origin: center;
-  animation: dragon-claw-reach 0.5s ease-in-out infinite alternate;
-}
-
-@keyframes dragon-claw-reach {
-  0% { transform: scale(0.9); }
-  100% { transform: scale(1.1); }
+  100% { right: 0%; top: 50%; opacity: 0; }
 }
 
 .footer-inner {
