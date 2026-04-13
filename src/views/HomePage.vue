@@ -791,54 +791,60 @@ function reload() {
 .ant-swim-area {
   position: relative;
   max-width: 1158px;
-  margin: 0 auto 8px;
-  height: 60px;
+  margin: -8px auto -6px;
+  height: 40px;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 12px 12px 0 0;
 }
 
 /* 金色蚂蚁基础样式 */
 .ant {
   position: absolute;
-  width: 76px;
-  height: 57px;
-  opacity: 0.95;
+  width: 52px;
+  height: 39px;
+  opacity: 0.9;
 }
 
-/* 左侧金色蚂蚁 - 头朝右 */
+/* 左侧金色蚂蚁 - 头朝右，爬到右边后转身返回 */
 .ant--left {
-  animation: ant-crawl-left 18s ease-in-out infinite;
+  animation: ant-crawl-left 30s ease-in-out infinite;
 }
 
-/* 右侧金色蚂蚁 - 头朝左 */
+/* 右侧金色蚂蚁 - 头朝左，爬到左边后转身返回 */
 .ant--right {
-  animation: ant-crawl-right 24s ease-in-out infinite;
+  animation: ant-crawl-right 36s ease-in-out infinite;
 }
 
-/* 左侧蚂蚁爬行路径 - 头朝右，活动范围在左侧到中间 */
+/* 左侧蚂蚁爬行路径 - 头朝右，爬到边界后转身返回 */
 @keyframes ant-crawl-left {
-  0% { left: -5%; top: 50%; opacity: 0; }
-  5% { opacity: 0.95; }
-  20% { left: 10%; top: 40%; }
-  35% { left: 22%; top: 55%; }
-  50% { left: 35%; top: 35%; }
-  65% { left: 30%; top: 50%; }
-  80% { left: 20%; top: 45%; }
-  95% { opacity: 0.95; }
-  100% { left: -5%; top: 50%; opacity: 0; }
+  0% { left: -10%; top: 50%; transform: scaleX(1); opacity: 0; }
+  5% { opacity: 0.9; transform: scaleX(1); }
+  25% { left: 20%; top: 45%; transform: scaleX(1); }
+  40% { left: 45%; top: 35%; transform: scaleX(1); }
+  /* 到达右侧边界，转身 */
+  48% { left: 55%; top: 50%; transform: scaleX(1); }
+  50% { left: 55%; top: 50%; transform: scaleX(-1); }
+  /* 返回 */
+  65% { left: 40%; top: 40%; transform: scaleX(-1); }
+  80% { left: 15%; top: 55%; transform: scaleX(-1); }
+  95% { left: -10%; top: 50%; transform: scaleX(-1); opacity: 0.9; }
+  100% { left: -10%; top: 50%; transform: scaleX(1); opacity: 0; }
 }
 
-/* 右侧蚂蚁爬行路径 - 头朝左，活动范围在右侧到中间 */
+/* 右侧蚂蚁爬行路径 - 头朝左，爬到边界后转身返回 */
 @keyframes ant-crawl-right {
-  0% { right: -5%; top: 50%; opacity: 0; }
-  5% { opacity: 0.95; }
-  20% { right: 10%; top: 40%; }
-  35% { right: 22%; top: 55%; }
-  50% { right: 35%; top: 35%; }
-  65% { right: 30%; top: 50%; }
-  80% { right: 20%; top: 45%; }
-  95% { opacity: 0.95; }
-  100% { right: -5%; top: 50%; opacity: 0; }
+  0% { right: -10%; top: 50%; transform: scaleX(-1); opacity: 0; }
+  5% { opacity: 0.9; transform: scaleX(-1); }
+  25% { right: 20%; top: 45%; transform: scaleX(-1); }
+  40% { right: 45%; top: 35%; transform: scaleX(-1); }
+  /* 到达左侧边界，转身 */
+  48% { right: 55%; top: 50%; transform: scaleX(-1); }
+  50% { right: 55%; top: 50%; transform: scaleX(1); }
+  /* 返回 */
+  65% { right: 40%; top: 40%; transform: scaleX(1); }
+  80% { right: 15%; top: 55%; transform: scaleX(1); }
+  95% { right: -10%; top: 50%; transform: scaleX(1); opacity: 0.9; }
+  100% { right: -10%; top: 50%; transform: scaleX(-1); opacity: 0; }
 }
 
 .footer-inner {
