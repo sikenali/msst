@@ -441,6 +441,59 @@ function reload() {
     <!-- 底部版权 -->
     <footer class="home-footer">
       <div class="footer-inner">
+        <!-- 锦鲤特效 -->
+        <div class="koi-container">
+          <svg class="koi koi--left" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 锦鲤身体 -->
+            <ellipse cx="50" cy="30" rx="35" ry="15" fill="url(#koiGoldGrad1)" />
+            <!-- 锦鲤尾巴 -->
+            <path d="M85 30L110 10L105 30L110 50L85 30Z" fill="url(#koiGoldGrad1)" opacity="0.9" />
+            <!-- 锦鲤背鳍 -->
+            <path d="M45 15L55 5L65 15" fill="#D97706" opacity="0.7" />
+            <!-- 锦鲤眼睛 -->
+            <circle cx="25" cy="28" r="3" fill="#1F2937" />
+            <circle cx="26" cy="27" r="1" fill="white" />
+            <!-- 锦鲤鳞片 -->
+            <circle cx="40" cy="25" r="2" fill="#F59E0B" opacity="0.5" />
+            <circle cx="48" cy="22" r="2" fill="#F59E0B" opacity="0.5" />
+            <circle cx="56" cy="25" r="2" fill="#F59E0B" opacity="0.5" />
+            <circle cx="44" cy="32" r="2" fill="#F59E0B" opacity="0.5" />
+            <circle cx="52" cy="30" r="2" fill="#F59E0B" opacity="0.5" />
+            <circle cx="60" cy="32" r="2" fill="#F59E0B" opacity="0.5" />
+            <defs>
+              <linearGradient id="koiGoldGrad1" x1="15" y1="15" x2="105" y2="45">
+                <stop offset="0%" stop-color="#FCD34D" />
+                <stop offset="50%" stop-color="#F59E0B" />
+                <stop offset="100%" stop-color="#D97706" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <svg class="koi koi--right" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 锦鲤身体 -->
+            <ellipse cx="70" cy="30" rx="35" ry="15" fill="url(#koiGoldGrad2)" />
+            <!-- 锦鲤尾巴 -->
+            <path d="M35 30L10 10L15 30L10 50L35 30Z" fill="url(#koiGoldGrad2)" opacity="0.9" />
+            <!-- 锦鲤背鳍 -->
+            <path d="M75 15L65 5L55 15" fill="#F59E0B" opacity="0.7" />
+            <!-- 锦鲤眼睛 -->
+            <circle cx="95" cy="28" r="3" fill="#1F2937" />
+            <circle cx="94" cy="27" r="1" fill="white" />
+            <!-- 锦鲤鳞片 -->
+            <circle cx="80" cy="25" r="2" fill="#FBBF24" opacity="0.5" />
+            <circle cx="72" cy="22" r="2" fill="#FBBF24" opacity="0.5" />
+            <circle cx="64" cy="25" r="2" fill="#FBBF24" opacity="0.5" />
+            <circle cx="76" cy="32" r="2" fill="#FBBF24" opacity="0.5" />
+            <circle cx="68" cy="30" r="2" fill="#FBBF24" opacity="0.5" />
+            <circle cx="60" cy="32" r="2" fill="#FBBF24" opacity="0.5" />
+            <defs>
+              <linearGradient id="koiGoldGrad2" x1="15" y1="15" x2="105" y2="45">
+                <stop offset="0%" stop-color="#FBBF24" />
+                <stop offset="50%" stop-color="#F59E0B" />
+                <stop offset="100%" stop-color="#B45309" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
         <p class="footer-text">
           <span v-if="lotteryType === 'ssq'">一花一世界 · 一叶一菩提</span>
           <span v-else>道生一 一生二 · 二生三 三生万物</span>
@@ -804,6 +857,109 @@ function reload() {
   color: #92400E;
   font-family: 'SourceHanSans-Regular';
   margin: 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* 锦鲤容器 */
+.koi-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 锦鲤基础样式 */
+.koi {
+  position: absolute;
+  width: 80px;
+  height: 40px;
+  opacity: 0.6;
+  filter: drop-shadow(0 2px 4px rgba(217, 119, 6, 0.3));
+}
+
+/* 左侧锦鲤 - 从左往右游 */
+.koi--left {
+  top: 20%;
+  left: -80px;
+  animation: koi-swim-left 18s ease-in-out infinite;
+}
+
+/* 右侧锦鲤 - 从右往左游 */
+.koi--right {
+  bottom: 25%;
+  right: -80px;
+  animation: koi-swim-right 22s ease-in-out infinite;
+  transform: scaleX(-1);
+}
+
+/* 锦鲤游动动画 - 从左到右 */
+@keyframes koi-swim-left {
+  0% {
+    left: -80px;
+    top: 20%;
+    transform: rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.6;
+  }
+  25% {
+    top: 45%;
+    transform: rotate(-5deg) scale(0.85);
+  }
+  50% {
+    top: 30%;
+    transform: rotate(3deg) scale(0.9);
+  }
+  75% {
+    top: 55%;
+    transform: rotate(-3deg) scale(0.85);
+  }
+  95% {
+    opacity: 0.6;
+  }
+  100% {
+    left: calc(100% + 80px);
+    top: 35%;
+    transform: rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* 锦鲤游动动画 - 从右到左 */
+@keyframes koi-swim-right {
+  0% {
+    right: -80px;
+    bottom: 25%;
+    transform: scaleX(-1) rotate(0deg) scale(0.75);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.5;
+  }
+  20% {
+    bottom: 45%;
+    transform: scaleX(-1) rotate(5deg) scale(0.8);
+  }
+  45% {
+    bottom: 20%;
+    transform: scaleX(-1) rotate(-3deg) scale(0.85);
+  }
+  70% {
+    bottom: 50%;
+    transform: scaleX(-1) rotate(4deg) scale(0.8);
+  }
+  95% {
+    opacity: 0.5;
+  }
+  100% {
+    right: calc(100% + 80px);
+    bottom: 30%;
+    transform: scaleX(-1) rotate(0deg) scale(0.75);
+    opacity: 0;
+  }
 }
 
 /* 平板适配 */
@@ -987,6 +1143,12 @@ function reload() {
 
   .footer-text {
     font-size: 12px;
+  }
+
+  .koi {
+    width: 100px;
+    height: 50px;
+    opacity: 0.7;
   }
 
   .bottom-spacer {
