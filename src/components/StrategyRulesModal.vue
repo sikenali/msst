@@ -146,7 +146,7 @@ function handleOverlayClick(e: MouseEvent) {
 <template>
   <Transition name="strategy-modal">
     <div v-if="visible" class="strategy-overlay" @click="handleOverlayClick">
-      <div class="strategy-content" @click.stop>
+      <div class="strategy-content" :class="{ 'dlt-theme': lotteryType === 'dlt' }" @click.stop>
         <!-- 头部 -->
         <div class="strategy-header">
           <div class="strategy-header-left">
@@ -367,6 +367,100 @@ function handleOverlayClick(e: MouseEvent) {
     inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
   display: flex;
   flex-direction: column;
+}
+
+/* 大乐透蓝色主题 */
+.strategy-content.dlt-theme {
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.85) 0%, rgba(255, 255, 255, 0.75) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow:
+    0 20px 40px rgba(59, 130, 246, 0.12),
+    0 8px 16px rgba(59, 130, 246, 0.08),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.8);
+}
+
+.strategy-content.dlt-theme .strategy-title-icon {
+  color: #3B82F6;
+}
+
+.strategy-content.dlt-theme .strategy-title {
+  color: #1E40AF;
+}
+
+.strategy-content.dlt-theme .close-icon {
+  color: #1E40AF;
+}
+
+.strategy-content.dlt-theme .strategy-divider {
+  background: rgba(59, 130, 246, 0.3);
+}
+
+.strategy-content.dlt-theme .strategy-tab {
+  background: linear-gradient(90deg, rgba(59,130,246,0.9) 0%, rgba(99,102,241,0.9) 100%);
+  border-color: #3B82F6;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.strategy-content.dlt-theme .strategy-section-desc {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.5) 0%, rgba(239, 246, 255, 0.7) 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #1E40AF;
+}
+
+.strategy-content.dlt-theme .stats-panel {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.5) 0%, rgba(239, 246, 255, 0.7) 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.strategy-content.dlt-theme .stats-title {
+  color: #1E40AF;
+}
+
+.strategy-content.dlt-theme .refresh-icon {
+  color: #3B82F6;
+}
+
+.strategy-content.dlt-theme .stats-label {
+  color: #3B82F6;
+}
+
+.strategy-content.dlt-theme .stats-value {
+  color: #1E40AF;
+}
+
+.strategy-content.dlt-theme .strategy-select-all {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.strategy-content.dlt-theme .select-all-text {
+  color: #1E40AF;
+}
+
+.strategy-content.dlt-theme .select-all-count {
+  color: #3B82F6;
+}
+
+.strategy-content.dlt-theme .toggle-switch.on {
+  background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+}
+
+.strategy-content.dlt-theme .rule-text {
+  color: #1E40AF;
+}
+
+.strategy-content.dlt-theme .strategy-rule-item.disabled .rule-text {
+  color: #93C5FD;
+}
+
+.strategy-content.dlt-theme .strategy-footer-tip {
+  background: rgba(219, 234, 254, 0.4);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.strategy-content.dlt-theme .footer-tip-text {
+  color: #1E40AF;
 }
 
 /* 头部 */
