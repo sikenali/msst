@@ -20,7 +20,7 @@ const icons = [
   { type: 'lanruo', label: '蓝若寺', icon: RiDropLine, color: '#3B82F6' },
   { type: 'yunshu', label: '运数', icon: RiNumbersLine, color: '#F59E0B' },
   { type: 'yunshi', label: '运式', icon: RiCandleLine, color: '#8B5CF6' },
-  { type: 'fahao-rules', label: '选号秘籍', icon: RiBookOpenLine, color: '#D97706' },
+  { type: 'fahao-rules', label: '三注覆盖法', icon: RiBookOpenLine, color: '#D97706' },
 ]
 
 function toggle() {

@@ -7,6 +7,7 @@ import { useLotteryHistory, fetchHistoryData } from '@/composables/useLotteryHis
 interface Props {
   visible: boolean
   lotteryType: 'ssq' | 'dlt'
+  defaultTab?: 'cover' | 'strategy'  // 默认显示的Tab
 }
 
 const props = defineProps<Props>()
@@ -14,9 +15,14 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const activeTab = ref<'cover' | 'strategy'>('cover')
+const activeTab = ref<'cover' | 'strategy'>(props.defaultTab || 'cover')
 
-const title = computed(() => props.lotteryType === 'ssq' ? '法号 · 选号秘籍' : '道号 · 选号秘籍')
+// 标题根据来源和彩种动态变化
+const title = computed(() => {
+  const baseTitle = props.lotteryType === 'ssq' ? '法号' : '道号'
+  const methodTitle = activeTab.value === 'cover' ? '三注覆盖法' : '三三制选号法'
+  return `${baseTitle} · ${methodTitle}`
+})
 
 // 从全局状态获取规则开关
 const { userCoverRules, userStrategyRules, setCoverRule, setStrategyRule, setAllCoverRules, setAllStrategyRules } = useUserSelections()

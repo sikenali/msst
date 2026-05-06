@@ -62,6 +62,7 @@ const currentModalType = ref('')
 
 // 选号秘籍弹框
 const showStrategyRules = ref(false)
+const strategyRulesTab = ref<'cover' | 'strategy'>('cover')
 
 // 号码选择弹框
 const showPickerModal = ref(false)
@@ -78,8 +79,16 @@ const pickerSelectedNumbers = computed(() =>
 )
 
 function handleOpenModal(type: string) {
-  // 选号秘籍打开规则弹框
-  if (type === 'fahao-rules' || type === 'daohao-rules') {
+  // 三注覆盖法（法号）打开规则弹框
+  if (type === 'fahao-rules') {
+    strategyRulesTab.value = 'cover'
+    showStrategyRules.value = true
+    return
+  }
+
+  // 三三制选号法（道号）打开规则弹框
+  if (type === 'daohao-rules') {
+    strategyRulesTab.value = 'strategy'
     showStrategyRules.value = true
     return
   }
@@ -449,6 +458,7 @@ function reload() {
     <StrategyRulesModal
       :visible="showStrategyRules"
       :lottery-type="lotteryType"
+      :default-tab="strategyRulesTab"
       @close="handleStrategyClose"
     />
 
