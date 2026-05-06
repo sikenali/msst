@@ -709,8 +709,9 @@ function handleBack() {
                 <div class="spacer-h8"></div>
                 <div class="amount-row">
                   <span class="amount-text" :class="lotteryType === 'dlt' ? 'amount-text--dlt' : ''">合计 {{ calculateTotalAmount() }} 元</span>
-                  <button class="copy-btn" @click="handleCopyNumbers" title="复制号码">
+                  <button class="copy-btn" @click="handleCopyNumbers">
                     <RiFileCopyLine class="copy-icon" />
+                    <span class="copy-btn-tooltip">一键复制</span>
                   </button>
                 </div>
                 <!-- 胆拖模式提示 -->
@@ -1626,6 +1627,7 @@ function handleBack() {
 }
 
 .copy-btn {
+  position: relative;
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -1655,6 +1657,43 @@ function handleBack() {
   width: 18px;
   height: 18px;
   color: #92400E;
+}
+
+/* 复制按钮 Tooltip - 显示在上方，与其他组件一致 */
+.copy-btn-tooltip {
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+  font-family: 'SourceHanSans-Medium';
+}
+
+.copy-btn-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.75);
+}
+
+.copy-btn:hover .copy-btn-tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .amount-text {
