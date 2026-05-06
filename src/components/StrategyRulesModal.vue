@@ -15,12 +15,10 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const activeTab = ref<'cover' | 'strategy'>(props.defaultTab || 'cover')
-
 // 标题根据来源和彩种动态变化
 const title = computed(() => {
   const baseTitle = props.lotteryType === 'ssq' ? '法号' : '道号'
-  const methodTitle = activeTab.value === 'cover' ? '三注覆盖法' : '三三制选号法'
+  const methodTitle = props.defaultTab === 'cover' ? '三注覆盖法' : '三三制选号法'
   return `${baseTitle} · ${methodTitle}`
 })
 
@@ -92,40 +90,39 @@ const strategyRulesData = computed(() => props.lotteryType === 'ssq' ? ssqStrate
 const coverTabName = computed(() => props.lotteryType === 'ssq' ? '三注覆盖法·红球' : '三注覆盖法·前区')
 const strategyTabName = computed(() => props.lotteryType === 'ssq' ? '三三制选号法·红球' : '三三制选号法·前区')
 
-// 当前Tab的规则数据和开关状态
-const currentRulesData = computed(() => activeTab.value === 'cover' ? coverRulesData.value : strategyRulesData.value)
-const currentRulesState = computed(() => activeTab.value === 'cover' ? userCoverRules.value : userStrategyRules.value)
-
 // 全选/取消全选
-const isAllEnabled = computed(() => {
-  const state = currentRulesState.value
-  return Object.values(state).every(v => v)
+// 三注覆盖法全选控制
+const isAllCoverEnabled = computed(() => {
+  return Object.values(userCoverRules.value).every(v => v)
 })
 
-function toggleRule(key: string) {
-  if (activeTab.value === 'cover') {
-    setCoverRule(key, !currentRulesState.value[key])
-  } else {
-    setStrategyRule(key, !currentRulesState.value[key])
-  }
+function toggleAllCover() {
+  setAllCoverRules(!isAllCoverEnabled.value)
 }
 
-function toggleAll() {
-  const newState = !isAllEnabled.value
-  if (activeTab.value === 'cover') {
-    setAllCoverRules(newState)
-  } else {
-    setAllStrategyRules(newState)
-  }
-}
-
-// 当前Tab已启用的规则数量
-const enabledCount = computed(() => {
-  return Object.values(currentRulesState.value).filter(v => v).length
+const coverEnabledCount = computed(() => {
+  return Object.values(userCoverRules.value).filter(v => v).length
 })
 
-const totalCount = computed(() => {
-  return Object.keys(currentRulesState.value).length
+const coverTotalCount = computed(() => {
+  return Object.keys(userCoverRules.value).length
+})
+
+// 三三制选号法全选控制
+const isAllStrategyEnabled = computed(() => {
+  return Object.values(userStrategyRules.value).every(v => v)
+})
+
+function toggleAllStrategy() {
+  setAllStrategyRules(!isAllStrategyEnabled.value)
+}
+
+const strategyEnabledCount = computed(() => {
+  return Object.values(userStrategyRules.value).filter(v => v).length
+})
+
+const strategyTotalCount = computed(() => {
+  return Object.keys(userStrategyRules.value).length
 })
 
 // 格式化比例数据
@@ -164,21 +161,15 @@ function handleOverlayClick(e: MouseEvent) {
         </div>
         <div class="strategy-divider"></div>
 
-        <!-- Tab 切换 -->
-        <div class="strategy-tabs">
-          <button
-            class="strategy-tab"
-            :class="{ active: activeTab === 'cover' }"
-            @click="activeTab = 'cover'"
-          >
+        <!-- Tab 切换 - 根据来源显示不同Tab -->
+        <div v-if="defaultTab === 'cover'" class="strategy-tabs">
+          <button class="strategy-tab active">
             <RiFireLine class="tab-icon" />
             <span>{{ coverTabName }}</span>
           </button>
-          <button
-            class="strategy-tab"
-            :class="{ active: activeTab === 'strategy' }"
-            @click="activeTab = 'strategy'"
-          >
+        </div>
+        <div v-else class="strategy-tabs">
+          <button class="strategy-tab active">
             <RiSparkling2Line class="tab-icon" />
             <span>{{ strategyTabName }}</span>
           </button>
@@ -187,17 +178,20 @@ function handleOverlayClick(e: MouseEvent) {
         <!-- 规则列表 -->
         <div class="strategy-body">
           <div class="strategy-section">
-            <p class="strategy-section-desc" v-if="activeTab === 'cover'">
+            <!-- 三注覆盖法描述 -->
+            <p v-if="defaultTab === 'cover'" class="strategy-section-desc">
               {{ lotteryType === 'ssq'
                 ? '每期选3注号码，按区间搭配覆盖1-33全部范围，分散风险'
                 : '每期选3注号码，按区间搭配覆盖1-35全部范围，分散风险' }}
             </p>
-            <p class="strategy-section-desc" v-else>
+
+            <!-- 三三制选号法描述 -->
+            <p v-else class="strategy-section-desc">
               热温冷定基调 + 奇偶大小定骨架 + 尾数和值验证，淘汰90%垃圾组合
             </p>
 
-            <!-- 实时统计数据面板 -->
-            <div class="stats-panel" v-if="activeTab === 'strategy'">
+            <!-- 实时统计数据面板 - 只有三三制选号法显示 -->
+            <div v-if="defaultTab === 'strategy'" class="stats-panel">
               <div class="stats-header">
                 <span class="stats-title">📊 近50期数据统计</span>
                 <button class="stats-refresh" @click="refresh" :disabled="isLoading">
@@ -241,35 +235,65 @@ function handleOverlayClick(e: MouseEvent) {
               </div>
             </div>
 
-            <!-- 全选控制 -->
-            <div class="strategy-select-all" @click="toggleAll">
-              <div class="toggle-switch" :class="{ on: isAllEnabled }">
+            <!-- 全选控制 - 只显示当前Tab对应的全选 -->
+            <div v-if="defaultTab === 'cover'" class="strategy-select-all" @click="toggleAllCover">
+              <div class="toggle-switch" :class="{ on: isAllCoverEnabled }">
                 <div class="toggle-thumb"></div>
               </div>
-              <span class="select-all-text">全部{{ isAllEnabled ? '关闭' : '启用' }}</span>
-              <span class="select-all-count">{{ enabledCount }}/{{ totalCount }} 条已启用</span>
+              <span class="select-all-text">全部{{ isAllCoverEnabled ? '关闭' : '启用' }}</span>
+              <span class="select-all-count">{{ coverEnabledCount }}/{{ coverTotalCount }} 条已启用</span>
+            </div>
+            <div v-else class="strategy-select-all" @click="toggleAllStrategy">
+              <div class="toggle-switch" :class="{ on: isAllStrategyEnabled }">
+                <div class="toggle-thumb"></div>
+              </div>
+              <span class="select-all-text">全部{{ isAllStrategyEnabled ? '关闭' : '启用' }}</span>
+              <span class="select-all-count">{{ strategyEnabledCount }}/{{ strategyTotalCount }} 条已启用</span>
             </div>
 
-            <!-- 规则列表 -->
-            <div class="strategy-rules">
+            <!-- 规则列表 - 只显示当前Tab对应的规则 -->
+            <div v-if="defaultTab === 'cover'" class="strategy-rules">
               <div
-                v-for="rule in currentRulesData"
+                v-for="rule in coverRulesData"
                 :key="rule.num"
                 class="strategy-rule-item"
-                :class="{ disabled: !currentRulesState[rule.num] }"
+                :class="{ disabled: !userCoverRules[rule.num] }"
               >
                 <div
                   class="toggle-switch"
-                  :class="{ on: currentRulesState[rule.num] }"
-                  @click="toggleRule(rule.num)"
+                  :class="{ on: userCoverRules[rule.num] }"
+                  @click="setCoverRule(rule.num, !userCoverRules[rule.num])"
                 >
                   <div class="toggle-thumb"></div>
                 </div>
                 <div
                   class="rule-num-badge"
-                  :style="{ background: currentRulesState[rule.num] ? rule.bg : '#F3F4F6' }"
+                  :style="{ background: userCoverRules[rule.num] ? rule.bg : '#F3F4F6' }"
                 >
-                  <span class="rule-num-text" :style="{ color: currentRulesState[rule.num] ? rule.color : '#9CA3AF' }">{{ rule.num }}</span>
+                  <span class="rule-num-text" :style="{ color: userCoverRules[rule.num] ? rule.color : '#9CA3AF' }">{{ rule.num }}</span>
+                </div>
+                <p class="rule-text">{{ rule.text }}</p>
+              </div>
+            </div>
+            <div v-else class="strategy-rules">
+              <div
+                v-for="rule in strategyRulesData"
+                :key="rule.num"
+                class="strategy-rule-item"
+                :class="{ disabled: !userStrategyRules[rule.num] }"
+              >
+                <div
+                  class="toggle-switch"
+                  :class="{ on: userStrategyRules[rule.num] }"
+                  @click="setStrategyRule(rule.num, !userStrategyRules[rule.num])"
+                >
+                  <div class="toggle-thumb"></div>
+                </div>
+                <div
+                  class="rule-num-badge"
+                  :style="{ background: userStrategyRules[rule.num] ? rule.bg : '#F3F4F6' }"
+                >
+                  <span class="rule-num-text" :style="{ color: userStrategyRules[rule.num] ? rule.color : '#9CA3AF' }">{{ rule.num }}</span>
                 </div>
                 <p class="rule-text">{{ rule.text }}</p>
               </div>
