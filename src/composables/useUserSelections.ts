@@ -6,6 +6,17 @@ export interface BirthdayInfo {
   day: number
 }
 
+// 生辰信息接口
+export interface ShengchenInfo {
+  year: number
+  month: number
+  day: number
+  yearGZ: string  // 年柱
+  monthGZ: string // 月柱
+  dayGZ: string   // 日柱
+  luckyNums: number[] // 幸运数字
+}
+
 // 全局响应式存储 - 双色球数据
 export const ssqBlueNumbers = ref<number[]>([])
 export const ssqRedNumbers = ref<number[]>([])
@@ -14,6 +25,7 @@ export const ssqMode = ref<'single' | 'multiple' | 'dantuo'>('single')
 export const ssqBirthday = ref<BirthdayInfo | null>(null)
 export const ssqConstellation = ref<string>('')
 export const ssqLuckyNumbers = ref<number[]>([])
+export const ssqShengchen = ref<ShengchenInfo | null>(null)
 
 // 全局响应式存储 - 大乐透数据
 export const dltBlueNumbers = ref<number[]>([])
@@ -23,6 +35,7 @@ export const dltMode = ref<'single' | 'multiple' | 'dantuo'>('single')
 export const dltBirthday = ref<BirthdayInfo | null>(null)
 export const dltConstellation = ref<string>('')
 export const dltLuckyNumbers = ref<number[]>([])
+export const dltShengchen = ref<ShengchenInfo | null>(null)
 
 // 当前激活的引用（根据彩种动态切换）- 使用 ref 保持响应式
 const currentType = ref<'ssq' | 'dlt'>('ssq')
@@ -59,6 +72,10 @@ function getLuckyNumbers() {
   return currentType.value === 'ssq' ? ssqLuckyNumbers : dltLuckyNumbers
 }
 
+function getShengchen() {
+  return currentType.value === 'ssq' ? ssqShengchen : dltShengchen
+}
+
 // 获取当前激活的响应式引用
 function getCurrentRefs() {
   if (currentType.value === 'ssq') {
@@ -70,6 +87,7 @@ function getCurrentRefs() {
       birthday: ssqBirthday,
       constellation: ssqConstellation,
       luckyNumbers: ssqLuckyNumbers,
+      shengchen: ssqShengchen,
     }
   }
   return {
@@ -80,6 +98,7 @@ function getCurrentRefs() {
     birthday: dltBirthday,
     constellation: dltConstellation,
     luckyNumbers: dltLuckyNumbers,
+    shengchen: dltShengchen,
   }
 }
 
@@ -119,43 +138,58 @@ export function useUserSelections() {
     refs.luckyNumbers.value = [...numbers]
   }
 
-  function clearAll() {
-    // 只清除生日、星座、生辰、幸运数
-    ssqBirthday.value = null
-    ssqConstellation.value = ''
-    ssqLuckyNumbers.value = []
+  function setShengchen(info: ShengchenInfo) {
+    const refs = getCurrentRefs()
+    refs.shengchen.value = { ...info }
+  }
 
-    dltBirthday.value = null
-    dltConstellation.value = ''
-    dltLuckyNumbers.value = []
+  function clearAll() {
+    // 只清除生日、星座、生辰、幸运数（当前彩种）
+    if (currentType.value === 'ssq') {
+      ssqBirthday.value = null
+      ssqConstellation.value = ''
+      ssqLuckyNumbers.value = []
+      ssqShengchen.value = null
+    } else {
+      dltBirthday.value = null
+      dltConstellation.value = ''
+      dltLuckyNumbers.value = []
+      dltShengchen.value = null
+    }
   }
 
   function clearRedBlueNumbers() {
-    // 专门清空红球蓝球
-    ssqBlueNumbers.value = []
-    ssqRedNumbers.value = []
-    
-    dltBlueNumbers.value = []
-    dltRedNumbers.value = []
+    // 只清空当前彩种的红球蓝球
+    if (currentType.value === 'ssq') {
+      ssqBlueNumbers.value = []
+      ssqRedNumbers.value = []
+    } else {
+      dltBlueNumbers.value = []
+      dltRedNumbers.value = []
+    }
   }
 
   function clearAllIncludingRedBlue() {
-    // 清除所有数据（包括红球蓝球、注数、模式）
-    ssqBlueNumbers.value = []
-    ssqRedNumbers.value = []
-    ssqNotes.value = 5
-    ssqMode.value = 'single'
-    ssqBirthday.value = null
-    ssqConstellation.value = ''
-    ssqLuckyNumbers.value = []
-
-    dltBlueNumbers.value = []
-    dltRedNumbers.value = []
-    dltNotes.value = 5
-    dltMode.value = 'single'
-    dltBirthday.value = null
-    dltConstellation.value = ''
-    dltLuckyNumbers.value = []
+    // 清除当前彩种所有数据（包括红球蓝球、注数、模式）
+    if (currentType.value === 'ssq') {
+      ssqBlueNumbers.value = []
+      ssqRedNumbers.value = []
+      ssqNotes.value = 5
+      ssqMode.value = 'single'
+      ssqBirthday.value = null
+      ssqConstellation.value = ''
+      ssqLuckyNumbers.value = []
+      ssqShengchen.value = null
+    } else {
+      dltBlueNumbers.value = []
+      dltRedNumbers.value = []
+      dltNotes.value = 5
+      dltMode.value = 'single'
+      dltBirthday.value = null
+      dltConstellation.value = ''
+      dltLuckyNumbers.value = []
+      dltShengchen.value = null
+    }
   }
 
   // 使用 computed 动态获取当前彩种的引用，确保切换彩种后自动更新
@@ -194,6 +228,11 @@ export function useUserSelections() {
     set: (val: number[]) => setLuckyNumbers(val)
   })
 
+  const userShengchen = computed({
+    get: () => getShengchen().value,
+    set: (val: ShengchenInfo | null) => { if (val) setShengchen(val) }
+  })
+
   return {
     userBlueNumbers,
     userRedNumbers,
@@ -202,6 +241,7 @@ export function useUserSelections() {
     userBirthday,
     userConstellation,
     userLuckyNumbers,
+    userShengchen,
     setBlueNumbers,
     setRedNumbers,
     setNotes,
@@ -209,6 +249,7 @@ export function useUserSelections() {
     setBirthday,
     setConstellation,
     setLuckyNumbers,
+    setShengchen,
     clearAll,
     clearRedBlueNumbers,
     clearAllIncludingRedBlue,

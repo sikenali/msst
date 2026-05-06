@@ -242,45 +242,9 @@ watch(() => route.query.mode, (val) => {
 }, { immediate: true })
 
 async function handleGenerate() {
-  // 获取用户固定号码（使用已解构的变量）
-  const redCount = userRedNumbers.value.length
-  const blueCount = userBlueNumbers.value.length
-
-  // 智能判断模式，但保持用户选择的注数
-  let finalMode: 'single' | 'multiple' | 'dantuo' = mode.value
-  let finalNotes = notes.value // 保持用户选择的注数
-
-  if (lotteryType.value === 'ssq') {
-    // 双色球逻辑
-    if (redCount === 6 && blueCount === 1) {
-      // 刚好6+1，单式模式，但保持用户注数
-      finalMode = 'single'
-    } else if (redCount > 6 || blueCount > 1) {
-      // 红球>6个 或 蓝球>1个，复式模式，但保持用户注数
-      finalMode = 'multiple'
-    } else if (redCount > 0 || blueCount > 0) {
-      // 有固定号码但不足标准数量，保持用户选择的模式
-      finalMode = mode.value
-    } else {
-      // 没有固定号码，使用用户选择的模式
-      finalMode = mode.value
-    }
-  } else {
-    // 大乐透逻辑
-    if (redCount === 5 && blueCount === 2) {
-      // 刚好5+2，单式模式，但保持用户注数
-      finalMode = 'single'
-    } else if (redCount > 5 || blueCount > 2) {
-      // 前区>5个 或 后区>2个，复式模式，但保持用户注数
-      finalMode = 'multiple'
-    } else if (redCount > 0 || blueCount > 0) {
-      // 有固定号码但不足标准数量，保持用户选择的模式
-      finalMode = mode.value
-    } else {
-      // 没有固定号码，使用用户选择的模式
-      finalMode = mode.value
-    }
-  }
+  // 直接传递用户选择的模式和注数，让 useLottery.ts 负责具体判断
+  const finalNotes = notes.value
+  const finalMode = mode.value
 
   console.log('🎲 生成参数:', {
     彩种: lotteryType.value,
@@ -289,7 +253,7 @@ async function handleGenerate() {
     红球: userRedNumbers.value,
     蓝球: userBlueNumbers.value
   })
-  
+
   isSpinning.value = true
   // 根据注数动态计算等待时间（与BaguaDiagram旋转时间一致）
   const notesCount = finalNotes

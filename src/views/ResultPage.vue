@@ -8,6 +8,7 @@ import {
   RiShareForwardFill,
   RiMoneyCnyCircleFill,
   RiSparkling2Fill,
+  RiFileCopyLine,
 } from '@remixicon/vue'
 import PageHeader from '@/components/PageHeader.vue'
 import RulesCard from '@/components/RulesCard.vue'
@@ -167,6 +168,50 @@ async function handleShare() {
     document.execCommand('copy')
     document.body.removeChild(input)
     showToast('分享链接已复制到剪贴板！', 'success')
+  }
+}
+
+// 复制生成的号码到剪贴板
+async function handleCopyNumbers() {
+  if (!numbers.value || numbers.value.length === 0) {
+    showToast('暂无号码可复制', 'error')
+    return
+  }
+
+  // 格式化号码文本
+  const lines: string[] = []
+  lines.push(`${lotteryType.value === 'ssq' ? '双色球' : '大乐透'} - 第${issueNumber.value}期`)
+  lines.push('')
+
+  numbers.value.forEach((note, index) => {
+    if (lotteryType.value === 'ssq') {
+      const redStr = note.red.map((n: number) => String(n).padStart(2, '0')).join(' ')
+      const blueStr = note.blue.map((n: number) => String(n).padStart(2, '0')).join(' ')
+      lines.push(`第${index + 1}注: 红球 ${redStr} | 蓝球 ${blueStr}`)
+    } else {
+      const frontStr = note.front.map((n: number) => String(n).padStart(2, '0')).join(' ')
+      const backStr = note.back.map((n: number) => String(n).padStart(2, '0')).join(' ')
+      lines.push(`第${index + 1}注: 前区 ${frontStr} | 后区 ${backStr}`)
+    }
+  })
+
+  lines.push('')
+  lines.push(`投注方式: ${modeLabels[mode.value as keyof typeof modeLabels]}`)
+  lines.push(`合计: ${calculateTotalAmount()}元`)
+
+  const textToCopy = lines.join('\n')
+
+  try {
+    await navigator.clipboard.writeText(textToCopy)
+    showToast('号码已复制到剪贴板！', 'success')
+  } catch {
+    const input = document.createElement('textarea')
+    input.value = textToCopy
+    document.body.appendChild(input)
+    input.select()
+    document.execCommand('copy')
+    document.body.removeChild(input)
+    showToast('号码已复制到剪贴板！', 'success')
   }
 }
 
@@ -375,16 +420,9 @@ onMounted(() => {
 
   console.log('🎯 onMounted 设置后的全局状态 - notes:', userNotes.value, 'mode:', userMode.value)
 
-  // 刷新页面时清除所有数据（包括号码），确保重新选择
-  clearAllIncludingRedBlue()
-
-  // 再次确认 mode 和 notes 正确（clearAllIncludingRedBlue 会重置为默认值 5 和 single）
-  if (!Number.isNaN(routeNotes) && routeNotes > 0) {
-    setNotes(routeNotes)
-  }
-  if (routeMode === 'single' || routeMode === 'multiple' || routeMode === 'dantuo') {
-    setMode(routeMode)
-  }
+  // 注意：不清空固定号码（红佛女/蓝若寺），保留用户选择
+  // 只清除非固定配置（生日、星座、生辰、幸运数）
+  clearAll()
 
   console.log('🚀 调用 refreshData - notes:', notes.value, 'mode:', mode.value)
   refreshData()
@@ -671,6 +709,9 @@ function handleBack() {
                 <div class="spacer-h8"></div>
                 <div class="amount-row">
                   <span class="amount-text" :class="lotteryType === 'dlt' ? 'amount-text--dlt' : ''">合计 {{ calculateTotalAmount() }} 元</span>
+                  <button class="copy-btn" @click="handleCopyNumbers" title="复制号码">
+                    <RiFileCopyLine class="copy-icon" />
+                  </button>
                 </div>
                 <!-- 胆拖模式提示 -->
                 <div class="dantuo-tip" v-if="mode === 'dantuo'">
@@ -1579,6 +1620,41 @@ function handleBack() {
 
 .amount-row {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.copy-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+  margin-left: 8px;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: scale(1.05);
+}
+
+.copy-btn:active {
+  transform: scale(0.95);
+}
+
+.copy-icon {
+  width: 18px;
+  height: 18px;
+  color: #92400E;
 }
 
 .amount-text {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { RiSubtractLine, RiAddLine } from '@remixicon/vue'
-import { useUserSelections } from '@/composables/useUserSelections'
+import { useUserSelections, type ShengchenInfo } from '@/composables/useUserSelections'
 
 interface Props {
   theme?: 'ssq' | 'dlt'
@@ -12,15 +12,16 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  cancel: []
+  (e: 'confirm'): void
+  (e: 'cancel'): void
 }>()
 
-const { userBirthday, setBirthday } = useUserSelections()
+const { userShengchen, setShengchen } = useUserSelections()
 
 const now = new Date()
-const year = ref(userBirthday.value?.year || now.getFullYear() - 20)
-const month = ref(userBirthday.value?.month || 1)
-const day = ref(userBirthday.value?.day || 1)
+const year = ref(userShengchen.value?.year || now.getFullYear() - 20)
+const month = ref(userShengchen.value?.month || 1)
+const day = ref(userShengchen.value?.day || 1)
 
 const border = computed(() => props.theme === 'ssq' ? '#D97706' : '#3B82F6')
 const bg = computed(() => props.theme === 'ssq' ? 'rgba(254,243,199,1)' : 'rgba(219,234,254,1)')
@@ -56,10 +57,7 @@ const daysInMonth = computed(() => new Date(year.value, month.value, 0).getDate(
 
 // 生辰信息展示
 const birthInfo = computed(() => {
-  if (userBirthday.value) {
-    return getGanZhi(userBirthday.value.year, userBirthday.value.month, userBirthday.value.day)
-  }
-  return null
+  return getGanZhi(year.value, month.value, day.value)
 })
 
 watch(month, () => {
@@ -81,13 +79,21 @@ function onMonthInput(e: Event) { const v = parseInt((e.target as HTMLInputEleme
 function onDayInput(e: Event) { const v = parseInt((e.target as HTMLInputElement).value, 10); if (!isNaN(v)) day.value = clampDay(v) }
 
 function handleConfirm() {
-  setBirthday({ year: year.value, month: month.value, day: day.value })
+  const info = getGanZhi(year.value, month.value, day.value)
+  const fullInfo: ShengchenInfo = {
+    year: year.value,
+    month: month.value,
+    day: day.value,
+    yearGZ: info.yearGZ,
+    monthGZ: info.monthGZ,
+    dayGZ: info.dayGZ,
+    luckyNums: info.luckyNums,
+  }
+  setShengchen(fullInfo)
+  emit('confirm')
 }
 
 function handleCancel() {
-  year.value = userBirthday.value?.year || now.getFullYear() - 20
-  month.value = userBirthday.value?.month || 1
-  day.value = userBirthday.value?.day || 1
   emit('cancel')
 }
 </script>

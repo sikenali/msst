@@ -7,11 +7,13 @@ import {
   ssqBirthday,
   ssqConstellation,
   ssqLuckyNumbers,
+  ssqShengchen,
   dltBlueNumbers,
   dltRedNumbers,
   dltBirthday,
   dltConstellation,
   dltLuckyNumbers,
+  dltShengchen,
 } from './useUserSelections'
 
 // 当前彩种类型（需要外部设置）
@@ -39,6 +41,17 @@ function getUserConstellation() {
 
 function getUserLuckyNumbers() {
   return currentLotteryType === 'ssq' ? ssqLuckyNumbers : dltLuckyNumbers
+}
+
+function getUserShengchen() {
+  return currentLotteryType === 'ssq' ? ssqShengchen : dltShengchen
+}
+
+// 获取生辰幸运数字
+const getUserShengchenLuckyNumbers = (): number[] => {
+  const shengchen = getUserShengchen().value
+  if (!shengchen?.luckyNums) return []
+  return shengchen.luckyNums
 }
 
 export interface SSQResult {
@@ -82,25 +95,58 @@ const getRandomNumsFromPool = (pool: number[], count: number): number[] => {
 }
 
 // 辅助函数：加权池生成逻辑
-// 将多个来源的数字合并去重，用于优先推荐
-const getWeightedPool = (sources: number[][], range: [number, number]): number[] => {
-  const pool = new Set<number>()
+// 将多个来源的数字合并，根据出现次数分配权重，用于优先推荐
+const getWeightedPool = (sources: number[][], range: [number, number]): Map<number, number> => {
   const [min, max] = range
+  const weightMap = new Map<number, number>()
 
+  // 统计每个号码在不同来源中出现的次数，作为权重
   for (const arr of sources) {
     for (const n of arr) {
       if (n >= min && n <= max) {
-        pool.add(n)
+        weightMap.set(n, (weightMap.get(n) || 0) + 1)
       }
     }
   }
 
-  // 增加权重：池中的数字出现 2-3 次，增加被随机选中的概率
-  const weightedArr: number[] = []
-  for (const n of pool) {
-    weightedArr.push(n, n, n)
+  return weightMap
+}
+
+// 根据权重从池中选取号码
+const selectFromWeightedPool = (
+  weightMap: Map<number, number>,
+  exclude: number[],
+  count: number
+): number[] => {
+  if (count <= 0) return []
+
+  // 过滤已排除的号码，并按权重排序
+  const candidates = Array.from(weightMap.entries())
+    .filter(([num]) => !exclude.includes(num))
+    .sort((a, b) => b[1] - a[1]) // 按权重降序
+
+  const selected: number[] = []
+
+  // 优先选择权重大于1的号码（多个来源共同推荐的号码）
+  for (const [num, weight] of candidates) {
+    if (selected.length >= count) break
+    if (weight > 1) {
+      selected.push(num)
+    }
   }
-  return weightedArr
+
+  // 如果还有剩余名额，从权重为1的号码中随机选择
+  if (selected.length < count) {
+    const singleWeightCandidates = candidates
+      .filter(([num]) => !selected.includes(num) && weightMap.get(num) === 1)
+      .map(([num]) => num)
+
+    const remaining = count - selected.length
+    const shuffled = [...singleWeightCandidates].sort(() => Math.random() - 0.5)
+    selected.push(...shuffled.slice(0, remaining))
+  }
+
+  return selected.sort((a, b) => a - b)
 }
 
 /**
@@ -145,8 +191,9 @@ const getDivineNumberPools = (maxRange: number) => {
   const birthNums = getBirthdayLuckyNumbers().filter(n => n <= maxRange)
   const constNums = getConstellationLuckyNumbers().filter(n => n <= maxRange)
   const luckyNums = getUserLuckyNumbers().value.filter(n => n <= maxRange)
+  const shengchenNums = getUserShengchenLuckyNumbers().filter(n => n <= maxRange)
 
-  return getWeightedPool([birthNums, constNums, luckyNums], [1, maxRange])
+  return getWeightedPool([birthNums, constNums, luckyNums, shengchenNums], [1, maxRange])
 }
 
 /**
@@ -159,23 +206,18 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
   const fixedBlue = getUserBlueNumbers().value.filter(n => n >= 1 && n <= 16)
 
   // 获取加权池
-  const redPool = getDivineNumberPools(33)
-  const bluePool = getDivineNumberPools(16)
+  const redWeightMap = getDivineNumberPools(33)
+  const blueWeightMap = getDivineNumberPools(16)
 
   // 智能合并固定号码和法号推荐（去重+组合）
-  const mergeNumbers = (fixed: number[], pool: number[], range: number, target: number): number[] => {
+  const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number): number[] => {
     const unique = new Set<number>(fixed)
-    const filteredPool = pool.filter(n => !fixed.includes(n))
 
-    // 从加权池中选取（60%概率）
-    if (filteredPool.length > 0 && unique.size < target) {
-      const shuffled = [...filteredPool].sort(() => Math.random() - 0.5)
-      for (const n of shuffled) {
-        if (unique.size >= target) break
-        if (Math.random() < 0.6) {
-          unique.add(n)
-        }
-      }
+    // 从加权池中按优先级选取（优先选择权重大于1的号码）
+    if (unique.size < target) {
+      const needed = target - unique.size
+      const weightedSelection = selectFromWeightedPool(weightMap, fixed, needed)
+      weightedSelection.forEach(n => unique.add(n))
     }
 
     // 不足则随机补充
@@ -191,22 +233,22 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
   // 辅助生成函数
   const generateRed = (count: number, useFixed: boolean) => {
     if (!useFixed || fixedRed.length === 0) {
-      return mergeNumbers([], redPool, 33, count)
+      return mergeNumbers([], redWeightMap, 33, count)
     }
     if (fixedRed.length >= count) {
       return [...fixedRed].slice(0, count).sort((a, b) => a - b)
     }
-    return mergeNumbers(fixedRed, redPool, 33, count)
+    return mergeNumbers(fixedRed, redWeightMap, 33, count)
   }
 
   const generateBlue = (count: number, useFixed: boolean) => {
     if (!useFixed || fixedBlue.length === 0) {
-      return mergeNumbers([], bluePool, 16, count)
+      return mergeNumbers([], blueWeightMap, 16, count)
     }
     if (fixedBlue.length >= count) {
       return [...fixedBlue].slice(0, count).sort((a, b) => a - b)
     }
-    return mergeNumbers(fixedBlue, bluePool, 16, count)
+    return mergeNumbers(fixedBlue, blueWeightMap, 16, count)
   }
 
   // 判断实际模式和目标数量
@@ -257,7 +299,8 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     // 规则7/8/9/10：红球≥6，蓝球未选 → 自动复式
     finalMode = 'multiple'
     targetRedCount = Math.max(6, fixedRed.length)
-    targetBlueCount = mode === 'dantuo' ? 1 : (1 + Math.floor(Math.random() * 2)) // 胆拖1个，否则1-2个
+    // 复式模式蓝球固定1个，胆拖模式也固定1个蓝球
+    targetBlueCount = 1
     useFixedRed = true
     useFixedBlue = false
   } else if (fixedRed.length === 0 && fixedBlue.length === 1) {
@@ -284,9 +327,31 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     targetBlueCount = fixedBlue.length
     useFixedRed = false
     useFixedBlue = true
+  } else if (fixedRed.length > 0 && fixedBlue.length === 1 && fixedRed.length < 6) {
+    // 规则13：红球<6，蓝球=1 → 根据用户选择的模式决定
+    if (mode === 'dantuo') {
+      finalMode = 'dantuo'
+      targetRedCount = 6
+      targetBlueCount = 1
+    } else if (mode === 'multiple') {
+      finalMode = 'multiple'
+      targetRedCount = 7 + Math.floor(Math.random() * 3) // >6
+      targetBlueCount = 1
+    } else {
+      finalMode = 'single'
+      targetRedCount = 6
+      targetBlueCount = 1
+    }
+    useFixedRed = true
+    useFixedBlue = true
   } else if (fixedRed.length > 0 && fixedBlue.length > 0) {
     // 规则14/15：都选了，按实际数量判断
-    if (fixedRed.length < 6 && fixedBlue.length === 1) {
+    if (fixedRed.length === 6 && fixedBlue.length === 1) {
+      // 标准单式（6+1），强制单式
+      finalMode = 'single'
+      targetRedCount = 6
+      targetBlueCount = 1
+    } else if (fixedRed.length < 6 && fixedBlue.length === 1) {
       finalMode = mode === 'dantuo' ? 'dantuo' : (mode === 'multiple' ? 'multiple' : 'single')
       targetRedCount = mode === 'multiple' ? 7 + Math.floor(Math.random() * 3) : 6
       targetBlueCount = 1
@@ -294,10 +359,6 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
       finalMode = 'multiple'
       targetRedCount = Math.max(6, fixedRed.length)
       targetBlueCount = Math.max(1, fixedBlue.length)
-    } else {
-      finalMode = mode
-      targetRedCount = 6
-      targetBlueCount = 1
     }
     useFixedRed = true
     useFixedBlue = true
@@ -328,7 +389,7 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     // 胆码
     const bankers = useFixedRed && fixedRed.length > 0
       ? fixedRed.slice(0, Math.min(bankerCount, fixedRed.length))
-      : mergeNumbers([], redPool, 33, bankerCount)
+      : mergeNumbers([], redWeightMap, 33, bankerCount)
 
     // 拖码
     let drags: number[]
@@ -344,10 +405,10 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
       drags = getRandomNumsFromPool(pool, dragCount)
     }
 
-    // 蓝球：有固定则使用，否则随机
+    // 蓝球：有固定则使用，否则从加权池选取1个
     const blues = useFixedBlue && fixedBlue.length > 0
       ? [...fixedBlue].sort((a, b) => a - b)
-      : mergeNumbers([], bluePool, 16, 1 + Math.floor(Math.random() * 2))
+      : mergeNumbers([], blueWeightMap, 16, 1)
 
     return {
       type: 'dantuo',
@@ -370,22 +431,18 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
   const fixedBack = getUserBlueNumbers().value.filter(n => n >= 1 && n <= 12)
 
   // 获取加权池
-  const frontPool = getDivineNumberPools(35)
-  const backPool = getDivineNumberPools(12)
+  const frontWeightMap = getDivineNumberPools(35)
+  const backWeightMap = getDivineNumberPools(12)
 
-  // 智能合并固定号码和法号推荐（去重+组合）
-  const mergeNumbers = (fixed: number[], pool: number[], range: number, target: number): number[] => {
+  // 智能合并固定号码和道号推荐（去重+组合）
+  const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number): number[] => {
     const unique = new Set<number>(fixed)
-    const filteredPool = pool.filter(n => !fixed.includes(n))
 
-    if (filteredPool.length > 0 && unique.size < target) {
-      const shuffled = [...filteredPool].sort(() => Math.random() - 0.5)
-      for (const n of shuffled) {
-        if (unique.size >= target) break
-        if (Math.random() < 0.6) {
-          unique.add(n)
-        }
-      }
+    // 从加权池中按优先级选取（优先选择权重大于1的号码）
+    if (unique.size < target) {
+      const needed = target - unique.size
+      const weightedSelection = selectFromWeightedPool(weightMap, fixed, needed)
+      weightedSelection.forEach(n => unique.add(n))
     }
 
     if (unique.size < target) {
@@ -400,22 +457,22 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
   // 辅助生成函数
   const generateFront = (count: number, useFixed: boolean) => {
     if (!useFixed || fixedFront.length === 0) {
-      return mergeNumbers([], frontPool, 35, count)
+      return mergeNumbers([], frontWeightMap, 35, count)
     }
     if (fixedFront.length >= count) {
       return [...fixedFront].slice(0, count).sort((a, b) => a - b)
     }
-    return mergeNumbers(fixedFront, frontPool, 35, count)
+    return mergeNumbers(fixedFront, frontWeightMap, 35, count)
   }
 
   const generateBack = (count: number, useFixed: boolean) => {
     if (!useFixed || fixedBack.length === 0) {
-      return mergeNumbers([], backPool, 12, count)
+      return mergeNumbers([], backWeightMap, 12, count)
     }
     if (fixedBack.length >= count) {
       return [...fixedBack].slice(0, count).sort((a, b) => a - b)
     }
-    return mergeNumbers(fixedBack, backPool, 12, count)
+    return mergeNumbers(fixedBack, backWeightMap, 12, count)
   }
 
   // 判断实际模式和目标数量
@@ -466,7 +523,8 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     // 规则7/8/9/10：前区≥5，后区未选 → 自动复式
     finalMode = 'multiple'
     targetFrontCount = Math.max(5, fixedFront.length)
-    targetBackCount = mode === 'dantuo' ? 2 : (2 + Math.floor(Math.random() * 2)) // 胆拖2个，否则2-3个
+    // 复式模式后区固定2个，胆拖模式也固定2个后区
+    targetBackCount = 2
     useFixedFront = true
     useFixedBack = false
   } else if (fixedFront.length === 0 && fixedBack.length === 2) {
@@ -493,9 +551,31 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     targetBackCount = fixedBack.length
     useFixedFront = false
     useFixedBack = true
+  } else if (fixedFront.length > 0 && fixedBack.length === 2 && fixedFront.length < 5) {
+    // 规则13：前区<5，后区=2 → 根据用户选择的模式决定
+    if (mode === 'dantuo') {
+      finalMode = 'dantuo'
+      targetFrontCount = 5
+      targetBackCount = 2
+    } else if (mode === 'multiple') {
+      finalMode = 'multiple'
+      targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
+      targetBackCount = 2
+    } else {
+      finalMode = 'single'
+      targetFrontCount = 5
+      targetBackCount = 2
+    }
+    useFixedFront = true
+    useFixedBack = true
   } else if (fixedFront.length > 0 && fixedBack.length > 0) {
     // 规则14/15：都选了，按实际数量判断
-    if (fixedFront.length < 5 && fixedBack.length === 2) {
+    if (fixedFront.length === 5 && fixedBack.length === 2) {
+      // 标准单式（5+2），强制单式
+      finalMode = 'single'
+      targetFrontCount = 5
+      targetBackCount = 2
+    } else if (fixedFront.length < 5 && fixedBack.length === 2) {
       finalMode = mode === 'dantuo' ? 'dantuo' : (mode === 'multiple' ? 'multiple' : 'single')
       targetFrontCount = mode === 'multiple' ? 6 + Math.floor(Math.random() * 4) : 5
       targetBackCount = 2
@@ -503,10 +583,6 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
       finalMode = 'multiple'
       targetFrontCount = Math.max(5, fixedFront.length)
       targetBackCount = Math.max(2, fixedBack.length)
-    } else {
-      finalMode = mode
-      targetFrontCount = 5
-      targetBackCount = 2
     }
     useFixedFront = true
     useFixedBack = true
@@ -537,7 +613,7 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     // 胆码
     const bankers = useFixedFront && fixedFront.length > 0
       ? fixedFront.slice(0, Math.min(bankerCount, fixedFront.length))
-      : mergeNumbers([], frontPool, 35, bankerCount)
+      : mergeNumbers([], frontWeightMap, 35, bankerCount)
 
     // 拖码
     let drags: number[]
@@ -553,10 +629,10 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
       drags = getRandomNumsFromPool(pool, dragCount)
     }
 
-    // 后区：有固定则使用，否则随机
+    // 后区：有固定则使用，否则从加权池选取2个
     const backs = useFixedBack && fixedBack.length > 0
       ? [...fixedBack].sort((a, b) => a - b)
-      : mergeNumbers([], backPool, 12, 2 + Math.floor(Math.random() * 2))
+      : mergeNumbers([], backWeightMap, 12, 2)
 
     return {
       type: 'dantuo',
