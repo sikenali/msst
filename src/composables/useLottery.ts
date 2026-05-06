@@ -19,6 +19,7 @@ import {
   dltCoverRules,
   dltStrategyRules,
 } from './useUserSelections'
+import { getHotWarmColdNumbers } from './useLotteryHistory'
 
 // 当前彩种类型（需要外部设置）
 let currentLotteryType: 'ssq' | 'dlt' = 'ssq'
@@ -198,14 +199,47 @@ const getConstellationLuckyNumbers = (): number[] => {
 
 /**
  * 获取所有法号/道号相关的加权池
+ * 包含：生日、星座、幸运数、生辰、热温冷号
  */
-const getDivineNumberPools = (maxRange: number) => {
+const getDivineNumberPools = (maxRange: number, isRed: boolean = true) => {
   const birthNums = getBirthdayLuckyNumbers().filter(n => n <= maxRange)
   const constNums = getConstellationLuckyNumbers().filter(n => n <= maxRange)
   const luckyNums = getUserLuckyNumbers().value.filter(n => n <= maxRange)
   const shengchenNums = getUserShengchenLuckyNumbers().filter(n => n <= maxRange)
 
-  return getWeightedPool([birthNums, constNums, luckyNums, shengchenNums], [1, maxRange])
+  // 红球/前区加入热温冷号统计
+  let hotNums: number[] = []
+  let warmNums: number[] = []
+  let coldNums: number[] = []
+
+  if (isRed) {
+    const hwc = getHotWarmColdNumbers(currentLotteryType)
+    hotNums = hwc.hot.filter(n => n <= maxRange)
+    warmNums = hwc.warm.filter(n => n <= maxRange)
+    coldNums = hwc.cold.filter(n => n <= maxRange)
+  }
+
+  // 热号权重+3，温号权重+2，冷号权重+1
+  const weightMap = new Map<number, number>()
+  const sources = [
+    { nums: birthNums, weight: 1 },
+    { nums: constNums, weight: 1 },
+    { nums: luckyNums, weight: 1 },
+    { nums: shengchenNums, weight: 1 },
+    { nums: hotNums, weight: 3 },
+    { nums: warmNums, weight: 2 },
+    { nums: coldNums, weight: 1 },
+  ]
+
+  for (const { nums, weight } of sources) {
+    for (const n of nums) {
+      if (n >= 1 && n <= maxRange) {
+        weightMap.set(n, (weightMap.get(n) || 0) + weight)
+      }
+    }
+  }
+
+  return weightMap
 }
 
 /**
@@ -379,8 +413,8 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
   const fixedBlue = getUserBlueNumbers().value.filter(n => n >= 1 && n <= 16)
 
   // 获取加权池
-  const redWeightMap = getDivineNumberPools(33)
-  const blueWeightMap = getDivineNumberPools(16)
+  const redWeightMap = getDivineNumberPools(33, true)
+  const blueWeightMap = getDivineNumberPools(16, false)
 
   // 智能合并固定号码和法号推荐（去重+组合）
   const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number): number[] => {
@@ -611,8 +645,8 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
   const fixedBack = getUserBlueNumbers().value.filter(n => n >= 1 && n <= 12)
 
   // 获取加权池
-  const frontWeightMap = getDivineNumberPools(35)
-  const backWeightMap = getDivineNumberPools(12)
+  const frontWeightMap = getDivineNumberPools(35, true)
+  const backWeightMap = getDivineNumberPools(12, false)
 
   // 智能合并固定号码和道号推荐（去重+组合）
   const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number): number[] => {

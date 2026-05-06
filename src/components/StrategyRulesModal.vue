@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { RiCloseLine, RiLightbulbLine, RiFireLine, RiSparkling2Line } from '@remixicon/vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { RiCloseLine, RiLightbulbLine, RiFireLine, RiSparkling2Line, RiRefreshLine } from '@remixicon/vue'
 import { useUserSelections, setCurrentType } from '@/composables/useUserSelections'
+import { useLotteryHistory, fetchHistoryData } from '@/composables/useLotteryHistory'
 
 interface Props {
   visible: boolean
@@ -20,11 +21,20 @@ const title = computed(() => props.lotteryType === 'ssq' ? '法号 · 选号秘�
 // 从全局状态获取规则开关
 const { userCoverRules, userStrategyRules, setCoverRule, setStrategyRule, setAllCoverRules, setAllStrategyRules } = useUserSelections()
 
-// 弹窗打开时同步彩种
-watch(() => props.visible, (val) => {
+// 获取历史数据
+const { ssqStats, dltStats, isLoading, refresh } = useLotteryHistory()
+const currentStats = computed(() => props.lotteryType === 'ssq' ? ssqStats.value : dltStats.value)
+
+// 弹窗打开时同步彩种并加载数据
+watch(() => props.visible, async (val) => {
   if (val && props.lotteryType) {
     setCurrentType(props.lotteryType)
+    await fetchHistoryData()
   }
+})
+
+onMounted(async () => {
+  await fetchHistoryData()
 })
 
 // ====== 双色球规则数据 ======
@@ -112,6 +122,15 @@ const totalCount = computed(() => {
   return Object.keys(currentRulesState.value).length
 })
 
+// 格式化比例数据
+function formatRatio(ratio: { [key: string]: number }): string {
+  if (!ratio) return ''
+  const entries = Object.entries(ratio)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+  return entries.map(([k, v]) => `${k}(${v}期)`).join(' ')
+}
+
 function handleClose() {
   emit('close')
 }
@@ -170,6 +189,51 @@ function handleOverlayClick(e: MouseEvent) {
             <p class="strategy-section-desc" v-else>
               热温冷定基调 + 奇偶大小定骨架 + 尾数和值验证，淘汰90%垃圾组合
             </p>
+
+            <!-- 实时统计数据面板 -->
+            <div class="stats-panel" v-if="activeTab === 'strategy'">
+              <div class="stats-header">
+                <span class="stats-title">📊 近50期数据统计</span>
+                <button class="stats-refresh" @click="refresh" :disabled="isLoading">
+                  <RiRefreshLine class="refresh-icon" :class="{ spinning: isLoading }" />
+                </button>
+              </div>
+              <div class="stats-grid" v-if="currentStats">
+                <!-- 热温冷号 -->
+                <div class="stats-item">
+                  <span class="stats-label">热号</span>
+                  <span class="stats-value hot">{{ currentStats.hotNumbers.slice(0, 6).join(' ') }}</span>
+                </div>
+                <div class="stats-item">
+                  <span class="stats-label">温号</span>
+                  <span class="stats-value warm">{{ currentStats.warmNumbers.slice(0, 6).join(' ') }}</span>
+                </div>
+                <div class="stats-item">
+                  <span class="stats-label">冷号</span>
+                  <span class="stats-value cold">{{ currentStats.coldNumbers.slice(0, 6).join(' ') }}</span>
+                </div>
+                <!-- 奇偶比分布 -->
+                <div class="stats-item wide">
+                  <span class="stats-label">奇偶比</span>
+                  <span class="stats-value">{{ formatRatio(currentStats.oddEvenRatio) }}</span>
+                </div>
+                <!-- 大小比分布 -->
+                <div class="stats-item wide">
+                  <span class="stats-label">大小比</span>
+                  <span class="stats-value">{{ formatRatio(currentStats.bigSmallRatio) }}</span>
+                </div>
+                <!-- 和值范围 -->
+                <div class="stats-item">
+                  <span class="stats-label">和值范围</span>
+                  <span class="stats-value">{{ currentStats.sumRange.min }}-{{ currentStats.sumRange.max }} (平均{{ currentStats.sumRange.avg }})</span>
+                </div>
+                <!-- 连号率 -->
+                <div class="stats-item">
+                  <span class="stats-label">连号出现率</span>
+                  <span class="stats-value">{{ currentStats.consecutiveRate }}%</span>
+                </div>
+              </div>
+            </div>
 
             <!-- 全选控制 -->
             <div class="strategy-select-all" @click="toggleAll">
@@ -488,6 +552,110 @@ function handleOverlayClick(e: MouseEvent) {
 
 .strategy-rule-item:not(.disabled):hover {
   background: rgba(255, 251, 235, 0.3);
+}
+
+/* 统计面板 */
+.stats-panel {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.5) 0%, rgba(255, 251, 235, 0.7) 100%);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(253, 230, 138, 0.5);
+}
+
+.stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.stats-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400E;
+  font-family: 'SourceHanSans-SemiBold';
+}
+
+.stats-refresh {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s;
+}
+
+.stats-refresh:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.stats-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-icon {
+  width: 14px;
+  height: 14px;
+  color: #D97706;
+}
+
+.refresh-icon.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+}
+
+.stats-item.wide {
+  grid-column: span 2;
+}
+
+.stats-label {
+  font-size: 11px;
+  color: #B45309;
+  font-family: 'SourceHanSans-Regular';
+}
+
+.stats-value {
+  font-size: 12px;
+  color: #78350F;
+  font-family: 'SourceHanSans-Medium';
+  word-break: break-all;
+}
+
+.stats-value.hot {
+  color: #DC2626;
+}
+
+.stats-value.warm {
+  color: #D97706;
+}
+
+.stats-value.cold {
+  color: #2563EB;
 }
 
 .rule-num-badge {
