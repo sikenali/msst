@@ -72,6 +72,10 @@ const dltStrategyRules = [
 const coverRulesData = computed(() => props.lotteryType === 'ssq' ? ssqCoverRules : dltCoverRules)
 const strategyRulesData = computed(() => props.lotteryType === 'ssq' ? ssqStrategyRules : dltStrategyRules)
 
+// Tab名称根据彩种区分
+const coverTabName = computed(() => props.lotteryType === 'ssq' ? '三注覆盖法·红球' : '三注覆盖法·前区')
+const strategyTabName = computed(() => props.lotteryType === 'ssq' ? '三三制选号法·红球' : '三三制选号法·前区')
+
 // 当前Tab的规则数据和开关状态
 const currentRulesData = computed(() => activeTab.value === 'cover' ? coverRulesData.value : strategyRulesData.value)
 const currentRulesState = computed(() => activeTab.value === 'cover' ? userCoverRules.value : userStrategyRules.value)
@@ -143,7 +147,7 @@ function handleOverlayClick(e: MouseEvent) {
             @click="activeTab = 'cover'"
           >
             <RiFireLine class="tab-icon" />
-            <span>三注覆盖法</span>
+            <span>{{ coverTabName }}</span>
           </button>
           <button
             class="strategy-tab"
@@ -151,7 +155,7 @@ function handleOverlayClick(e: MouseEvent) {
             @click="activeTab = 'strategy'"
           >
             <RiSparkling2Line class="tab-icon" />
-            <span>三三制选号法</span>
+            <span>{{ strategyTabName }}</span>
           </button>
         </div>
 
