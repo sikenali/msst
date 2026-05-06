@@ -1,0 +1,431 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { RiCloseLine, RiLightbulbLine, RiFireLine, RiSparkling2Line } from '@remixicon/vue'
+
+interface Props {
+  visible: boolean
+  lotteryType: 'ssq' | 'dlt'
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  close: []
+}>()
+
+const activeTab = ref<'cover' | 'strategy'>('cover')
+
+const title = computed(() => props.lotteryType === 'ssq' ? '法号 · 选号秘籍' : '道号 · 选号秘籍')
+
+// ====== 双色球规则数据 ======
+const ssqCoverRules = [
+  { num: '1', text: '将红球(01-33)分为三个区间：小区(01-11)、中区(12-22)、大区(23-33)', color: '#DC2626', bg: '#FEE2E2' },
+  { num: '2', text: '第一注(均衡型)：小区2个 + 中区2个 + 大区2个，覆盖全面', color: '#DC2626', bg: '#FEE2E2' },
+  { num: '3', text: '第二注(偏小中)：小区3个 + 中区3个 + 大区0个，适合号码偏小', color: '#2563EB', bg: '#DBEAFE' },
+  { num: '4', text: '第三注(偏中大)：小区0个 + 中区3个 + 大区3个，适合号码偏大', color: '#2563EB', bg: '#DBEAFE' },
+  { num: '5', text: '三注之间尽量不要重复号码，扩大覆盖范围', color: '#D97706', bg: '#FEF3C7' },
+  { num: '6', text: '每注内部加一组连号(如24-25)，尾数尽量分散', color: '#D97706', bg: '#FEF3C7' },
+]
+
+const ssqStrategyRules = [
+  { num: '1', text: '热温冷比例：优先 2热+2温+2冷 或 3热+2温+1冷，占比68.6%', color: '#DC2626', bg: '#FEE2E2' },
+  { num: '2', text: '奇偶比优先3:3，次选4:2或2:4，避开5:1/6:0极端比例', color: '#DC2626', bg: '#FEE2E2' },
+  { num: '3', text: '大小比优先3:3，次选4:2或2:4，避开全大或全小', color: '#2563EB', bg: '#DBEAFE' },
+  { num: '4', text: '尾数冗余排除：6个红球至少覆盖4个不同尾数(准确率99%)', color: '#2563EB', bg: '#DBEAFE' },
+  { num: '5', text: '和值范围控制在90-130之间，跨度在22-30之间', color: '#D97706', bg: '#FEF3C7' },
+  { num: '6', text: '连号设置：优先有且仅有一组两连号，避免无连号或两组以上', color: '#D97706', bg: '#FEF3C7' },
+  { num: '7', text: '斜连码定位：关注已形成斜线趋势的号码(如09→14→19)', color: '#8B5CF6', bg: '#EDE9FE' },
+  { num: '8', text: '黄金分割点：上期红球平均值±3范围内，下期常出1-2个号码', color: '#8B5CF6', bg: '#EDE9FE' },
+]
+
+// ====== 大乐透规则数据 ======
+const dltCoverRules = [
+  { num: '1', text: '将前区(01-35)分为三个区间：小区(01-12)、中区(13-24)、大区(25-35)', color: '#DC2626', bg: '#FEE2E2' },
+  { num: '2', text: '第一注(均衡型)：小区2个 + 中区2个 + 大区1个，覆盖全面', color: '#DC2626', bg: '#FEE2E2' },
+  { num: '3', text: '第二注(偏小中)：小区2个 + 中区3个 + 大区0个，适合号码偏小', color: '#2563EB', bg: '#DBEAFE' },
+  { num: '4', text: '第三注(偏中大)：小区0个 + 中区2个 + 大区3个，适合号码偏大', color: '#2563EB', bg: '#DBEAFE' },
+  { num: '5', text: '三注之间尽量不要重复号码，扩大覆盖范围', color: '#D97706', bg: '#FEF3C7' },
+  { num: '6', text: '后区(01-12)每注固定选2个，注意奇偶和大小平衡', color: '#D97706', bg: '#FEF3C7' },
+]
+
+const dltStrategyRules = [
+  { num: '1', text: '热温冷比例：优先 2热+2温+1冷 或 2热+1温+2冷，覆盖主流分布', color: '#DC2626', bg: '#FEE2E2' },
+  { num: '2', text: '奇偶比优先3:2或2:3，次选4:1或1:4，避开5:0/0:5极端比例', color: '#DC2626', bg: '#FEE2E2' },
+  { num: '3', text: '大小比优先3:2或2:3，次选4:1或1:4，避开全大或全小', color: '#2563EB', bg: '#DBEAFE' },
+  { num: '4', text: '尾数冗余排除：5个前区至少覆盖4个不同尾数', color: '#2563EB', bg: '#DBEAFE' },
+  { num: '5', text: '和值范围控制在75-125之间，跨度在20-28之间', color: '#D97706', bg: '#FEF3C7' },
+  { num: '6', text: '连号设置：优先有且仅有一组两连号，避免无连号或两组以上', color: '#D97706', bg: '#FEF3C7' },
+  { num: '7', text: '斜连码定位：关注已形成斜线趋势的号码(如08→13→18)', color: '#8B5CF6', bg: '#EDE9FE' },
+  { num: '8', text: '黄金分割点：上期前区平均值±3范围内，下期常出1-2个号码', color: '#8B5CF6', bg: '#EDE9FE' },
+]
+
+const coverRules = computed(() => props.lotteryType === 'ssq' ? ssqCoverRules : dltCoverRules)
+const strategyRules = computed(() => props.lotteryType === 'ssq' ? ssqStrategyRules : dltStrategyRules)
+const currentRules = computed(() => activeTab.value === 'cover' ? coverRules.value : strategyRules.value)
+
+function handleClose() {
+  emit('close')
+}
+
+function handleOverlayClick(e: MouseEvent) {
+  if (e.target === e.currentTarget) {
+    handleClose()
+  }
+}
+</script>
+
+<template>
+  <Transition name="strategy-modal">
+    <div v-if="visible" class="strategy-overlay" @click="handleOverlayClick">
+      <div class="strategy-content" @click.stop>
+        <!-- 头部 -->
+        <div class="strategy-header">
+          <div class="strategy-header-left">
+            <RiLightbulbLine class="strategy-title-icon" />
+            <h3 class="strategy-title">{{ title }}</h3>
+          </div>
+          <button class="strategy-close" @click="handleClose">
+            <RiCloseLine class="close-icon" />
+          </button>
+        </div>
+        <div class="strategy-divider"></div>
+
+        <!-- Tab 切换 -->
+        <div class="strategy-tabs">
+          <button
+            class="strategy-tab"
+            :class="{ active: activeTab === 'cover' }"
+            @click="activeTab = 'cover'"
+          >
+            <RiFireLine class="tab-icon" />
+            <span>三注覆盖法</span>
+          </button>
+          <button
+            class="strategy-tab"
+            :class="{ active: activeTab === 'strategy' }"
+            @click="activeTab = 'strategy'"
+          >
+            <RiSparkling2Line class="tab-icon" />
+            <span>三三制选号法</span>
+          </button>
+        </div>
+
+        <!-- 规则列表 -->
+        <div class="strategy-body">
+          <div class="strategy-section">
+            <p class="strategy-section-desc" v-if="activeTab === 'cover'">
+              {{ lotteryType === 'ssq'
+                ? '每期选3注号码，按区间搭配覆盖1-33全部范围，分散风险'
+                : '每期选3注号码，按区间搭配覆盖1-35全部范围，分散风险' }}
+            </p>
+            <p class="strategy-section-desc" v-else>
+              热温冷定基调 + 奇偶大小定骨架 + 尾数和值验证，淘汰90%垃圾组合
+            </p>
+
+            <div class="strategy-rules">
+              <div
+                v-for="(rule, index) in currentRules"
+                :key="rule.num"
+                class="strategy-rule-item"
+              >
+                <div
+                  class="rule-num-badge"
+                  :style="{ background: rule.bg }"
+                >
+                  <span class="rule-num-text" :style="{ color: rule.color }">{{ rule.num }}</span>
+                </div>
+                <p class="rule-text">{{ rule.text }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部提示 -->
+          <div class="strategy-footer-tip">
+            <span class="footer-tip-icon">⚠️</span>
+            <span class="footer-tip-text">所有技巧基于历史数据概率统计，仅供参考，理性购彩，量力而行</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Transition>
+</template>
+
+<style scoped>
+/* 动画 */
+.strategy-modal-enter-active {
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.strategy-modal-leave-active {
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 1, 1);
+}
+.strategy-modal-enter-active .strategy-content {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.strategy-modal-leave-active .strategy-content {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 1, 1),
+              opacity 0.25s cubic-bezier(0.4, 0, 1, 1);
+}
+.strategy-modal-enter-from,
+.strategy-modal-leave-to {
+  opacity: 0;
+}
+.strategy-modal-enter-from .strategy-content {
+  transform: scale(0.88) translateY(30px);
+  opacity: 0;
+}
+.strategy-modal-leave-to .strategy-content {
+  transform: scale(0.92) translateY(15px);
+  opacity: 0;
+}
+
+/* 遮罩层 */
+.strategy-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 24px;
+}
+
+/* 弹窗内容 */
+.strategy-content {
+  width: 500px;
+  max-height: 85vh;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    0 8px 16px rgba(0, 0, 0, 0.06),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 头部 */
+.strategy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 0 16px;
+  flex-shrink: 0;
+}
+
+.strategy-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.strategy-title-icon {
+  width: 22px;
+  height: 22px;
+  color: #D97706;
+}
+
+.strategy-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #92400E;
+  font-family: 'SourceHanSans-Bold';
+  margin: 0;
+}
+
+.strategy-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.strategy-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.close-icon {
+  width: 18px;
+  height: 18px;
+  color: #92400E;
+}
+
+.strategy-divider {
+  margin: 10px 16px 0 16px;
+  height: 1px;
+  background: rgba(253, 230, 138, 0.6);
+  flex-shrink: 0;
+}
+
+/* Tab 切换 */
+.strategy-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 0 16px;
+  flex-shrink: 0;
+}
+
+.strategy-tab {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid #FDE68A;
+  background: rgba(255, 251, 235, 0.6);
+  color: #D97706;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'SourceHanSans-SemiBold';
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.strategy-tab.active {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  border-color: #D97706;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
+}
+
+.strategy-tab:not(.active):hover {
+  background: rgba(255, 251, 235, 1);
+}
+
+.tab-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 内容区 */
+.strategy-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px 16px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.strategy-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.strategy-section-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #78350F;
+  font-family: 'SourceHanSans-Regular';
+  margin: 0;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.4) 0%, rgba(255, 251, 235, 0.6) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(253, 230, 138, 0.5);
+}
+
+.strategy-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.strategy-rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.rule-num-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rule-num-text {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  font-family: 'SourceHanSans-Bold';
+}
+
+.rule-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #78350F;
+  font-family: 'SourceHanSans-Regular';
+  margin: 0;
+}
+
+/* 底部提示 */
+.strategy-footer-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(254, 243, 199, 0.4);
+  border-radius: 8px;
+  border: 1px solid rgba(253, 230, 138, 0.5);
+}
+
+.footer-tip-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.footer-tip-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #92400E;
+  font-family: 'SourceHanSans-Regular';
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 480px) {
+  .strategy-overlay {
+    padding: 16px;
+  }
+
+  .strategy-content {
+    width: 90vw;
+    max-width: 400px;
+    border-radius: 20px;
+  }
+
+  .strategy-tab {
+    font-size: 12px;
+    height: 34px;
+  }
+
+  .tab-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .rule-text {
+    font-size: 13px;
+  }
+}
+</style>
