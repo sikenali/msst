@@ -49,7 +49,7 @@ const currentRain = computed(() => lotteryType.value === 'ssq' ? ssqRain : dltRa
 const lotteryType = ref<'ssq' | 'dlt'>((route.query.type as 'ssq' | 'dlt') || 'ssq')
 
 // 使用 useUserSelections 获取响应式的注数和模式
-const { userNotes, setNotes, userMode, setMode, clearAllIncludingRedBlue } = useUserSelections()
+const { userNotes, setNotes, userMode, setMode, clearAll, clearAllIncludingRedBlue } = useUserSelections()
 
 // 使用 computed 动态获取当前彩种的注数和模式
 const notes = computed({
