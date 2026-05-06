@@ -17,9 +17,7 @@ const emit = defineEmits<{
 
 // 标题根据来源和彩种动态变化
 const title = computed(() => {
-  const baseTitle = props.lotteryType === 'ssq' ? '法号' : '道号'
-  const methodTitle = props.defaultTab === 'cover' ? '三注覆盖法' : '三三制选号法'
-  return `${baseTitle} · ${methodTitle}`
+  return props.defaultTab === 'cover' ? '三注覆盖法' : '三三制选号法'
 })
 
 // 从全局状态获取规则开关
