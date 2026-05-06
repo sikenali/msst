@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { RiCloseLine, RiLightbulbLine, RiFireLine, RiSparkling2Line } from '@remixicon/vue'
+import { useUserSelections, setCurrentType } from '@/composables/useUserSelections'
 
 interface Props {
   visible: boolean
@@ -15,6 +16,16 @@ const emit = defineEmits<{
 const activeTab = ref<'cover' | 'strategy'>('cover')
 
 const title = computed(() => props.lotteryType === 'ssq' ? '法号 · 选号秘籍' : '道号 · 选号秘籍')
+
+// 从全局状态获取规则开关
+const { userCoverRules, userStrategyRules, setCoverRule, setStrategyRule, setAllCoverRules, setAllStrategyRules } = useUserSelections()
+
+// 弹窗打开时同步彩种
+watch(() => props.visible, (val) => {
+  if (val && props.lotteryType) {
+    setCurrentType(props.lotteryType)
+  }
+})
 
 // ====== 双色球规则数据 ======
 const ssqCoverRules = [
@@ -58,9 +69,44 @@ const dltStrategyRules = [
   { num: '8', text: '黄金分割点：上期前区平均值±3范围内，下期常出1-2个号码', color: '#8B5CF6', bg: '#EDE9FE' },
 ]
 
-const coverRules = computed(() => props.lotteryType === 'ssq' ? ssqCoverRules : dltCoverRules)
-const strategyRules = computed(() => props.lotteryType === 'ssq' ? ssqStrategyRules : dltStrategyRules)
-const currentRules = computed(() => activeTab.value === 'cover' ? coverRules.value : strategyRules.value)
+const coverRulesData = computed(() => props.lotteryType === 'ssq' ? ssqCoverRules : dltCoverRules)
+const strategyRulesData = computed(() => props.lotteryType === 'ssq' ? ssqStrategyRules : dltStrategyRules)
+
+// 当前Tab的规则数据和开关状态
+const currentRulesData = computed(() => activeTab.value === 'cover' ? coverRulesData.value : strategyRulesData.value)
+const currentRulesState = computed(() => activeTab.value === 'cover' ? userCoverRules.value : userStrategyRules.value)
+
+// 全选/取消全选
+const isAllEnabled = computed(() => {
+  const state = currentRulesState.value
+  return Object.values(state).every(v => v)
+})
+
+function toggleRule(key: string) {
+  if (activeTab.value === 'cover') {
+    setCoverRule(key, !currentRulesState.value[key])
+  } else {
+    setStrategyRule(key, !currentRulesState.value[key])
+  }
+}
+
+function toggleAll() {
+  const newState = !isAllEnabled.value
+  if (activeTab.value === 'cover') {
+    setAllCoverRules(newState)
+  } else {
+    setAllStrategyRules(newState)
+  }
+}
+
+// 当前Tab已启用的规则数量
+const enabledCount = computed(() => {
+  return Object.values(currentRulesState.value).filter(v => v).length
+})
+
+const totalCount = computed(() => {
+  return Object.keys(currentRulesState.value).length
+})
 
 function handleClose() {
   emit('close')
@@ -121,17 +167,35 @@ function handleOverlayClick(e: MouseEvent) {
               热温冷定基调 + 奇偶大小定骨架 + 尾数和值验证，淘汰90%垃圾组合
             </p>
 
+            <!-- 全选控制 -->
+            <div class="strategy-select-all" @click="toggleAll">
+              <div class="toggle-switch" :class="{ on: isAllEnabled }">
+                <div class="toggle-thumb"></div>
+              </div>
+              <span class="select-all-text">全部{{ isAllEnabled ? '关闭' : '启用' }}</span>
+              <span class="select-all-count">{{ enabledCount }}/{{ totalCount }} 条已启用</span>
+            </div>
+
+            <!-- 规则列表 -->
             <div class="strategy-rules">
               <div
-                v-for="(rule, index) in currentRules"
+                v-for="rule in currentRulesData"
                 :key="rule.num"
                 class="strategy-rule-item"
+                :class="{ disabled: !currentRulesState[rule.num] }"
               >
                 <div
-                  class="rule-num-badge"
-                  :style="{ background: rule.bg }"
+                  class="toggle-switch"
+                  :class="{ on: currentRulesState[rule.num] }"
+                  @click="toggleRule(rule.num)"
                 >
-                  <span class="rule-num-text" :style="{ color: rule.color }">{{ rule.num }}</span>
+                  <div class="toggle-thumb"></div>
+                </div>
+                <div
+                  class="rule-num-badge"
+                  :style="{ background: currentRulesState[rule.num] ? rule.bg : '#F3F4F6' }"
+                >
+                  <span class="rule-num-text" :style="{ color: currentRulesState[rule.num] ? rule.color : '#9CA3AF' }">{{ rule.num }}</span>
                 </div>
                 <p class="rule-text">{{ rule.text }}</p>
               </div>
@@ -141,7 +205,7 @@ function handleOverlayClick(e: MouseEvent) {
           <!-- 底部提示 -->
           <div class="strategy-footer-tip">
             <span class="footer-tip-icon">⚠️</span>
-            <span class="footer-tip-text">所有技巧基于历史数据概率统计，仅供参考，理性购彩，量力而行</span>
+            <span class="footer-tip-text">勾选的规则将参与号码生成，所有技巧基于历史数据概率统计，仅供参考</span>
           </div>
         </div>
       </div>
@@ -339,16 +403,87 @@ function handleOverlayClick(e: MouseEvent) {
   border: 1px solid rgba(253, 230, 138, 0.5);
 }
 
+/* 全选控制 */
+.strategy-select-all {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(253, 230, 138, 0.4);
+  cursor: pointer;
+  user-select: none;
+}
+
+.select-all-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400E;
+  font-family: 'SourceHanSans-SemiBold';
+}
+
+.select-all-count {
+  font-size: 12px;
+  color: #B45309;
+  font-family: 'SourceHanSans-Regular';
+  margin-left: auto;
+}
+
+/* 开关组件 */
+.toggle-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: #D1D5DB;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.25s ease;
+}
+
+.toggle-switch.on {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-switch.on .toggle-thumb {
+  transform: translateX(16px);
+}
+
+/* 规则列表 */
 .strategy-rules {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .strategy-rule-item {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.strategy-rule-item.disabled {
+  opacity: 0.45;
+}
+
+.strategy-rule-item:not(.disabled):hover {
+  background: rgba(255, 251, 235, 0.3);
 }
 
 .rule-num-badge {
@@ -359,6 +494,7 @@ function handleOverlayClick(e: MouseEvent) {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: background 0.2s ease;
 }
 
 .rule-num-text {
@@ -366,6 +502,7 @@ function handleOverlayClick(e: MouseEvent) {
   font-weight: 700;
   line-height: 1;
   font-family: 'SourceHanSans-Bold';
+  transition: color 0.2s ease;
 }
 
 .rule-text {
@@ -375,6 +512,10 @@ function handleOverlayClick(e: MouseEvent) {
   color: #78350F;
   font-family: 'SourceHanSans-Regular';
   margin: 0;
+}
+
+.strategy-rule-item.disabled .rule-text {
+  color: #9CA3AF;
 }
 
 /* 底部提示 */
