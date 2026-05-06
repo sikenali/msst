@@ -60,25 +60,25 @@ const ssqStrategyRules = [
   { num: '8', text: '黄金分割点：上期红球平均值±3范围内，下期常出1-2个号码', color: '#8B5CF6', bg: '#EDE9FE' },
 ]
 
-// ====== 大乐透规则数据 ======
+// ====== 大乐透规则数据（蓝色主题） ======
 const dltCoverRules = [
-  { num: '1', text: '将前区(01-35)分为三个区间：小区(01-12)、中区(13-24)、大区(25-35)', color: '#DC2626', bg: '#FEE2E2' },
-  { num: '2', text: '第一注(均衡型)：小区2个 + 中区2个 + 大区1个，覆盖全面', color: '#DC2626', bg: '#FEE2E2' },
-  { num: '3', text: '第二注(偏小中)：小区2个 + 中区3个 + 大区0个，适合号码偏小', color: '#2563EB', bg: '#DBEAFE' },
-  { num: '4', text: '第三注(偏中大)：小区0个 + 中区2个 + 大区3个，适合号码偏大', color: '#2563EB', bg: '#DBEAFE' },
-  { num: '5', text: '三注之间尽量不要重复号码，扩大覆盖范围', color: '#D97706', bg: '#FEF3C7' },
-  { num: '6', text: '后区(01-12)每注固定选2个，注意奇偶和大小平衡', color: '#D97706', bg: '#FEF3C7' },
+  { num: '1', text: '将前区(01-35)分为三个区间：小区(01-12)、中区(13-24)、大区(25-35)', color: '#1D4ED8', bg: '#DBEAFE' },
+  { num: '2', text: '第一注(均衡型)：小区2个 + 中区2个 + 大区1个，覆盖全面', color: '#1D4ED8', bg: '#DBEAFE' },
+  { num: '3', text: '第二注(偏小中)：小区2个 + 中区3个 + 大区0个，适合号码偏小', color: '#1E40AF', bg: '#BFDBFE' },
+  { num: '4', text: '第三注(偏中大)：小区0个 + 中区2个 + 大区3个，适合号码偏大', color: '#1E40AF', bg: '#BFDBFE' },
+  { num: '5', text: '三注之间尽量不要重复号码，扩大覆盖范围', color: '#3B82F6', bg: '#EFF6FF' },
+  { num: '6', text: '后区(01-12)每注固定选2个，注意奇偶和大小平衡', color: '#3B82F6', bg: '#EFF6FF' },
 ]
 
 const dltStrategyRules = [
-  { num: '1', text: '热温冷比例：优先 2热+2温+1冷 或 2热+1温+2冷，覆盖主流分布', color: '#DC2626', bg: '#FEE2E2' },
-  { num: '2', text: '奇偶比优先3:2或2:3，次选4:1或1:4，避开5:0/0:5极端比例', color: '#DC2626', bg: '#FEE2E2' },
-  { num: '3', text: '大小比优先3:2或2:3，次选4:1或1:4，避开全大或全小', color: '#2563EB', bg: '#DBEAFE' },
-  { num: '4', text: '尾数冗余排除：5个前区至少覆盖4个不同尾数', color: '#2563EB', bg: '#DBEAFE' },
-  { num: '5', text: '和值范围控制在75-125之间，跨度在20-28之间', color: '#D97706', bg: '#FEF3C7' },
-  { num: '6', text: '连号设置：优先有且仅有一组两连号，避免无连号或两组以上', color: '#D97706', bg: '#FEF3C7' },
-  { num: '7', text: '斜连码定位：关注已形成斜线趋势的号码(如08→13→18)', color: '#8B5CF6', bg: '#EDE9FE' },
-  { num: '8', text: '黄金分割点：上期前区平均值±3范围内，下期常出1-2个号码', color: '#8B5CF6', bg: '#EDE9FE' },
+  { num: '1', text: '热温冷比例：优先 2热+2温+1冷 或 2热+1温+2冷，覆盖主流分布', color: '#1D4ED8', bg: '#DBEAFE' },
+  { num: '2', text: '奇偶比优先3:2或2:3，次选4:1或1:4，避开5:0/0:5极端比例', color: '#1D4ED8', bg: '#DBEAFE' },
+  { num: '3', text: '大小比优先3:2或2:3，次选4:1或1:4，避开全大或全小', color: '#1E40AF', bg: '#BFDBFE' },
+  { num: '4', text: '尾数冗余排除：5个前区至少覆盖4个不同尾数', color: '#1E40AF', bg: '#BFDBFE' },
+  { num: '5', text: '和值范围控制在75-125之间，跨度在20-28之间', color: '#3B82F6', bg: '#EFF6FF' },
+  { num: '6', text: '连号设置：优先有且仅有一组两连号，避免无连号或两组以上', color: '#3B82F6', bg: '#EFF6FF' },
+  { num: '7', text: '斜连码定位：关注已形成斜线趋势的号码(如08→13→18)', color: '#60A5FA', bg: '#F0F9FF' },
+  { num: '8', text: '黄金分割点：上期前区平均值±3范围内，下期常出1-2个号码', color: '#60A5FA', bg: '#F0F9FF' },
 ]
 
 const coverRulesData = computed(() => props.lotteryType === 'ssq' ? ssqCoverRules : dltCoverRules)
