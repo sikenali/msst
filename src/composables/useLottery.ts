@@ -404,6 +404,148 @@ const applyStrategyRules = (numbers: number[], constraint: StrategyConstraint): 
 }
 
 /**
+ * 三注覆盖法：生成3注按区间差异化分配的号码
+ * 仅在标准单式时生效
+ */
+const applyCoverRules = (
+  generateOne: () => { red: number[]; blue: number[] },
+  isDLT: boolean
+): { red: number[]; blue: number[] }[] | null => {
+  const rules = getCoverRules().value
+  // 检查是否有任何覆盖法规则被启用
+  const anyEnabled = Object.values(rules).some(v => v)
+  if (!anyEnabled) return null // 未启用，返回null表示不使用覆盖法
+
+  // 区间定义
+  const zones = isDLT
+    ? { small: [1, 12] as [number, number], mid: [13, 24] as [number, number], large: [25, 35] as [number, number] }
+    : { small: [1, 11] as [number, number], mid: [12, 22] as [number, number], large: [23, 33] as [number, number] }
+
+  const targetCount = isDLT ? 5 : 6
+
+  // 三种区间分配策略
+  const strategies = isDLT
+    ? [
+        // 均衡型：小区2 + 中区2 + 大区1
+        { small: 2, mid: 2, large: 1 },
+        // 偏小中：小区2 + 中区3 + 大区0
+        { small: 2, mid: 3, large: 0 },
+        // 偏中大：小区0 + 中区2 + 大区3
+        { small: 0, mid: 2, large: 3 },
+      ]
+    : [
+        // 均衡型：小区2 + 中区2 + 大区2
+        { small: 2, mid: 2, large: 2 },
+        // 偏小中：小区3 + 中区3 + 大区0
+        { small: 3, mid: 3, large: 0 },
+        // 偏中大：小区0 + 中区3 + 大区3
+        { small: 0, mid: 3, large: 3 },
+      ]
+
+  const allUsedNumbers = new Set<number>()
+  const results: { red: number[]; blue: number[] }[] = []
+
+  for (let i = 0; i < 3; i++) {
+    const strategy = strategies[i]
+    let red: number[]
+
+    if (rules['1'] || rules['2'] || rules['3'] || rules['4']) {
+      // 按区间分配生成
+      red = []
+      const pickFromZone = (zone: [number, number], count: number, exclude: Set<number>) => {
+        const pool: number[] = []
+        for (let n = zone[0]; n <= zone[1]; n++) {
+          if (!exclude.has(n)) pool.push(n)
+        }
+        return getRandomNumsFromPool(pool, Math.min(count, pool.length))
+      }
+
+      // 规则5：优先使用加权池中的号码（从对应区间选取）
+      const weightMap = isDLT
+        ? getDivineNumberPools(35, true)
+        : getDivineNumberPools(33, true)
+
+      const pickFromZoneWeighted = (zone: [number, number], count: number, exclude: Set<number>) => {
+        // 从加权池中筛选该区间的号码，按权重排序
+        const zoneNumbers: { num: number; weight: number }[] = []
+        for (let n = zone[0]; n <= zone[1]; n++) {
+          if (!exclude.has(n) && weightMap.has(n)) {
+            zoneNumbers.push({ num: n, weight: weightMap.get(n)! })
+          }
+        }
+        // 按权重降序排列
+        zoneNumbers.sort((a, b) => b.weight - a.weight)
+
+        const picked: number[] = []
+        for (const { num } of zoneNumbers) {
+          if (picked.length >= count) break
+          picked.push(num)
+        }
+        // 不够则随机补足
+        if (picked.length < count) {
+          const remaining = []
+          for (let n = zone[0]; n <= zone[1]; n++) {
+            if (!exclude.has(n) && !picked.includes(n)) remaining.push(n)
+          }
+          picked.push(...getRandomNumsFromPool(remaining, count - picked.length))
+        }
+        return picked
+      }
+
+      // 使用加权选取（规则5启用时）
+      const pickFn = rules['5'] ? pickFromZoneWeighted : pickFromZone
+
+      const smallNums = pickFn(zones.small, strategy.small, allUsedNumbers)
+      smallNums.forEach(n => allUsedNumbers.add(n))
+      red.push(...smallNums)
+
+      const midNums = pickFn(zones.mid, strategy.mid, allUsedNumbers)
+      midNums.forEach(n => allUsedNumbers.add(n))
+      red.push(...midNums)
+
+      const largeNums = pickFn(zones.large, strategy.large, allUsedNumbers)
+      largeNums.forEach(n => allUsedNumbers.add(n))
+      red.push(...largeNums)
+
+      // 规则6：每注内部加一组连号
+      if (rules['6']) {
+        const sorted = [...red].sort((a, b) => a - b)
+        let hasConsecutive = false
+        for (let j = 0; j < sorted.length - 1; j++) {
+          if (sorted[j + 1] - sorted[j] === 1) {
+            hasConsecutive = true
+            break
+          }
+        }
+        if (!hasConsecutive && red.length >= 2) {
+          // 尝试制造一组两连号
+          const candidates = Array.from({ length: isDLT ? 35 : 33 }, (_, idx) => idx + 1)
+            .filter(n => !red.includes(n) && (red.includes(n - 1) || red.includes(n + 1)))
+          if (candidates.length > 0) {
+            const newNum = candidates[Math.floor(Math.random() * candidates.length)]
+            red[Math.floor(Math.random() * red.length)] = newNum
+          }
+        }
+      }
+
+      red.sort((a, b) => a - b)
+    } else {
+      // 无区间规则，正常生成
+      const generated = generateOne()
+      red = generated.red
+      red.forEach(n => allUsedNumbers.add(n))
+    }
+
+    // 蓝球/后区：每注独立生成
+    const blue = generateOne().blue
+
+    results.push({ red, blue })
+  }
+
+  return results
+}
+
+/**
  * 生成双色球号码 (融合所有"法号"数据)
  * 根据用户选择的红球/蓝球数量自动判断模式
  */
@@ -579,6 +721,32 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
   }
 
   // ====== 生成号码 ======
+  // 三注覆盖法：仅在标准单式且无用户固定号码时生效
+  if (finalMode === 'single' && !useFixedRed && !useFixedBlue) {
+    const coverResults = applyCoverRules(
+      () => ({ red: generateRed(6, false), blue: generateBlue(1, false) }),
+      false
+    )
+    if (coverResults) {
+      // 三注覆盖法生效，返回3注
+      // 如果三三制选号法也开启，对每注应用策略规则
+      const strategyRules = getStrategyRules().value
+      const strategyEnabled = Object.values(strategyRules).some(v => v)
+      if (strategyEnabled) {
+        return coverResults.map(r => ({
+          type: 'single' as const,
+          red: applyStrategyRules(r.red, { range: 33, target: 6 }),
+          blue: r.blue,
+        }))
+      }
+      return coverResults.map(r => ({
+        type: 'single' as const,
+        red: r.red,
+        blue: r.blue,
+      }))
+    }
+  }
+
   if (finalMode === 'single') {
     return Array.from({ length: notes }, () => ({
       type: 'single',
@@ -810,6 +978,32 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
   }
 
   // ====== 生成号码 ======
+  // 三注覆盖法：仅在标准单式且无用户固定号码时生效
+  if (finalMode === 'single' && !useFixedFront && !useFixedBack) {
+    const coverResults = applyCoverRules(
+      () => ({ red: generateFront(5, false), blue: generateBack(2, false) }),
+      true
+    )
+    if (coverResults) {
+      // 三注覆盖法生效，返回3注
+      // 如果三三制选号法也开启，对每注应用策略规则
+      const strategyRules = getStrategyRules().value
+      const strategyEnabled = Object.values(strategyRules).some(v => v)
+      if (strategyEnabled) {
+        return coverResults.map(r => ({
+          type: 'single' as const,
+          front: applyStrategyRules(r.red, { range: 35, target: 5, isDLT: true }),
+          back: r.blue,
+        }))
+      }
+      return coverResults.map(r => ({
+        type: 'single' as const,
+        front: r.red,
+        back: r.blue,
+      }))
+    }
+  }
+
   if (finalMode === 'single') {
     return Array.from({ length: notes }, () => ({
       type: 'single',
