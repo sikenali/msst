@@ -67,13 +67,96 @@ function needsUpdate(): boolean {
 }
 
 /**
+ * 解析双色球HTML表格数据
+ */
+function parseSSQHtml(html: string): LotteryDraw[] {
+  const results: LotteryDraw[] = []
+  // 匹配表格行：<tr>...<td>期号</td><td>红球1</td>...<td>红球6</td><td>蓝球</td>...<td>日期</td>...</tr>
+  const rowRegex = /<tr[^>]*>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>(\d{4}-\d{2}-\d{2})<\/td>/gi
+  
+  let match
+  while ((match = rowRegex.exec(html)) !== null) {
+    const issue = match[1]
+    const red = [parseInt(match[2]), parseInt(match[3]), parseInt(match[4]), parseInt(match[5]), parseInt(match[6]), parseInt(match[7])]
+    const blue = [parseInt(match[8])]
+    const date = match[9]
+    
+    results.push({ issue, date, red, blue })
+  }
+  
+  return results
+}
+
+/**
+ * 解析大乐透HTML表格数据
+ */
+function parseDLTHtml(html: string): LotteryDraw[] {
+  const results: LotteryDraw[] = []
+  // 匹配表格行：<tr>...<td>期号</td><td>前区1</td>...<td>前区5</td><td>后区1</td><td>后区2</td>...<td>日期</td>...</tr>
+  const rowRegex = /<tr[^>]*>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>(\d{4}-\d{2}-\d{2})<\/td>/gi
+  
+  let match
+  while ((match = rowRegex.exec(html)) !== null) {
+    const issue = match[1]
+    const red = [parseInt(match[2]), parseInt(match[3]), parseInt(match[4]), parseInt(match[5]), parseInt(match[6])]
+    const blue = [parseInt(match[7]), parseInt(match[8])]
+    const date = match[9]
+    
+    results.push({ issue, date, red, blue })
+  }
+  
+  return results
+}
+
+/**
+ * 通过CORS代理获取数据
+ */
+async function fetchWithProxy(url: string): Promise<string> {
+  // 使用公开的CORS代理服务
+  const proxyUrls = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  ]
+  
+  for (const proxyUrl of proxyUrls) {
+    try {
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+      })
+      
+      if (response.ok) {
+        return await response.text()
+      }
+    } catch {
+      // 继续尝试下一个代理
+    }
+  }
+  
+  throw new Error('无法获取数据，请检查网络连接')
+}
+
+/**
  * 获取双色球历史数据
- * 使用聚合数据API（免费版）
  */
 async function fetchSSQHistory(): Promise<LotteryDraw[]> {
-  // 由于跨域限制，这里使用模拟数据
-  // 实际项目中可以通过后端代理或使用支持CORS的API
-  // 这里生成近50期的模拟数据用于演示
+  const url = 'https://datachart.500.com/ssq/history/history.shtml'
+  
+  try {
+    const html = await fetchWithProxy(url)
+    const data = parseSSQHtml(html)
+    
+    if (data.length > 0) {
+      console.log(`成功获取双色球历史数据 ${data.length} 期`)
+      return data
+    }
+  } catch (error) {
+    console.warn('获取双色球真实数据失败，使用模拟数据:', error)
+  }
+  
+  // 失败时使用模拟数据
   return generateMockSSQData(50)
 }
 
@@ -81,12 +164,26 @@ async function fetchSSQHistory(): Promise<LotteryDraw[]> {
  * 获取大乐透历史数据
  */
 async function fetchDLTHistory(): Promise<LotteryDraw[]> {
+  const url = 'https://datachart.500.com/dlt/history/history.shtml'
+  
+  try {
+    const html = await fetchWithProxy(url)
+    const data = parseDLTHtml(html)
+    
+    if (data.length > 0) {
+      console.log(`成功获取大乐透历史数据 ${data.length} 期`)
+      return data
+    }
+  } catch (error) {
+    console.warn('获取大乐透真实数据失败，使用模拟数据:', error)
+  }
+  
+  // 失败时使用模拟数据
   return generateMockDLTData(50)
 }
 
 /**
  * 生成双色球模拟数据（用于演示）
- * 实际项目中应替换为真实API调用
  */
 function generateMockSSQData(count: number): LotteryDraw[] {
   const data: LotteryDraw[] = []
@@ -96,7 +193,7 @@ function generateMockSSQData(count: number): LotteryDraw[] {
   for (let i = 0; i < count; i++) {
     const issue = baseIssue - i
     const date = new Date(baseDate)
-    date.setDate(date.getDate() - Math.floor(i * 7 / 3)) // 约每周3期
+    date.setDate(date.getDate() - Math.floor(i * 7 / 3))
     
     data.push({
       issue: issue.toString(),
