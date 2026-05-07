@@ -37,20 +37,20 @@ export const dltConstellation = ref<string>('')
 export const dltLuckyNumbers = ref<number[]>([])
 export const dltShengchen = ref<ShengchenInfo | null>(null)
 
-// 策略规则开关状态 - 双色球
+// 策略规则开关状态 - 双色球（默认关闭，需用户手动开启）
 export const ssqCoverRules = ref<Record<string, boolean>>({
-  '1': true, '2': true, '3': true, '4': true, '5': true, '6': true,
+  '1': false, '2': false, '3': false, '4': false, '5': false, '6': false,
 })
 export const ssqStrategyRules = ref<Record<string, boolean>>({
-  '1': true, '2': true, '3': true, '4': true, '5': true, '6': true, '7': true, '8': true,
+  '1': false, '2': false, '3': false, '4': false, '5': false, '6': false, '7': false, '8': false,
 })
 
-// 策略规则开关状态 - 大乐透
+// 策略规则开关状态 - 大乐透（默认关闭，需用户手动开启）
 export const dltCoverRules = ref<Record<string, boolean>>({
-  '1': true, '2': true, '3': true, '4': true, '5': true, '6': true,
+  '1': false, '2': false, '3': false, '4': false, '5': false, '6': false,
 })
 export const dltStrategyRules = ref<Record<string, boolean>>({
-  '1': true, '2': true, '3': true, '4': true, '5': true, '6': true, '7': true, '8': true,
+  '1': false, '2': false, '3': false, '4': false, '5': false, '6': false, '7': false, '8': false,
 })
 
 // 当前激活的引用（根据彩种动态切换）- 使用 ref 保持响应式
