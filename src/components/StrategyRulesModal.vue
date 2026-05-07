@@ -371,6 +371,7 @@ function handleOverlayClick(e: MouseEvent) {
 /* 弹窗内容 */
 .strategy-content {
   width: 500px;
+  height: 450px;
   max-height: 85vh;
   overflow: hidden;
   border-radius: 18px;
