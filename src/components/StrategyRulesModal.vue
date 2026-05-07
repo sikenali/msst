@@ -154,7 +154,6 @@ function handleOverlayClick(e: MouseEvent) {
         <!-- 头部 -->
         <div class="strategy-header">
           <div class="strategy-header-left">
-            <RiLightbulbLine class="strategy-title-icon" />
             <h3 class="strategy-title">{{ title }}</h3>
           </div>
           <button class="strategy-close" @click="handleClose">
