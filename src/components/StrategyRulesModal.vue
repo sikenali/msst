@@ -163,6 +163,24 @@ function handleOverlayClick(e: MouseEvent) {
         </div>
         <div class="strategy-divider"></div>
 
+        <!-- Tab 切换 - 三三制选号法显示两个Tab -->
+        <div v-if="defaultTab !== 'cover'" class="strategy-tabs">
+          <button
+            class="strategy-tab"
+            :class="{ active: internalTab === 'stats' }"
+            @click="internalTab = 'stats'"
+          >
+            <span>近50期数据统计</span>
+          </button>
+          <button
+            class="strategy-tab"
+            :class="{ active: internalTab === 'rules' }"
+            @click="internalTab = 'rules'"
+          >
+            <span>选号规则</span>
+          </button>
+        </div>
+
         <!-- 规则列表 -->
         <div class="strategy-body">
           <!-- 三注覆盖法内容 -->
