@@ -468,7 +468,7 @@ function handleOverlayClick(e: MouseEvent) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px 0 16px;
+  padding: 12px 16px 0 16px;
   flex-shrink: 0;
 }
 
@@ -518,7 +518,7 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 .strategy-divider {
-  margin: 10px 16px 0 16px;
+  margin: 8px 16px 0 16px;
   height: 1px;
   background: rgba(253, 230, 138, 0.6);
   flex-shrink: 0;
@@ -528,7 +528,7 @@ function handleOverlayClick(e: MouseEvent) {
 .strategy-tabs {
   display: flex;
   gap: 8px;
-  padding: 12px 16px 0 16px;
+  padding: 10px 16px 0 16px;
   flex-shrink: 0;
 }
 
@@ -571,23 +571,23 @@ function handleOverlayClick(e: MouseEvent) {
 .strategy-body {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px 16px 16px;
+  padding: 10px 16px 14px 16px;
   -webkit-overflow-scrolling: touch;
 }
 
 .strategy-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .strategy-section-desc {
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.5;
   color: #78350F;
   font-family: 'SourceHanSans-Regular';
   margin: 0;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: linear-gradient(135deg, rgba(254, 243, 199, 0.4) 0%, rgba(255, 251, 235, 0.6) 100%);
   border-radius: 8px;
   border: 1px solid rgba(253, 230, 138, 0.5);
@@ -597,8 +597,8 @@ function handleOverlayClick(e: MouseEvent) {
 .strategy-select-all {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 6px 10px;
   background: rgba(255, 255, 255, 0.5);
   border-radius: 8px;
   border: 1px solid rgba(253, 230, 138, 0.4);
@@ -623,9 +623,9 @@ function handleOverlayClick(e: MouseEvent) {
 /* 开关组件 */
 .toggle-switch {
   position: relative;
-  width: 36px;
-  height: 20px;
-  border-radius: 10px;
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
   background: #D1D5DB;
   cursor: pointer;
   flex-shrink: 0;
@@ -640,8 +640,8 @@ function handleOverlayClick(e: MouseEvent) {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: #FFFFFF;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
@@ -649,22 +649,22 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 .toggle-switch.on .toggle-thumb {
-  transform: translateX(16px);
+  transform: translateX(14px);
 }
 
 /* 规则列表 */
 .strategy-rules {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
 }
 
 .strategy-rule-item {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
   transition: opacity 0.2s ease, background 0.2s ease;
 }
 
@@ -679,8 +679,8 @@ function handleOverlayClick(e: MouseEvent) {
 /* 统计面板 */
 .stats-panel {
   background: linear-gradient(135deg, rgba(254, 243, 199, 0.5) 0%, rgba(255, 251, 235, 0.7) 100%);
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: 10px;
+  padding: 10px;
   border: 1px solid rgba(253, 230, 138, 0.5);
 }
 
@@ -688,11 +688,11 @@ function handleOverlayClick(e: MouseEvent) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .stats-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #92400E;
   font-family: 'SourceHanSans-SemiBold';
@@ -739,14 +739,14 @@ function handleOverlayClick(e: MouseEvent) {
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
 }
 
 .stats-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 6px 8px;
+  gap: 1px;
+  padding: 5px 8px;
   background: rgba(255, 255, 255, 0.5);
   border-radius: 6px;
 }
@@ -781,8 +781,8 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 .rule-num-badge {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 9999px;
   display: flex;
   align-items: center;
@@ -792,7 +792,7 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 .rule-num-text {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1;
   font-family: 'SourceHanSans-Bold';
@@ -801,8 +801,8 @@ function handleOverlayClick(e: MouseEvent) {
 
 .rule-text {
   flex: 1;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.5;
   color: #78350F;
   font-family: 'SourceHanSans-Regular';
   margin: 0;
@@ -816,9 +816,9 @@ function handleOverlayClick(e: MouseEvent) {
 .strategy-footer-tip {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 8px 12px;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 6px 10px;
   background: rgba(254, 243, 199, 0.4);
   border-radius: 8px;
   border: 1px solid rgba(253, 230, 138, 0.5);
@@ -826,13 +826,13 @@ function handleOverlayClick(e: MouseEvent) {
 
 .footer-tip-icon {
   flex-shrink: 0;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .footer-tip-text {
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.4;
   color: #92400E;
   font-family: 'SourceHanSans-Regular';
 }
