@@ -163,30 +163,6 @@ function handleOverlayClick(e: MouseEvent) {
         </div>
         <div class="strategy-divider"></div>
 
-        <!-- Tab 切换 - 根据来源显示不同Tab -->
-        <div v-if="defaultTab === 'cover'" class="strategy-tabs">
-          <button class="strategy-tab active">
-            <RiFireLine class="tab-icon" />
-            <span>{{ coverTabName }}</span>
-          </button>
-        </div>
-        <div v-else class="strategy-tabs">
-          <button
-            class="strategy-tab"
-            :class="{ active: internalTab === 'stats' }"
-            @click="internalTab = 'stats'"
-          >
-            <span>近50期数据统计</span>
-          </button>
-          <button
-            class="strategy-tab"
-            :class="{ active: internalTab === 'rules' }"
-            @click="internalTab = 'rules'"
-          >
-            <span>全部关闭</span>
-          </button>
-        </div>
-
         <!-- 规则列表 -->
         <div class="strategy-body">
           <!-- 三注覆盖法内容 -->
@@ -235,7 +211,7 @@ function handleOverlayClick(e: MouseEvent) {
           <!-- 三三制选号法内容 -->
           <div v-else class="strategy-section">
             <!-- 近50期数据统计 -->
-            <div v-if="internalTab === 'stats'" class="stats-panel">
+            <div class="stats-panel">
               <div class="stats-header">
                 <span class="stats-title">📊 近50期数据统计</span>
                 <button class="stats-refresh" @click="refresh" :disabled="isLoading">
@@ -279,8 +255,8 @@ function handleOverlayClick(e: MouseEvent) {
               </div>
             </div>
 
-            <!-- 全部关闭（规则列表） -->
-            <div v-else>
+            <!-- 选号规则 -->
+            <div v-if="internalTab === 'rules'">
               <p class="strategy-section-desc">
                 热温冷定基调 + 奇偶大小定骨架 + 尾数和值验证，淘汰90%垃圾组合
               </p>
