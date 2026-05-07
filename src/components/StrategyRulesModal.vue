@@ -228,53 +228,53 @@ function handleOverlayClick(e: MouseEvent) {
 
           <!-- 三三制选号法内容 -->
           <div v-else class="strategy-section">
-            <!-- 选号规则 -->
-            <div v-if="internalTab === 'rules'">
-              <!-- 近50期数据统计 -->
-              <div class="stats-panel">
-                <div class="stats-header">
-                  <span class="stats-title">📊 近50期数据统计</span>
-                  <button class="stats-refresh" @click="refresh" :disabled="isLoading">
-                    <RiRefreshLine class="refresh-icon" :class="{ spinning: isLoading }" />
-                  </button>
+            <!-- 近50期数据统计 Tab -->
+            <div v-if="internalTab === 'stats'" class="stats-panel">
+              <div class="stats-header">
+                <span class="stats-title">📊 近50期数据统计</span>
+                <button class="stats-refresh" @click="refresh" :disabled="isLoading">
+                  <RiRefreshLine class="refresh-icon" :class="{ spinning: isLoading }" />
+                </button>
+              </div>
+              <div class="stats-grid" v-if="currentStats">
+                <!-- 热温冷号 -->
+                <div class="stats-item">
+                  <span class="stats-label">热号</span>
+                  <span class="stats-value hot">{{ currentStats.hotNumbers.slice(0, 6).join(' ') }}</span>
                 </div>
-                <div class="stats-grid" v-if="currentStats">
-                  <!-- 热温冷号 -->
-                  <div class="stats-item">
-                    <span class="stats-label">热号</span>
-                    <span class="stats-value hot">{{ currentStats.hotNumbers.slice(0, 6).join(' ') }}</span>
-                  </div>
-                  <div class="stats-item">
-                    <span class="stats-label">温号</span>
-                    <span class="stats-value warm">{{ currentStats.warmNumbers.slice(0, 6).join(' ') }}</span>
-                  </div>
-                  <div class="stats-item">
-                    <span class="stats-label">冷号</span>
-                    <span class="stats-value cold">{{ currentStats.coldNumbers.slice(0, 6).join(' ') }}</span>
-                  </div>
-                  <!-- 奇偶比分布 -->
-                  <div class="stats-item wide">
-                    <span class="stats-label">奇偶比</span>
-                    <span class="stats-value">{{ formatRatio(currentStats.oddEvenRatio) }}</span>
-                  </div>
-                  <!-- 大小比分布 -->
-                  <div class="stats-item wide">
-                    <span class="stats-label">大小比</span>
-                    <span class="stats-value">{{ formatRatio(currentStats.bigSmallRatio) }}</span>
-                  </div>
-                  <!-- 和值范围 -->
-                  <div class="stats-item">
-                    <span class="stats-label">和值范围</span>
-                    <span class="stats-value">{{ currentStats.sumRange.min }}-{{ currentStats.sumRange.max }} (平均{{ currentStats.sumRange.avg }})</span>
-                  </div>
-                  <!-- 连号率 -->
-                  <div class="stats-item">
-                    <span class="stats-label">连号出现率</span>
-                    <span class="stats-value">{{ currentStats.consecutiveRate }}%</span>
-                  </div>
+                <div class="stats-item">
+                  <span class="stats-label">温号</span>
+                  <span class="stats-value warm">{{ currentStats.warmNumbers.slice(0, 6).join(' ') }}</span>
+                </div>
+                <div class="stats-item">
+                  <span class="stats-label">冷号</span>
+                  <span class="stats-value cold">{{ currentStats.coldNumbers.slice(0, 6).join(' ') }}</span>
+                </div>
+                <!-- 奇偶比分布 -->
+                <div class="stats-item wide">
+                  <span class="stats-label">奇偶比</span>
+                  <span class="stats-value">{{ formatRatio(currentStats.oddEvenRatio) }}</span>
+                </div>
+                <!-- 大小比分布 -->
+                <div class="stats-item wide">
+                  <span class="stats-label">大小比</span>
+                  <span class="stats-value">{{ formatRatio(currentStats.bigSmallRatio) }}</span>
+                </div>
+                <!-- 和值范围 -->
+                <div class="stats-item">
+                  <span class="stats-label">和值范围</span>
+                  <span class="stats-value">{{ currentStats.sumRange.min }}-{{ currentStats.sumRange.max }} (平均{{ currentStats.sumRange.avg }})</span>
+                </div>
+                <!-- 连号率 -->
+                <div class="stats-item">
+                  <span class="stats-label">连号出现率</span>
+                  <span class="stats-value">{{ currentStats.consecutiveRate }}%</span>
                 </div>
               </div>
+            </div>
 
+            <!-- 选号规则 Tab -->
+            <div v-else>
               <p class="strategy-section-desc">
                 热温冷定基调 + 奇偶大小定骨架 + 尾数和值验证，淘汰90%垃圾组合
               </p>
