@@ -104,7 +104,7 @@ let shareModeInitialized = false
 const floatIcons = computed(() => [
   { type: 'save', label: '普渡众生', icon: RiDownload2Line, color: '#F59E0B' },
   { type: 'regenerate', label: lotteryType.value === 'ssq' ? '和气生财' : '道亦有道', icon: RiRefreshLine, color: '#10B981' },
-  { type: 'share', label: '好运链链', icon: RiShareForwardFill, color: '#3B82F6' },
+  { type: 'share', label: '好运连连', icon: RiShareForwardFill, color: '#3B82F6' },
 ])
 
 function toggleFloat() {
