@@ -1,14 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { generateSSQ, generateDLT } from '../useLottery'
-import { ssqCoverRules, ssqStrategyRules, dltCoverRules, dltStrategyRules } from '../useUserSelections'
-
-beforeEach(() => {
-  // 重置所有规则为关闭状态，避免影响测试
-  Object.keys(ssqCoverRules.value).forEach(k => ssqCoverRules.value[k] = false)
-  Object.keys(ssqStrategyRules.value).forEach(k => ssqStrategyRules.value[k] = false)
-  Object.keys(dltCoverRules.value).forEach(k => dltCoverRules.value[k] = false)
-  Object.keys(dltStrategyRules.value).forEach(k => dltStrategyRules.value[k] = false)
-})
 
 describe('random helpers', () => {
   it('returns specified count of unique sorted numbers (single)', () => {

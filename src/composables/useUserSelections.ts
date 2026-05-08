@@ -37,22 +37,6 @@ export const dltConstellation = ref<string>('')
 export const dltLuckyNumbers = ref<number[]>([])
 export const dltShengchen = ref<ShengchenInfo | null>(null)
 
-// 策略规则开关状态 - 双色球（默认关闭，需用户手动开启）
-export const ssqCoverRules = ref<Record<string, boolean>>({
-  '1': false, '2': false, '3': false, '4': false, '5': false, '6': false,
-})
-export const ssqStrategyRules = ref<Record<string, boolean>>({
-  '1': false, '2': false, '3': false, '4': false, '5': false, '6': false, '7': false, '8': false,
-})
-
-// 策略规则开关状态 - 大乐透（默认关闭，需用户手动开启）
-export const dltCoverRules = ref<Record<string, boolean>>({
-  '1': false, '2': false, '3': false, '4': false, '5': false, '6': false,
-})
-export const dltStrategyRules = ref<Record<string, boolean>>({
-  '1': false, '2': false, '3': false, '4': false, '5': false, '6': false, '7': false, '8': false,
-})
-
 // 当前激活的引用（根据彩种动态切换）- 使用 ref 保持响应式
 const currentType = ref<'ssq' | 'dlt'>('ssq')
 
@@ -92,14 +76,6 @@ function getShengchen() {
   return currentType.value === 'ssq' ? ssqShengchen : dltShengchen
 }
 
-function getCoverRules() {
-  return currentType.value === 'ssq' ? ssqCoverRules : dltCoverRules
-}
-
-function getStrategyRules() {
-  return currentType.value === 'ssq' ? ssqStrategyRules : dltStrategyRules
-}
-
 // 获取当前激活的响应式引用
 function getCurrentRefs() {
   if (currentType.value === 'ssq') {
@@ -112,8 +88,6 @@ function getCurrentRefs() {
       constellation: ssqConstellation,
       luckyNumbers: ssqLuckyNumbers,
       shengchen: ssqShengchen,
-      coverRules: ssqCoverRules,
-      strategyRules: ssqStrategyRules,
     }
   }
   return {
@@ -125,8 +99,6 @@ function getCurrentRefs() {
     constellation: dltConstellation,
     luckyNumbers: dltLuckyNumbers,
     shengchen: dltShengchen,
-    coverRules: dltCoverRules,
-    strategyRules: dltStrategyRules,
   }
 }
 
@@ -169,28 +141,6 @@ export function useUserSelections() {
   function setShengchen(info: ShengchenInfo) {
     const refs = getCurrentRefs()
     refs.shengchen.value = { ...info }
-  }
-
-  function setCoverRule(key: string, enabled: boolean) {
-    getCoverRules().value[key] = enabled
-  }
-
-  function setStrategyRule(key: string, enabled: boolean) {
-    getStrategyRules().value[key] = enabled
-  }
-
-  function setAllCoverRules(enabled: boolean) {
-    const rules = getCoverRules().value
-    for (const key of Object.keys(rules)) {
-      rules[key] = enabled
-    }
-  }
-
-  function setAllStrategyRules(enabled: boolean) {
-    const rules = getStrategyRules().value
-    for (const key of Object.keys(rules)) {
-      rules[key] = enabled
-    }
   }
 
   function clearAll() {
@@ -283,9 +233,6 @@ export function useUserSelections() {
     set: (val: ShengchenInfo | null) => { if (val) setShengchen(val) }
   })
 
-  const userCoverRules = computed(() => getCoverRules().value)
-  const userStrategyRules = computed(() => getStrategyRules().value)
-
   return {
     userBlueNumbers,
     userRedNumbers,
@@ -295,8 +242,6 @@ export function useUserSelections() {
     userConstellation,
     userLuckyNumbers,
     userShengchen,
-    userCoverRules,
-    userStrategyRules,
     setBlueNumbers,
     setRedNumbers,
     setNotes,
@@ -305,10 +250,6 @@ export function useUserSelections() {
     setConstellation,
     setLuckyNumbers,
     setShengchen,
-    setCoverRule,
-    setStrategyRule,
-    setAllCoverRules,
-    setAllStrategyRules,
     clearAll,
     clearRedBlueNumbers,
     clearAllIncludingRedBlue,

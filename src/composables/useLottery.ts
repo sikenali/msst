@@ -8,16 +8,12 @@ import {
   ssqConstellation,
   ssqLuckyNumbers,
   ssqShengchen,
-  ssqCoverRules,
-  ssqStrategyRules,
   dltBlueNumbers,
   dltRedNumbers,
   dltBirthday,
   dltConstellation,
   dltLuckyNumbers,
   dltShengchen,
-  dltCoverRules,
-  dltStrategyRules,
 } from './useUserSelections'
 import { getHotWarmColdNumbers } from './useLotteryHistory'
 
@@ -50,14 +46,6 @@ function getUserLuckyNumbers() {
 
 function getUserShengchen() {
   return currentLotteryType === 'ssq' ? ssqShengchen : dltShengchen
-}
-
-function getCoverRules() {
-  return currentLotteryType === 'ssq' ? ssqCoverRules : dltCoverRules
-}
-
-function getStrategyRules() {
-  return currentLotteryType === 'ssq' ? ssqStrategyRules : dltStrategyRules
 }
 
 // 获取生辰幸运数字
@@ -243,309 +231,6 @@ const getDivineNumberPools = (maxRange: number, isRed: boolean = true) => {
 }
 
 /**
- * 策略规则约束：对生成的号码进行验证和调整
- * 根据用户在选号秘籍中启用的规则进行后处理
- */
-interface StrategyConstraint {
-  range: number          // 号码范围上限
-  target: number         // 目标号码个数
-  isDLT?: boolean        // 是否大乐透
-}
-
-const applyStrategyRules = (numbers: number[], constraint: StrategyConstraint): number[] => {
-  const rules = getStrategyRules().value
-  const { range, target, isDLT = false } = constraint
-  let result = [...numbers]
-
-  // 规则2：奇偶比约束
-  if (rules['2']) {
-    const preferredRatios = isDLT
-      ? [[3, 2], [2, 3], [4, 1], [1, 4]]
-      : [[3, 3], [4, 2], [2, 4]]
-    const maxAttempts = 20
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const oddCount = result.filter(n => n % 2 !== 0).length
-      const evenCount = result.length - oddCount
-      const ratio = preferredRatios.find(([o, e]) => o === oddCount && e === evenCount)
-      if (ratio) break
-      // 调整：随机替换一个不匹配的号码
-      const needOdd = oddCount < evenCount
-      const candidates = Array.from({ length: range }, (_, i) => i + 1)
-        .filter(n => !result.includes(n) && (needOdd ? n % 2 !== 0 : n % 2 === 0))
-      if (candidates.length > 0) {
-        const replaceIdx = needOdd
-          ? result.findIndex(n => n % 2 === 0)
-          : result.findIndex(n => n % 2 !== 0)
-        if (replaceIdx !== -1) {
-          result[replaceIdx] = candidates[Math.floor(Math.random() * candidates.length)]
-        }
-      }
-    }
-  }
-
-  // 规则3：大小比约束
-  if (rules['3']) {
-    const midPoint = isDLT ? 18 : 17
-    const preferredRatios = isDLT
-      ? [[3, 2], [2, 3], [4, 1], [1, 4]]
-      : [[3, 3], [4, 2], [2, 4]]
-    const maxAttempts = 20
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const smallCount = result.filter(n => n <= midPoint).length
-      const bigCount = result.length - smallCount
-      const ratio = preferredRatios.find(([s, b]) => s === smallCount && b === bigCount)
-      if (ratio) break
-      const needSmall = smallCount < bigCount
-      const candidates = Array.from({ length: range }, (_, i) => i + 1)
-        .filter(n => !result.includes(n) && (needSmall ? n <= midPoint : n > midPoint))
-      if (candidates.length > 0) {
-        const replaceIdx = needSmall
-          ? result.findIndex(n => n > midPoint)
-          : result.findIndex(n => n <= midPoint)
-        if (replaceIdx !== -1) {
-          result[replaceIdx] = candidates[Math.floor(Math.random() * candidates.length)]
-        }
-      }
-    }
-  }
-
-  // 规则4：尾数冗余排除（至少4个不同尾数）
-  if (rules['4']) {
-    const maxAttempts = 20
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const lastDigits = new Set(result.map(n => n % 10))
-      if (lastDigits.size >= 4) break
-      // 找到重复尾数的号码，替换为不重复尾数的号码
-      const lastDigitCount: Record<number, number[]> = {}
-      for (const n of result) {
-        const ld = n % 10
-        if (!lastDigitCount[ld]) lastDigitCount[ld] = []
-        lastDigitCount[ld].push(n)
-      }
-      const duplicateLDs = Object.entries(lastDigitCount)
-        .filter(([, nums]) => nums.length > 1)
-        .map(([ld]) => parseInt(ld))
-      if (duplicateLDs.length === 0) break
-      const usedLDs = new Set(result.map(n => n % 10))
-      const candidates = Array.from({ length: range }, (_, i) => i + 1)
-        .filter(n => !result.includes(n) && !usedLDs.has(n % 10))
-      if (candidates.length > 0) {
-        const replaceNum = lastDigitCount[duplicateLDs[0]][1]
-        const idx = result.indexOf(replaceNum)
-        if (idx !== -1) {
-          result[idx] = candidates[Math.floor(Math.random() * candidates.length)]
-        }
-      }
-    }
-  }
-
-  // 规则5：和值范围约束
-  if (rules['5']) {
-    const sumMin = isDLT ? 75 : 90
-    const sumMax = isDLT ? 125 : 130
-    const maxAttempts = 30
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const sum = result.reduce((a, b) => a + b, 0)
-      if (sum >= sumMin && sum <= sumMax) break
-      // 调整最大或最小号码
-      const sorted = [...result].sort((a, b) => a - b)
-      const candidates = Array.from({ length: range }, (_, i) => i + 1).filter(n => !result.includes(n))
-      if (candidates.length === 0) break
-      if (sum < sumMin) {
-        // 和值太小，替换最小号码为较大的号码
-        const newNum = candidates.filter(n => n > sorted[0]).sort(() => Math.random() - 0.5)[0]
-        if (newNum) {
-          const idx = result.indexOf(sorted[0])
-          if (idx !== -1) result[idx] = newNum
-        }
-      } else {
-        // 和值太大，替换最大号码为较小的号码
-        const newNum = candidates.filter(n => n < sorted[sorted.length - 1]).sort(() => Math.random() - 0.5)[0]
-        if (newNum) {
-          const idx = result.indexOf(sorted[sorted.length - 1])
-          if (idx !== -1) result[idx] = newNum
-        }
-      }
-    }
-  }
-
-  // 规则6：连号设置（优先有且仅有一组两连号）
-  if (rules['6']) {
-    const maxAttempts = 20
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const sorted = [...result].sort((a, b) => a - b)
-      let consecutiveGroups = 0
-      let hasConsecutive = false
-      for (let i = 0; i < sorted.length - 1; i++) {
-        if (sorted[i + 1] - sorted[i] === 1) {
-          hasConsecutive = true
-          // 检查是否是新的连号组（不是三连号的延续）
-          if (i === 0 || sorted[i] - sorted[i - 1] !== 1) {
-            consecutiveGroups++
-          }
-        }
-      }
-      if (hasConsecutive && consecutiveGroups === 1) break
-      if (!hasConsecutive) {
-        // 无连号，尝试制造一组两连号
-        const candidates = Array.from({ length: range }, (_, i) => i + 1)
-          .filter(n => !result.includes(n))
-        const adjCandidates = candidates.filter(n => result.includes(n - 1) || result.includes(n + 1))
-        if (adjCandidates.length > 0) {
-          const newNum = adjCandidates[Math.floor(Math.random() * adjCandidates.length)]
-          const replaceIdx = Math.floor(Math.random() * result.length)
-          result[replaceIdx] = newNum
-        }
-      }
-    }
-  }
-
-  return result.sort((a, b) => a - b)
-}
-
-/**
- * 三注覆盖法：生成3注按区间差异化分配的号码
- * 仅在标准单式时生效
- */
-const applyCoverRules = (
-  generateOne: () => { red: number[]; blue: number[] },
-  isDLT: boolean
-): { red: number[]; blue: number[] }[] | null => {
-  const rules = getCoverRules().value
-  // 检查是否有任何覆盖法规则被启用
-  const anyEnabled = Object.values(rules).some(v => v)
-  if (!anyEnabled) return null // 未启用，返回null表示不使用覆盖法
-
-  // 区间定义
-  const zones = isDLT
-    ? { small: [1, 12] as [number, number], mid: [13, 24] as [number, number], large: [25, 35] as [number, number] }
-    : { small: [1, 11] as [number, number], mid: [12, 22] as [number, number], large: [23, 33] as [number, number] }
-
-  const targetCount = isDLT ? 5 : 6
-
-  // 三种区间分配策略
-  const strategies = isDLT
-    ? [
-        // 均衡型：小区2 + 中区2 + 大区1
-        { small: 2, mid: 2, large: 1 },
-        // 偏小中：小区2 + 中区3 + 大区0
-        { small: 2, mid: 3, large: 0 },
-        // 偏中大：小区0 + 中区2 + 大区3
-        { small: 0, mid: 2, large: 3 },
-      ]
-    : [
-        // 均衡型：小区2 + 中区2 + 大区2
-        { small: 2, mid: 2, large: 2 },
-        // 偏小中：小区3 + 中区3 + 大区0
-        { small: 3, mid: 3, large: 0 },
-        // 偏中大：小区0 + 中区3 + 大区3
-        { small: 0, mid: 3, large: 3 },
-      ]
-
-  const allUsedNumbers = new Set<number>()
-  const results: { red: number[]; blue: number[] }[] = []
-
-  for (let i = 0; i < 3; i++) {
-    const strategy = strategies[i]
-    let red: number[]
-
-    if (rules['1'] || rules['2'] || rules['3'] || rules['4']) {
-      // 按区间分配生成
-      red = []
-      const pickFromZone = (zone: [number, number], count: number, exclude: Set<number>) => {
-        const pool: number[] = []
-        for (let n = zone[0]; n <= zone[1]; n++) {
-          if (!exclude.has(n)) pool.push(n)
-        }
-        return getRandomNumsFromPool(pool, Math.min(count, pool.length))
-      }
-
-      // 规则5：优先使用加权池中的号码（从对应区间选取）
-      const weightMap = isDLT
-        ? getDivineNumberPools(35, true)
-        : getDivineNumberPools(33, true)
-
-      const pickFromZoneWeighted = (zone: [number, number], count: number, exclude: Set<number>) => {
-        // 从加权池中筛选该区间的号码，按权重排序
-        const zoneNumbers: { num: number; weight: number }[] = []
-        for (let n = zone[0]; n <= zone[1]; n++) {
-          if (!exclude.has(n) && weightMap.has(n)) {
-            zoneNumbers.push({ num: n, weight: weightMap.get(n)! })
-          }
-        }
-        // 按权重降序排列
-        zoneNumbers.sort((a, b) => b.weight - a.weight)
-
-        const picked: number[] = []
-        for (const { num } of zoneNumbers) {
-          if (picked.length >= count) break
-          picked.push(num)
-        }
-        // 不够则随机补足
-        if (picked.length < count) {
-          const remaining = []
-          for (let n = zone[0]; n <= zone[1]; n++) {
-            if (!exclude.has(n) && !picked.includes(n)) remaining.push(n)
-          }
-          picked.push(...getRandomNumsFromPool(remaining, count - picked.length))
-        }
-        return picked
-      }
-
-      // 使用加权选取（规则5启用时）
-      const pickFn = rules['5'] ? pickFromZoneWeighted : pickFromZone
-
-      const smallNums = pickFn(zones.small, strategy.small, allUsedNumbers)
-      smallNums.forEach(n => allUsedNumbers.add(n))
-      red.push(...smallNums)
-
-      const midNums = pickFn(zones.mid, strategy.mid, allUsedNumbers)
-      midNums.forEach(n => allUsedNumbers.add(n))
-      red.push(...midNums)
-
-      const largeNums = pickFn(zones.large, strategy.large, allUsedNumbers)
-      largeNums.forEach(n => allUsedNumbers.add(n))
-      red.push(...largeNums)
-
-      // 规则6：每注内部加一组连号
-      if (rules['6']) {
-        const sorted = [...red].sort((a, b) => a - b)
-        let hasConsecutive = false
-        for (let j = 0; j < sorted.length - 1; j++) {
-          if (sorted[j + 1] - sorted[j] === 1) {
-            hasConsecutive = true
-            break
-          }
-        }
-        if (!hasConsecutive && red.length >= 2) {
-          // 尝试制造一组两连号
-          const candidates = Array.from({ length: isDLT ? 35 : 33 }, (_, idx) => idx + 1)
-            .filter(n => !red.includes(n) && (red.includes(n - 1) || red.includes(n + 1)))
-          if (candidates.length > 0) {
-            const newNum = candidates[Math.floor(Math.random() * candidates.length)]
-            red[Math.floor(Math.random() * red.length)] = newNum
-          }
-        }
-      }
-
-      red.sort((a, b) => a - b)
-    } else {
-      // 无区间规则，正常生成
-      const generated = generateOne()
-      red = generated.red
-      red.forEach(n => allUsedNumbers.add(n))
-    }
-
-    // 蓝球/后区：每注独立生成
-    const blue = generateOne().blue
-
-    results.push({ red, blue })
-  }
-
-  return results
-}
-
-/**
  * 生成双色球号码 (融合所有"法号"数据)
  * 根据用户选择的红球/蓝球数量自动判断模式
  */
@@ -577,11 +262,6 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     }
 
     let result = Array.from(unique).sort((a, b) => a - b)
-
-    // 应用策略规则约束（仅对红球/前区，且数量为标准单式时生效）
-    if (range === 33 && target === 6) {
-      result = applyStrategyRules(result, { range: 33, target: 6 })
-    }
 
     return result
   }
@@ -720,33 +400,6 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     useFixedBlue = true
   }
 
-  // ====== 生成号码 ======
-  // 三注覆盖法：仅在标准单式且无用户固定号码时生效
-  if (finalMode === 'single' && !useFixedRed && !useFixedBlue) {
-    const coverResults = applyCoverRules(
-      () => ({ red: generateRed(6, false), blue: generateBlue(1, false) }),
-      false
-    )
-    if (coverResults) {
-      // 三注覆盖法生效，返回3注
-      // 如果三三制选号法也开启，对每注应用策略规则
-      const strategyRules = getStrategyRules().value
-      const strategyEnabled = Object.values(strategyRules).some(v => v)
-      if (strategyEnabled) {
-        return coverResults.map(r => ({
-          type: 'single' as const,
-          red: applyStrategyRules(r.red, { range: 33, target: 6 }),
-          blue: r.blue,
-        }))
-      }
-      return coverResults.map(r => ({
-        type: 'single' as const,
-        red: r.red,
-        blue: r.blue,
-      }))
-    }
-  }
-
   if (finalMode === 'single') {
     return Array.from({ length: notes }, () => ({
       type: 'single',
@@ -834,11 +487,6 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     }
 
     let result = Array.from(unique).sort((a, b) => a - b)
-
-    // 应用策略规则约束（仅对前区，且数量为标准单式时生效）
-    if (range === 35 && target === 5) {
-      result = applyStrategyRules(result, { range: 35, target: 5, isDLT: true })
-    }
 
     return result
   }
@@ -975,33 +623,6 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     }
     useFixedFront = true
     useFixedBack = true
-  }
-
-  // ====== 生成号码 ======
-  // 三注覆盖法：仅在标准单式且无用户固定号码时生效
-  if (finalMode === 'single' && !useFixedFront && !useFixedBack) {
-    const coverResults = applyCoverRules(
-      () => ({ red: generateFront(5, false), blue: generateBack(2, false) }),
-      true
-    )
-    if (coverResults) {
-      // 三注覆盖法生效，返回3注
-      // 如果三三制选号法也开启，对每注应用策略规则
-      const strategyRules = getStrategyRules().value
-      const strategyEnabled = Object.values(strategyRules).some(v => v)
-      if (strategyEnabled) {
-        return coverResults.map(r => ({
-          type: 'single' as const,
-          front: applyStrategyRules(r.red, { range: 35, target: 5, isDLT: true }),
-          back: r.blue,
-        }))
-      }
-      return coverResults.map(r => ({
-        type: 'single' as const,
-        front: r.red,
-        back: r.blue,
-      }))
-    }
   }
 
   if (finalMode === 'single') {

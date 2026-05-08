@@ -16,7 +16,6 @@ import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
 import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
 import IconModal from '@/components/IconModal.vue'
 import NumberPickerModal from '@/components/NumberPickerModal.vue'
-import StrategyRulesModal from '@/components/StrategyRulesModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -60,10 +59,6 @@ const counterAutofocus = ref(false)
 const showIconModal = ref(false)
 const currentModalType = ref('')
 
-// 选号秘籍弹框
-const showStrategyRules = ref(false)
-const strategyRulesTab = ref<'cover' | 'strategy'>('cover')
-
 // 号码选择弹框
 const showPickerModal = ref(false)
 const pickerType = ref<'blue' | 'red'>('blue')
@@ -79,20 +74,6 @@ const pickerSelectedNumbers = computed(() =>
 )
 
 function handleOpenModal(type: string) {
-  // 三注覆盖法（法号）打开规则弹框
-  if (type === 'fahao-rules') {
-    strategyRulesTab.value = 'cover'
-    showStrategyRules.value = true
-    return
-  }
-
-  // 三三制选号法（道号）打开规则弹框
-  if (type === 'daohao-rules') {
-    strategyRulesTab.value = 'strategy'
-    showStrategyRules.value = true
-    return
-  }
-
   // 蓝若寺和红佛女打开号码选择器
   if (type === 'lanruo') {
     pickerType.value = 'blue'
@@ -119,10 +100,6 @@ function handleOpenModal(type: string) {
 
 function handleCloseModal() {
   showIconModal.value = false
-}
-
-function handleStrategyClose() {
-  showStrategyRules.value = false
 }
 
 function handlePickerConfirm(numbers: number[]) {
@@ -452,14 +429,6 @@ function reload() {
       :selected-numbers="pickerSelectedNumbers"
       @confirm="handlePickerConfirm"
       @close="handlePickerClose"
-    />
-
-    <!-- 选号秘籍弹框 -->
-    <StrategyRulesModal
-      :visible="showStrategyRules"
-      :lottery-type="lotteryType"
-      :default-tab="strategyRulesTab"
-      @close="handleStrategyClose"
     />
 
     <!-- Toast 提示组件 -->

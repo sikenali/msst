@@ -5,7 +5,6 @@ import {
   RiMagicLine,
   RiPlanetLine,
   RiSparkling2Line,
-  RiBookOpenLine,
 } from '@remixicon/vue'
 import MuYuIcon from '@/components/MuYuIcon.vue'
 
@@ -20,7 +19,6 @@ const icons = [
   { type: 'xingzuo', label: '星座', icon: RiMagicLine, color: '#8B5CF6' },
   { type: 'shengchen', label: '生辰', icon: RiPlanetLine, color: '#F59E0B' },
   { type: 'xingyunshu', label: '幸运数', icon: RiSparkling2Line, color: '#10B981' },
-  { type: 'daohao-rules', label: '三三制选号法', icon: RiBookOpenLine, color: '#D97706' },
 ]
 
 function toggle() {
