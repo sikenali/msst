@@ -1,7 +1,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
-const SSQ_API_URL = '/api/ssq'
-const DLT_API_URL = '/api/dlt'
+// 使用环境变量配置 API 基础 URL，生产环境可配置实际后端地址
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const SSQ_API_URL = `${API_BASE_URL}/ssq`
+const DLT_API_URL = `${API_BASE_URL}/dlt`
 const SSQ_CACHE_KEY = 'msst_ssq_history'
 const DLT_CACHE_KEY = 'msst_dlt_history'
 const DEFAULT_DISPLAY_COUNT = 30
