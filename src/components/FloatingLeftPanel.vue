@@ -5,6 +5,7 @@ import {
   RiFireLine,
   RiNumbersLine,
   RiCandleLine,
+  RiScissors2Line,
 } from '@remixicon/vue'
 import TurtleIcon from '@/components/TurtleIcon.vue'
 
@@ -19,6 +20,7 @@ const icons = [
   { type: 'lanruo', label: '蓝若寺', icon: RiDropLine, color: '#3B82F6' },
   { type: 'yunshu', label: '运数', icon: RiNumbersLine, color: '#F59E0B' },
   { type: 'yunshi', label: '运式', icon: RiCandleLine, color: '#8B5CF6' },
+  { type: 'shahao', label: '杀号规则', icon: RiScissors2Line, color: '#EF4444' },
 ]
 
 function toggle() {
@@ -190,6 +192,7 @@ function handleIconClick(type: string) {
 .icon-item:nth-child(2) { transition-delay: 0.1s; }
 .icon-item:nth-child(3) { transition-delay: 0.15s; }
 .icon-item:nth-child(4) { transition-delay: 0.2s; }
+.icon-item:nth-child(5) { transition-delay: 0.25s; }
 
 /* 确保 hover 时显示 tooltip */
 .icon-item:hover {

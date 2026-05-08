@@ -5,6 +5,7 @@ import {
   RiMagicLine,
   RiPlanetLine,
   RiSparkling2Line,
+  RiGridLine,
 } from '@remixicon/vue'
 import MuYuIcon from '@/components/MuYuIcon.vue'
 
@@ -19,6 +20,7 @@ const icons = [
   { type: 'xingzuo', label: '星座', icon: RiMagicLine, color: '#8B5CF6' },
   { type: 'shengchen', label: '生辰', icon: RiPlanetLine, color: '#F59E0B' },
   { type: 'xingyunshu', label: '幸运数', icon: RiSparkling2Line, color: '#10B981' },
+  { type: 'wuxingqilie', label: '五行七列', icon: RiGridLine, color: '#8B5CF6' },
 ]
 
 function toggle() {
@@ -190,6 +192,7 @@ function handleIconClick(type: string) {
 .icon-item:nth-child(2) { transition-delay: 0.1s; }
 .icon-item:nth-child(3) { transition-delay: 0.15s; }
 .icon-item:nth-child(4) { transition-delay: 0.2s; }
+.icon-item:nth-child(5) { transition-delay: 0.25s; }
 
 /* 确保 hover 时显示 tooltip */
 .icon-item:hover {

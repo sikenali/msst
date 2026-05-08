@@ -16,6 +16,8 @@ import {
   dltShengchen,
 } from './useUserSelections'
 import { getHotWarmColdNumbers } from './useLotteryHistory'
+import { useWuxingQilie, brokenRowEnabled, brokenColumnEnabled } from './useWuxingQilie'
+import { getHistoryDraws } from './useHistoryData'
 
 // 当前彩种类型（需要外部设置）
 let currentLotteryType: 'ssq' | 'dlt' = 'ssq'
@@ -150,6 +152,24 @@ const selectFromWeightedPool = (
   return selected.sort((a, b) => a - b)
 }
 
+function getKilledSet(range: number): Set<number> {
+  const killed = new Set<number>()
+  const historyDraws = getHistoryDraws(currentLotteryType)
+  if (historyDraws.length === 0) return killed
+  const allNums = Array.from({ length: range }, (_, i) => i + 1)
+
+  const { brokenRowEnabled, brokenColumnEnabled, analyzeAndKill } = useWuxingQilie()
+  if (brokenRowEnabled.value || brokenColumnEnabled.value) {
+    const survivors = analyzeAndKill(historyDraws, range)
+    const survivorSet = new Set(survivors)
+    for (const n of allNums) {
+      if (!survivorSet.has(n)) killed.add(n)
+    }
+  }
+
+  return killed
+}
+
 /**
  * 获取生日幸运数字 (简易算法)
  */
@@ -243,48 +263,64 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
   const redWeightMap = getDivineNumberPools(33, true)
   const blueWeightMap = getDivineNumberPools(16, false)
 
+  const killedRed = getKilledSet(33)
+  const killedBlue = getKilledSet(16)
+
   // 智能合并固定号码和法号推荐（去重+组合）
-  const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number): number[] => {
+  const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number, killed: Set<number> = new Set()): number[] => {
     const unique = new Set<number>(fixed)
 
     // 从加权池中按优先级选取（优先选择权重大于1的号码）
     if (unique.size < target) {
       const needed = target - unique.size
-      const weightedSelection = selectFromWeightedPool(weightMap, fixed, needed)
+      const weightedSelection = selectFromWeightedPool(weightMap, [...fixed, ...Array.from(killed)], needed)
       weightedSelection.forEach(n => unique.add(n))
     }
 
-    // 不足则随机补充
+    // 不足则随机补充（排除已杀号码）
+    if (unique.size < target) {
+      const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n) && !killed.has(n))
+      if (remaining.length > 0) {
+        const randomPick = getRandomNumsFromPool(remaining, Math.min(target - unique.size, remaining.length))
+        randomPick.forEach(n => unique.add(n))
+      }
+    }
+
+    // 仍不足则从全池补充（忽略杀号，保证有足够号码）
     if (unique.size < target) {
       const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n))
       const randomPick = getRandomNumsFromPool(remaining, target - unique.size)
       randomPick.forEach(n => unique.add(n))
     }
 
-    let result = Array.from(unique).sort((a, b) => a - b)
-
-    return result
+    return Array.from(unique).sort((a, b) => a - b)
   }
 
   // 辅助生成函数
   const generateRed = (count: number, useFixed: boolean) => {
     if (!useFixed || fixedRed.length === 0) {
-      return mergeNumbers([], redWeightMap, 33, count)
+      return mergeNumbers([], redWeightMap, 33, count, killedRed)
     }
     if (fixedRed.length >= count) {
       return [...fixedRed].slice(0, count).sort((a, b) => a - b)
     }
-    return mergeNumbers(fixedRed, redWeightMap, 33, count)
+    return mergeNumbers(fixedRed, redWeightMap, 33, count, killedRed)
   }
 
+  const wuxingActive = brokenRowEnabled.value || brokenColumnEnabled.value
+
   const generateBlue = (count: number, useFixed: boolean) => {
+    if (wuxingActive) {
+      const pool = Array.from({ length: 16 }, (_, i) => i + 1)
+      return getRandomNumsFromPool(pool, count)
+    }
     if (!useFixed || fixedBlue.length === 0) {
-      return mergeNumbers([], blueWeightMap, 16, count)
+      return mergeNumbers([], blueWeightMap, 16, count, killedBlue)
     }
     if (fixedBlue.length >= count) {
       return [...fixedBlue].slice(0, count).sort((a, b) => a - b)
     }
-    return mergeNumbers(fixedBlue, blueWeightMap, 16, count)
+    return mergeNumbers(fixedBlue, blueWeightMap, 16, count, killedBlue)
   }
 
   // 判断实际模式和目标数量
@@ -424,7 +460,7 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     // 胆码
     const bankers = useFixedRed && fixedRed.length > 0
       ? fixedRed.slice(0, Math.min(bankerCount, fixedRed.length))
-      : mergeNumbers([], redWeightMap, 33, bankerCount)
+      : mergeNumbers([], redWeightMap, 33, bankerCount, killedRed)
 
     // 拖码
     let drags: number[]
@@ -432,18 +468,20 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
       drags = fixedRed.slice(bankers.length, bankers.length + dragCount)
       if (drags.length < dragCount) {
         const need = dragCount - drags.length
-        const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n))
-        drags.push(...getRandomNumsFromPool(pool, need))
+        const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n) && !killedRed.has(n))
+        drags.push(...getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n)), need))
       }
     } else {
-      const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
-      drags = getRandomNumsFromPool(pool, dragCount)
+      const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !killedRed.has(n))
+      drags = getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n)), dragCount)
     }
 
-    // 蓝球：有固定则使用，否则从加权池选取1个
-    const blues = useFixedBlue && fixedBlue.length > 0
-      ? [...fixedBlue].sort((a, b) => a - b)
-      : mergeNumbers([], blueWeightMap, 16, 1)
+    // 蓝球：五行七列模式下随机，否则从加权池选取
+    const blues = wuxingActive
+      ? [Math.floor(Math.random() * 16) + 1]
+      : (useFixedBlue && fixedBlue.length > 0
+        ? [...fixedBlue].sort((a, b) => a - b)
+        : mergeNumbers([], blueWeightMap, 16, 1, killedBlue))
 
     return {
       type: 'dantuo',
@@ -469,47 +507,64 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
   const frontWeightMap = getDivineNumberPools(35, true)
   const backWeightMap = getDivineNumberPools(12, false)
 
+  const killedFront = getKilledSet(35)
+  const killedBack = getKilledSet(12)
+
   // 智能合并固定号码和道号推荐（去重+组合）
-  const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number): number[] => {
+  const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number, killed: Set<number> = new Set()): number[] => {
     const unique = new Set<number>(fixed)
 
     // 从加权池中按优先级选取（优先选择权重大于1的号码）
     if (unique.size < target) {
       const needed = target - unique.size
-      const weightedSelection = selectFromWeightedPool(weightMap, fixed, needed)
+      const weightedSelection = selectFromWeightedPool(weightMap, [...fixed, ...Array.from(killed)], needed)
       weightedSelection.forEach(n => unique.add(n))
     }
 
+    // 不足则随机补充（排除已杀号码）
+    if (unique.size < target) {
+      const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n) && !killed.has(n))
+      if (remaining.length > 0) {
+        const randomPick = getRandomNumsFromPool(remaining, Math.min(target - unique.size, remaining.length))
+        randomPick.forEach(n => unique.add(n))
+      }
+    }
+
+    // 仍不足则从全池补充（忽略杀号，保证有足够号码）
     if (unique.size < target) {
       const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n))
       const randomPick = getRandomNumsFromPool(remaining, target - unique.size)
       randomPick.forEach(n => unique.add(n))
     }
 
-    let result = Array.from(unique).sort((a, b) => a - b)
-
-    return result
+    return Array.from(unique).sort((a, b) => a - b)
   }
 
   // 辅助生成函数
   const generateFront = (count: number, useFixed: boolean) => {
     if (!useFixed || fixedFront.length === 0) {
-      return mergeNumbers([], frontWeightMap, 35, count)
+      return mergeNumbers([], frontWeightMap, 35, count, killedFront)
     }
     if (fixedFront.length >= count) {
       return [...fixedFront].slice(0, count).sort((a, b) => a - b)
     }
-    return mergeNumbers(fixedFront, frontWeightMap, 35, count)
+    return mergeNumbers(fixedFront, frontWeightMap, 35, count, killedFront)
   }
 
+  const wuxingActive = brokenRowEnabled.value || brokenColumnEnabled.value
+
   const generateBack = (count: number, useFixed: boolean) => {
+    if (wuxingActive) {
+      const pool = Array.from({ length: 12 }, (_, i) => i + 1)
+      return getRandomNumsFromPool(pool, count)
+    }
     if (!useFixed || fixedBack.length === 0) {
-      return mergeNumbers([], backWeightMap, 12, count)
+      return mergeNumbers([], backWeightMap, 12, count, killedBack)
     }
     if (fixedBack.length >= count) {
       return [...fixedBack].slice(0, count).sort((a, b) => a - b)
     }
-    return mergeNumbers(fixedBack, backWeightMap, 12, count)
+    return mergeNumbers(fixedBack, backWeightMap, 12, count, killedBack)
   }
 
   // 判断实际模式和目标数量
@@ -649,7 +704,7 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     // 胆码
     const bankers = useFixedFront && fixedFront.length > 0
       ? fixedFront.slice(0, Math.min(bankerCount, fixedFront.length))
-      : mergeNumbers([], frontWeightMap, 35, bankerCount)
+      : mergeNumbers([], frontWeightMap, 35, bankerCount, killedFront)
 
     // 拖码
     let drags: number[]
@@ -657,18 +712,20 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
       drags = fixedFront.slice(bankers.length, bankers.length + dragCount)
       if (drags.length < dragCount) {
         const need = dragCount - drags.length
-        const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n))
-        drags.push(...getRandomNumsFromPool(pool, need))
+        const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n) && !killedFront.has(n))
+        drags.push(...getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n)), need))
       }
     } else {
-      const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n))
-      drags = getRandomNumsFromPool(pool, dragCount)
+      const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !killedFront.has(n))
+      drags = getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n)), dragCount)
     }
 
-    // 后区：有固定则使用，否则从加权池选取2个
-    const backs = useFixedBack && fixedBack.length > 0
-      ? [...fixedBack].sort((a, b) => a - b)
-      : mergeNumbers([], backWeightMap, 12, 2)
+    // 后区：五行七列模式下随机，否则从加权池选取
+    const backs = wuxingActive
+      ? getRandomNumsFromPool(Array.from({ length: 12 }, (_, i) => i + 1), 2)
+      : (useFixedBack && fixedBack.length > 0
+        ? [...fixedBack].sort((a, b) => a - b)
+        : mergeNumbers([], backWeightMap, 12, 2, killedBack))
 
     return {
       type: 'dantuo',

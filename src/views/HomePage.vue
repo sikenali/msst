@@ -16,6 +16,8 @@ import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
 import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
 import IconModal from '@/components/IconModal.vue'
 import NumberPickerModal from '@/components/NumberPickerModal.vue'
+import KillRulesModal from '@/components/KillRulesModal.vue'
+import WuxingQilieModal from '@/components/WuxingQilieModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -59,6 +61,9 @@ const counterAutofocus = ref(false)
 const showIconModal = ref(false)
 const currentModalType = ref('')
 
+const showKillRulesModal = ref(false)
+const showWuxingQilieModal = ref(false)
+
 // 号码选择弹框
 const showPickerModal = ref(false)
 const pickerType = ref<'blue' | 'red'>('blue')
@@ -93,6 +98,18 @@ function handleOpenModal(type: string) {
     return
   }
 
+  // 杀号规则
+  if (type === 'shahao') {
+    showKillRulesModal.value = true
+    return
+  }
+
+  // 五行七列
+  if (type === 'wuxingqilie') {
+    showWuxingQilieModal.value = true
+    return
+  }
+
   // 其他类型打开普通弹框
   currentModalType.value = type
   showIconModal.value = true
@@ -100,6 +117,14 @@ function handleOpenModal(type: string) {
 
 function handleCloseModal() {
   showIconModal.value = false
+}
+
+function handleKillRulesClose() {
+  showKillRulesModal.value = false
+}
+
+function handleWuxingQilieClose() {
+  showWuxingQilieModal.value = false
 }
 
 function handlePickerConfirm(numbers: number[]) {
@@ -418,6 +443,22 @@ function reload() {
       :type="currentModalType"
       :lottery-type="lotteryType"
       @close="handleCloseModal"
+    />
+
+    <!-- 杀号规则弹框 -->
+    <KillRulesModal
+      :visible="showKillRulesModal"
+      :lottery-type="lotteryType"
+      @close="handleKillRulesClose"
+      @apply="handleKillRulesClose"
+    />
+
+    <!-- 五行七列弹框 -->
+    <WuxingQilieModal
+      :visible="showWuxingQilieModal"
+      :lottery-type="lotteryType"
+      @close="handleWuxingQilieClose"
+      @apply="handleWuxingQilieClose"
     />
 
     <!-- 号码选择弹框 -->
