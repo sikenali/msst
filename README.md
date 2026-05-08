@@ -1,18 +1,33 @@
-# 妙手神透
+# 妙手神透 - 智能彩票号码生成器
 
-> 融合传统八卦文化与现代随机算法的彩票号码生成器
+> 融合传统文化、五行八卦与现代 AI 算法的彩票助手
 
-## 项目简介
-
-妙手神透是一款基于 Vue 3 开发的彩票号码生成器，支持**双色球**和**大乐透**两种玩法。项目将中国传统八卦时辰文化与现代随机算法相结合，通过独特的"法号/道号"系统，为用户提供兼具文化底蕴与科学随机性的选号体验。
-
-适用于 Web 端和移动端浏览器，响应式设计完美适配各种屏幕尺寸。
+[![Vercel](https://img.shields.io/badge/deployed%20on-vercel-black?logo=vercel)](https://vercel.com)
+[![Vue 3](https://img.shields.io/badge/vue-3.5-green?logo=vue.js)](https://vuejs.org)
+[![TypeScript](https://img.shields.io/badge/typescript-6.0-blue?logo=typescript)](https://www.typescriptlang.org)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---
 
-## 功能特性
+## 📖 项目简介
 
-### 🎯 核心功能
+**妙手神透**是一款基于 Vue 3 + TypeScript 开发的智能彩票号码生成器，支持**双色球**和**大乐透**两种玩法。
+
+项目将中国传统八卦时辰文化与现代随机算法相结合，通过独特的"法号/道号"系统、五行七列图分析、历史数据智能杀号等功能，为用户提供兼具文化底蕴与科学随机性的选号体验。
+
+✨ **核心特色**：
+- 🎯 支持双色球/大乐透两种玩法
+- 🔮 法号/道号系统：生日、星座、幸运数字智能融合
+- 📊 五行七列图：传统五行理论可视化分析
+- 🤖 智能杀号规则：基于历史数据的断行断列分析
+- 📱 响应式设计：完美适配 Web 端和移动端
+- 🔗 短链接分享：一键分享号码给好友
+
+---
+
+## 🎮 功能特性
+
+### 🎯 核心玩法
 
 | 功能 | 说明 |
 |------|------|
@@ -24,20 +39,39 @@
 | **图片导出** | 一键生成高清结果图片，保存分享 |
 | **短链接分享** | 生成简短分享链接，好友可查看原号码并重新生成 |
 
-### 🔮 法号/道号系统
+### 🔮 法号/道号系统（个性化选号）
 
-用户可以通过以下四个维度设置个人幸运号码，系统会智能融合到生成算法中：
+用户可以通过以下维度设置个人幸运号码，系统会智能融合到生成算法中：
 
 | 功能入口 | 说明 | 对应彩种 |
 |---------|------|---------|
 | **蓝若寺** | 手动选择蓝球号码 | 双色球蓝球 / 大乐透后区 |
 | **红佛女** | 手动选择红球号码 | 双色球红球 / 大乐透前区 |
-| **运数** | 设置投注注数（1-99） | 通用 |
-| **运式** | 设置投注模式（单式/复式/胆拖） | 通用 |
 | **生日** | 输入出生日期，自动计算幸运数字 | 通用 |
 | **星座** | 选择星座，获取对应幸运数字 | 通用 |
 | **生辰** | 基于天干地支五行计算生辰幸运数 | 通用 |
 | **幸运数** | 自定义输入纪念日、证件号等有意义数字 | 通用 |
+
+### 📊 五行七列图（杀号分析）
+
+基于传统五行理论的号码分析工具：
+
+- **五行分区**：金、木、水、火、土五行，每行 7 列
+- **断行规则**：分析最近 10 期历史数据，排除冷门行
+- **断列规则**：分析 7 列命中情况，排除冷列和空开列
+- **可视化展示**：五行七列图表，号码分布一目了然
+- **智能补充**：双色球"水"行使用生财、有道图标补充缺位
+
+### 🤖 智能杀号规则
+
+基于历史数据的自动化杀号功能：
+
+| 杀号规则 | 说明 | 数据来源 |
+|---------|------|---------|
+| **断行杀号** | 分析五行行命中情况，排除冷门行 | 最近 10 期历史数据 |
+| **断列杀号** | 分析 7 列命中情况，排除冷列 | 最近 10 期历史数据 |
+| **历史数据** | 自动获取最近 30 期开奖数据 | 500.com 数据源 |
+| **定时更新** | 每天 22:00 自动同步最新数据 | 本地缓存 1 小时 |
 
 ### 🎨 视觉设计
 
@@ -48,28 +82,39 @@
 
 ---
 
-## 软件架构
+## 🛠️ 技术栈
 
-### 技术栈
+### 前端技术
 
-| 类型 | 技术 |
-|------|------|
-| 前端框架 | Vue 3.5 (Composition API + `<script setup>`) |
-| 编程语言 | TypeScript 6.0 |
-| 构建工具 | Vite 8.0 |
-| 路由管理 | Vue Router 4.6 |
-| 样式方案 | Tailwind CSS 4.2 + PostCSS |
-| 图标库 | @remixicon/vue 4.9 |
-| 图片生成 | html2canvas 1.4 |
-| 测试框架 | Vitest 4.1 + @vue/test-utils |
+| 类型 | 技术 | 版本 |
+|------|------|------|
+| 前端框架 | Vue 3 (Composition API) | 3.5.32 |
+| 编程语言 | TypeScript | 6.0.2 |
+| 构建工具 | Vite | 8.0.3 |
+| 路由管理 | Vue Router | 4.6.4 |
+| 样式方案 | Tailwind CSS + PostCSS | 4.2.2 |
+| 图标库 | Remix Icon Vue | 4.9.0 |
+| 图片生成 | html2canvas | 1.4.1 |
+| 测试框架 | Vitest + @vue/test-utils | 4.1.2 |
 
-### 项目结构
+### 后端技术（Vercel Serverless）
+
+| 类型 | 技术 | 说明 |
+|------|------|------|
+| 运行环境 | Vercel Serverless Functions | Node.js 运行时 |
+| API 框架 | Native TypeScript | 无服务器架构 |
+| 数据爬取 | Axios + Cheerio | 500.com 数据源 |
+| 缓存机制 | 内存缓存 + localStorage | 24 小时缓存策略 |
+
+---
+
+## 📦 项目结构
 
 ```
 msst/
 ├── src/
 │   ├── assets/            # 静态资源（全局样式、字体）
-│   ├── components/        # 公共组件（29个）
+│   ├── components/        # 公共组件（30+ 个）
 │   │   ├── BaguaDiagram.vue       # 八卦图（核心视觉）
 │   │   ├── ModeSelector.vue       # 模式选择器
 │   │   ├── NoteCounter.vue        # 注数计数器
@@ -77,6 +122,8 @@ msst/
 │   │   ├── ResultCard.vue         # 结果卡片
 │   │   ├── FloatingLeftPanel.vue  # 左浮动面板（法号）
 │   │   ├── FloatingRightPanel.vue # 右浮动面板（道号）
+│   │   ├── WuxingQilieModal.vue   # 五行七列图（新增）
+│   │   ├── KillRulesModal.vue     # 杀号规则（新增）
 │   │   ├── IconModal.vue          # 通用弹框
 │   │   ├── BirthdayPicker.vue     # 生日选择器
 │   │   ├── ConstellationPicker.vue # 星座选择器
@@ -85,6 +132,9 @@ msst/
 │   ├── composables/       # 组合式函数（核心算法）
 │   │   ├── useLottery.ts          # 号码生成主逻辑
 │   │   ├── useUserSelections.ts   # 全局状态管理
+│   │   ├── useWuxingQilie.ts      # 五行七列分析（新增）
+│   │   ├── useKillRules.ts        # 杀号规则（新增）
+│   │   ├── useHistoryData.ts      # 历史数据管理（新增）
 │   │   ├── useBagua.ts            # 八卦数字算法
 │   │   └── useFortune.ts          # 运势增强算法
 │   ├── views/             # 页面视图
@@ -93,12 +143,19 @@ msst/
 │   ├── router/            # 路由配置
 │   ├── App.vue            # 根组件
 │   └── main.ts            # 入口文件
-└── public/                # 公共资源（Logo、图标）
+├── api/                   # Vercel Serverless API（新增）
+│   └── lottery.ts         # 历史数据爬取 API
+├── server/                # 传统 Node.js 服务器（兼容方案）
+│   ├── server.js          # Express 服务器
+│   └── package.json       # 服务器依赖
+├── public/                # 公共资源（Logo、图标）
+├── vercel.json            # Vercel 部署配置
+└── package.json           # 项目依赖
 ```
 
 ---
 
-## 号码生成规则
+## 🎲 号码生成规则
 
 ### 双色球规则
 
@@ -124,43 +181,28 @@ msst/
 
 系统根据用户通过"蓝若寺/红佛女"选中的号码数量，自动判断生成模式：
 
-**双色球规则**：
+**双色球示例**：
 
-| 红球数量 | 蓝球数量 | 用户选择模式 | 生成模式 | 说明 |
-|---------|---------|-------------|---------|------|
-| 0 | 0 | 单式 | 单式 | 6随机红球 + 1随机蓝球 |
-| 0 | 0 | 复式 | 复式 | 7-9随机红球 + 2-3随机蓝球 |
-| 0 | 0 | 胆拖 | 胆拖 | 胆1-3个 + 拖2-4个 + 蓝随机 |
-| 1-5 | 0 | 单式 | 单式 | 选中红球 + 随机补足6 + 1随机蓝球 |
-| 1-5 | 0 | 复式 | 复式 | 选中红球 + 随机补足>6 + 1随机蓝球 |
-| 1-5 | 0 | 胆拖 | 胆拖 | 含选中红球的胆拖组合 |
-| ≥6 | 0 | 任意 | 复式 | 固定红球 + 1-2随机蓝球 |
-| 0 | 1 | 单式 | 单式 | 6随机红球 + 固定1蓝球 |
-| 0 | 1 | 复式 | 复式 | >6随机红球 + 固定1蓝球 |
-| 0 | 1 | 胆拖 | 胆拖 | 含固定1蓝球的胆拖组合 |
-| 0 | ≥2 | 任意 | 复式 | 算法推荐红球 + 固定蓝球 |
-| 已选 | 已选 | 任意 | 智能判断 | 固定号码 + 法号推荐智能去重 |
+| 红球数量 | 蓝球数量 | 生成模式 | 说明 |
+|---------|---------|---------|------|
+| 0 | 0 | 单式 | 6 随机红球 + 1 随机蓝球 |
+| 1-5 | 0 | 单式 | 选中红球 + 随机补足 6 + 1 随机蓝球 |
+| ≥6 | 0 | 复式 | 固定红球 + 1-2 随机蓝球 |
+| 0 | ≥2 | 复式 | 算法推荐红球 + 固定蓝球 |
+| 已选 | 已选 | 智能判断 | 固定号码 + 法号推荐智能去重 |
 
-**大乐透规则**（前区5个/后区2个）：
+**大乐透示例**：
 
-| 前区数量 | 后区数量 | 用户选择模式 | 生成模式 | 说明 |
-|---------|---------|-------------|---------|------|
-| 0 | 0 | 单式 | 单式 | 5随机前区 + 2随机后区 |
-| 0 | 0 | 复式 | 复式 | 6-9随机前区 + 3-4随机后区 |
-| 0 | 0 | 胆拖 | 胆拖 | 胆1-2个 + 拖2-3个 + 后区随机 |
-| 1-4 | 0 | 单式 | 单式 | 选中前区 + 随机补足5 + 2随机后区 |
-| 1-4 | 0 | 复式 | 复式 | 选中前区 + 随机补足>5 + 2随机后区 |
-| 1-4 | 0 | 胆拖 | 胆拖 | 含选中前区的胆拖组合 |
-| ≥5 | 0 | 任意 | 复式 | 固定前区 + 2-3随机后区 |
-| 0 | 2 | 单式 | 单式 | 5随机前区 + 固定2后区 |
-| 0 | 2 | 复式 | 复式 | >5随机前区 + 固定2后区 |
-| 0 | 2 | 胆拖 | 胆拖 | 含固定2后区的胆拖组合 |
-| 0 | ≥3 | 任意 | 复式 | 算法推荐前区 + 固定后区 |
-| 已选 | 已选 | 任意 | 智能判断 | 固定号码 + 法号推荐智能去重 |
+| 前区数量 | 后区数量 | 生成模式 | 说明 |
+|---------|---------|---------|------|
+| 0 | 0 | 单式 | 5 随机前区 + 2 随机后区 |
+| 1-4 | 0 | 单式 | 选中前区 + 随机补足 5 + 2 随机后区 |
+| ≥5 | 0 | 复式 | 固定前区 + 2-3 随机后区 |
+| 0 | ≥3 | 复式 | 算法推荐前区 + 固定后区 |
 
 ---
 
-## 算法介绍
+## 🧮 算法介绍
 
 ### 1. 基础随机算法
 
@@ -201,16 +243,16 @@ const getRandomNumsFromPool = (pool: number[], count: number): number[] => {
 
 ```typescript
 const getDivineNumberPools = (maxRange: number) => {
-  // 来源1：生日拆解 + 组合运算
+  // 来源 1：生日拆解 + 组合运算
   const birthNums = getBirthdayLuckyNumbers()  // 年月日数字拆解 + 组合数
 
-  // 来源2：星座幸运数字映射表
-  const constNums = getConstellationLuckyNumbers()  // 每个星座4个幸运数
+  // 来源 2：星座幸运数字映射表
+  const constNums = getConstellationLuckyNumbers()  // 每个星座 4 个幸运数
 
-  // 来源3：用户自定义幸运数
+  // 来源 3：用户自定义幸运数
   const luckyNums = getUserLuckyNumbers()  // 蓝若寺/红佛女/幸运数选择器
 
-  // 合并去重，范围过滤，权重增强（每个数字重复3次）
+  // 合并去重，范围过滤，权重增强（每个数字重复 3 次）
   return getWeightedPool([birthNums, constNums, luckyNums], [1, maxRange])
 }
 ```
@@ -248,7 +290,41 @@ const mergeNumbers = (fixed, pool, range, target) => {
 }
 ```
 
-### 5. 期号计算算法
+### 5. 五行七列杀号算法 (`useWuxingQilie.ts`)
+
+基于传统五行理论的号码分析：
+
+**数据结构**：
+```typescript
+// 双色球（33 个红球）
+WUXING_ROWS = [
+  { name: '金', numbers: [1, 2, 3, 4, 5, 6, 7], color: '#FFD700' },
+  { name: '木', numbers: [8, 9, 10, 11, 12, 13, 14], color: '#22C55E' },
+  { name: '水', numbers: [29, 30, 31, 32, 33], color: '#3B82F6' }, // + 生财/有道图标
+  { name: '火', numbers: [22, 23, 24, 25, 26, 27, 28], color: '#EF4444' },
+  { name: '土', numbers: [15, 16, 17, 18, 19, 20, 21], color: '#A855F7' }
+]
+
+// 大乐透（35 个前区）
+WUXING_ROWS_DLT = [
+  { name: '金', numbers: [1, 2, 3, 4, 5, 6, 7], color: '#FFD700' },
+  { name: '木', numbers: [8, 9, 10, 11, 12, 13, 14], color: '#22C55E' },
+  { name: '水', numbers: [29, 30, 31, 32, 33, 34, 35], color: '#3B82F6' },
+  { name: '火', numbers: [22, 23, 24, 25, 26, 27, 28], color: '#EF4444' },
+  { name: '土', numbers: [15, 16, 17, 18, 19, 20, 21], color: '#A855F7' }
+]
+```
+
+**断行规则**：
+- 分析最近 10 期历史数据
+- 统计每行命中次数和连续空开期数
+- 排除命中<2 次或连续空开≥5 期的行
+
+**断列规则**：
+- 分析 7 列的命中情况
+- 排除命中<3 次或连续空开≥4 期的列
+
+### 6. 期号计算算法
 
 根据参考日期和开奖规则动态计算下一期期号：
 
@@ -258,7 +334,7 @@ const mergeNumbers = (fixed, pool, range, target) => {
 
 ---
 
-## 分享流程
+## 🔗 分享流程
 
 1. **结果页点击"好运链链"** → 生成短链接（如 `/result?shareId=msst_m5x3k_a7f2b`）
 2. **完整数据存入 sessionStorage**（号码、期号、模式、时间等全部保存）
@@ -267,7 +343,7 @@ const mergeNumbers = (fixed, pool, range, target) => {
 
 ---
 
-## 快速开始
+## 🚀 快速开始
 
 ### 环境要求
 
@@ -284,9 +360,15 @@ cd msst
 # 安装依赖
 npm install
 
-# 启动开发服务器
+# 启动开发服务器（前端）
 npm run dev
 # 访问 http://localhost:5173
+
+# 启动后端服务器（可选，开发环境使用 Vite 代理）
+cd server
+npm install
+npm start
+# 后端运行在 http://localhost:3001
 ```
 
 ### 构建
@@ -306,13 +388,126 @@ npm run test
 
 ---
 
-## 开发规范
+## ☁️ 部署
+
+### Vercel 部署（推荐）
+
+项目已配置为 Vercel Serverless 架构，支持一键部署：
+
+```bash
+# 1. 安装 Vercel CLI
+npm install -g vercel
+
+# 2. 登录 Vercel
+vercel login
+
+# 3. 部署到生产环境
+vercel --prod
+```
+
+**自动部署**：
+- 推送到 GitHub 后自动触发 Vercel 部署
+- 大约 1-2 分钟完成构建和部署
+- 自动更新到生产环境
+
+**环境变量配置**：
+```env
+VITE_API_BASE_URL=/api
+```
+
+**API 端点**：
+```
+# 双色球历史数据
+https://your-project.vercel.app/api?type=ssq
+
+# 大乐透历史数据
+https://your-project.vercel.app/api?type=dlt
+
+# 刷新缓存
+https://your-project.vercel.app/api?type=refresh
+```
+
+### 其他部署方案
+
+#### Render（传统服务器）
+
+```bash
+cd server
+# 在 Render 创建 Web Service
+# Root Directory: server
+# Build Command: npm install
+# Start Command: node server.js
+```
+
+#### Railway
+
+- 导入 GitHub 仓库
+- 设置 Root Directory 为 `server`
+- 自动部署
+
+---
+
+## 📊 API 文档
+
+### 历史数据接口
+
+**请求参数**：
+```
+GET /api?type=ssq|dlt|refresh
+```
+
+**响应格式**：
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "issue": "2024001",
+      "red": [1, 2, 3, 4, 5, 6],
+      "blue": 7
+    }
+  ],
+  "count": 30,
+  "lastUpdated": "2024-01-01 22:00:00"
+}
+```
+
+**缓存策略**：
+- 本地缓存：1 小时
+- 服务器缓存：24 小时
+- 自动刷新：每天 22:00
+
+---
+
+## 📝 开发规范
 
 - 使用 TypeScript 进行类型安全开发
 - 遵循 Vue 3 Composition API 最佳实践
 - 组件命名采用 PascalCase
 - 使用 Tailwind CSS 原子类编写样式
+- 提交信息遵循 Conventional Commits 规范
 
-## 许可证
+---
+
+## 📄 许可证
 
 MIT License
+
+---
+
+## 🙏 致谢
+
+- 数据源：[500.com](https://datachart.500.com)
+- 图标库：[Remix Icon](https://remixicon.com)
+- 部署平台：[Vercel](https://vercel.com)
+
+---
+
+## 📞 联系方式
+
+- 项目地址：[GitHub](https://github.com/sikenali/msst)
+- 问题反馈：[Issues](https://github.com/sikenali/msst/issues)
+
+---
+
+**⚠️ 免责声明**：本项目仅供学习和娱乐使用，彩票有风险，投注需谨慎。
