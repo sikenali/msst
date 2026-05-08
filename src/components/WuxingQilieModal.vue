@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { RiCloseLine, RiMoneyCnyCircleFill } from '@remixicon/vue'
 import { useWuxingQilie } from '@/composables/useWuxingQilie'
 import { setWuxingType } from '@/composables/useWuxingQilie'
@@ -41,6 +41,10 @@ function handleOverlayClick(e: MouseEvent) {
 
 onMounted(() => {
   setWuxingType(props.lotteryType)
+})
+
+watch(() => props.lotteryType, (newType) => {
+  setWuxingType(newType)
 })
 </script>
 
