@@ -1,9 +1,10 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 // 使用环境变量配置 API 基础 URL，生产环境可配置实际后端地址
+// Vercel 部署时，使用相对路径即可
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
-const SSQ_API_URL = `${API_BASE_URL}/ssq`
-const DLT_API_URL = `${API_BASE_URL}/dlt`
+// Vercel Serverless 使用查询参数方式：/api?type=ssq
+const LOTTERY_API_URL = `${API_BASE_URL}`
 const SSQ_CACHE_KEY = 'msst_ssq_history'
 const DLT_CACHE_KEY = 'msst_dlt_history'
 const DEFAULT_DISPLAY_COUNT = 30
@@ -79,7 +80,8 @@ export async function fetchHistoryData(type: 'ssq' | 'dlt' = 'ssq'): Promise<voi
   isLoading.value = true
   
   try {
-    const url = type === 'ssq' ? SSQ_API_URL : DLT_API_URL
+    // Vercel Serverless 使用查询参数方式
+    const url = `${LOTTERY_API_URL}?type=${type}`
     const cacheKey = type === 'ssq' ? SSQ_CACHE_KEY : DLT_CACHE_KEY
 
     console.log(`fetchHistoryData: ${type}, url: ${url}`)
