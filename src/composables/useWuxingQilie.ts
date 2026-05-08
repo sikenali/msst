@@ -32,7 +32,7 @@ export function useWuxingQilie() {
 
   function analyzeAndKill(historyData: number[][], range: number): number[] {
     const killed = new Set<number>()
-    const currentRows = rows.value
+    const currentRows = range === 35 ? WUXING_ROWS_DLT : WUXING_ROWS
 
     if (brokenRowEnabled.value) {
       const rowHitCounts: number[] = currentRows.map(row => {

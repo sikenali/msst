@@ -3,7 +3,7 @@ import { onMounted } from 'vue'
 import { RiCloseLine, RiMoneyCnyCircleFill } from '@remixicon/vue'
 import { useWuxingQilie } from '@/composables/useWuxingQilie'
 import { setWuxingType } from '@/composables/useWuxingQilie'
-import CopperCoinIcon from '@/components/icons/CopperCoinIcon.vue'
+import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
 
 interface Props {
   visible: boolean

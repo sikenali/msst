@@ -24,10 +24,10 @@ export const isLoading = ref(false)
 export const lastUpdated = ref<string>('')
 export const dltLastUpdated = ref<string>('')
 
-let timer: ReturnType<typeof setInterval> | null = null
+let timer: number | undefined = undefined
 
 function setupAutoUpdate() {
-  clearInterval(timer)
+  if (timer) clearInterval(timer)
   
   const now = new Date()
   const targetTime = new Date()
@@ -152,7 +152,7 @@ export function useHistoryData() {
   onUnmounted(() => {
     if (timer) {
       clearInterval(timer)
-      timer = null
+      timer = undefined
     }
   })
   
