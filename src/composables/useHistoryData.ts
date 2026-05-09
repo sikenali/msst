@@ -52,7 +52,7 @@ function setupAutoUpdate() {
   }, delay)
 }
 
-async function fetchWithTimeout(url: string, timeout: number): Promise<string> {
+async function fetchWithTimeout(url: string, timeout: number): Promise<Response> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       reject(new Error('请求超时'))
@@ -61,18 +61,12 @@ async function fetchWithTimeout(url: string, timeout: number): Promise<string> {
     fetch(url, {
       method: 'GET',
       headers: {
-        'Accept': 'text/html',
+        'Accept': 'application/json',
       },
     })
     .then(response => {
       clearTimeout(timer)
-      if (!response.ok) {
-        reject(new Error(`HTTP ${response.status}`))
-      }
-      return response.text()
-    })
-    .then(html => {
-      resolve(html)
+      resolve(response)
     })
     .catch(error => {
       clearTimeout(timer)
