@@ -3,8 +3,12 @@ import { ref, onMounted, onUnmounted } from 'vue'
 // 直接使用 500.com 数据源，通过 CORS 代理访问
 const SSQ_URL = 'https://datachart.500.com/ssq/history/history.shtml'
 const DLT_URL = 'https://datachart.500.com/dlt/history/history.shtml'
-// CORS 代理（可以使用多个备用代理）
-const CORS_PROXY = 'https://api.allorigins.win/raw?url='
+// CORS 代理（使用多个备用代理）
+const CORS_PROXIES = [
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.io/?',
+  'https://api.codetabs.com/v1/proxy?quest='
+]
 const SSQ_CACHE_KEY = 'msst_ssq_history'
 const DLT_CACHE_KEY = 'msst_dlt_history'
 const DEFAULT_DISPLAY_COUNT = 30
@@ -221,7 +225,6 @@ export async function fetchHistoryData(type: 'ssq' | 'dlt' = 'ssq'): Promise<voi
   try {
     const url = type === 'ssq' ? SSQ_URL : DLT_URL
     const cacheKey = type === 'ssq' ? SSQ_CACHE_KEY : DLT_CACHE_KEY
-    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(url)}`
 
     console.log(`fetchHistoryData: ${type}, url: ${url}`)
     
@@ -248,8 +251,29 @@ export async function fetchHistoryData(type: 'ssq' | 'dlt' = 'ssq'): Promise<voi
       console.log(`fetchHistoryData: ${type} no cache found`)
     }
 
-    console.log(`fetchHistoryData: ${type} fetching from 500.com via CORS proxy...`)
-    const html = await fetchWithTimeout(proxyUrl, 15000)
+    // 尝试多个 CORS 代理
+    let html: string | null = null
+    let lastError: any = null
+    
+    for (const proxy of CORS_PROXIES) {
+      const proxyUrl = `${proxy}${encodeURIComponent(url)}`
+      console.log(`fetchHistoryData: ${type} trying proxy: ${proxyUrl}`)
+      
+      try {
+        html = await fetchWithTimeout(proxyUrl, 15000)
+        console.log(`fetchHistoryData: ${type} HTML received, length: ${html.length}`)
+        if (html && html.length > 1000) {
+          break // 成功获取
+        }
+      } catch (err) {
+        console.warn(`fetchHistoryData: ${type} proxy ${proxy} failed:`, err)
+        lastError = err
+      }
+    }
+    
+    if (!html || html.length < 1000) {
+      throw lastError || new Error('所有代理都失败')
+    }
     
     console.log(`fetchHistoryData: ${type} HTML received, parsing...`)
     
