@@ -7,104 +7,147 @@ const DLT_URL = 'https://datachart.500.com/dlt/history/history.shtml';
 
 const CACHE_DURATION = 86400000; // 24 小时
 
+interface LotteryEntry {
+  issue: string;
+  red?: number[];
+  blue?: number;
+  front?: number[];
+  back?: number[];
+}
+
 interface CacheEntry {
-  data: any[];
+  data: LotteryEntry[];
   timestamp: number;
   lastUpdated: string;
 }
 
-const ssqCache: CacheEntry = { data: [], timestamp: 0, lastUpdated: '' };
-const dltCache: CacheEntry = { data: [], timestamp: 0, lastUpdated: '' };
+// 使用全局变量存储缓存（Vercel Serverless 会在实例间共享）
+let ssqCache: CacheEntry = { data: [], timestamp: 0, lastUpdated: '' };
+let dltCache: CacheEntry = { data: [], timestamp: 0, lastUpdated: '' };
 
-function parseSSQHtml(html: string) {
-  const $ = cheerio.load(html);
-  const results: Array<{ issue: string; red: number[]; blue: number }> = [];
-  
-  // 更精确的选择器，针对 datachart.500.com 的表格结构
-  $('tbody tr').each((index, element) => {
-    const cells = $(element).find('td');
-    if (cells.length < 9) return;
+function parseSSQHtml(html: string): LotteryEntry[] {
+  try {
+    const $ = cheerio.load(html);
+    const results: Array<{ issue: string; red: number[]; blue: number }> = [];
     
-    // 期号
-    const issueEl = $(cells[0]).find('a').length > 0 ? $(cells[0]).find('a').text().trim() : $(cells[0]).text().trim();
-    const issue = issueEl;
-    if (!issue || !/^\d{5,6}$/.test(issue)) return;
-    
-    // 红球
-    const red: number[] = [];
-    for (let i = 1; i <= 6; i++) {
-      const numText = $(cells[i]).text().trim();
-      const num = parseInt(numText, 10);
-      if (!isNaN(num) && num >= 1 && num <= 33) {
-        red.push(num);
+    // 更精确的选择器，针对 datachart.500.com 的表格结构
+    $('tbody tr').each((index, element) => {
+      try {
+        const cells = $(element).find('td');
+        if (cells.length < 9) return;
+        
+        // 期号
+        const issueEl = $(cells[0]).find('a').length > 0 ? $(cells[0]).find('a').text().trim() : $(cells[0]).text().trim();
+        const issue = issueEl;
+        if (!issue || !/^\d{5,6}$/.test(issue)) return;
+        
+        // 红球
+        const red: number[] = [];
+        for (let i = 1; i <= 6; i++) {
+          try {
+            const numText = $(cells[i]).text().trim();
+            const num = parseInt(numText, 10);
+            if (!isNaN(num) && num >= 1 && num <= 33) {
+              red.push(num);
+            }
+          } catch (e) {
+            // 跳过单个单元格解析错误
+          }
+        }
+        if (red.length !== 6) return;
+        
+        // 蓝球
+        try {
+          const blueText = $(cells[7]).text().trim();
+          const blue = parseInt(blueText, 10);
+          if (isNaN(blue) || blue < 1 || blue > 16) return;
+          
+          results.push({
+            issue,
+            red,
+            blue
+          });
+        } catch (e) {
+          // 跳过蓝球解析错误
+        }
+      } catch (e) {
+        // 跳过单行解析错误
       }
-    }
-    if (red.length !== 6) return;
-    
-    // 蓝球
-    const blueText = $(cells[7]).text().trim();
-    const blue = parseInt(blueText, 10);
-    if (isNaN(blue) || blue < 1 || blue > 16) return;
-    
-    results.push({
-      issue,
-      red,
-      blue
     });
-  });
-  
-  console.log(`Parsed ${results.length} SSQ entries from HTML`);
-  return results.slice(0, 30);
+    
+    console.log(`Parsed ${results.length} SSQ entries from HTML`);
+    return results.slice(0, 30);
+  } catch (error: any) {
+    console.error('Error in parseSSQHtml:', error.message);
+    return [];
+  }
 }
 
-function parseDLTHtml(html: string) {
-  const $ = cheerio.load(html);
-  const results: Array<{ issue: string; front: number[]; back: number[] }> = [];
-  
-  // 更精确的选择器，针对 datachart.500.com 的表格结构
-  $('tbody tr').each((index, element) => {
-    const cells = $(element).find('td');
-    if (cells.length < 9) return;
+function parseDLTHtml(html: string): LotteryEntry[] {
+  try {
+    const $ = cheerio.load(html);
+    const results: Array<{ issue: string; front: number[]; back: number[] }> = [];
     
-    // 期号
-    const issueEl = $(cells[0]).find('a').length > 0 ? $(cells[0]).find('a').text().trim() : $(cells[0]).text().trim();
-    const issue = issueEl;
-    if (!issue || !/^\d{5,6}$/.test(issue)) return;
-    
-    // 前区
-    const front: number[] = [];
-    for (let i = 1; i <= 5; i++) {
-      const numText = $(cells[i]).text().trim();
-      const num = parseInt(numText, 10);
-      if (!isNaN(num) && num >= 1 && num <= 35) {
-        front.push(num);
+    // 更精确的选择器，针对 datachart.500.com 的表格结构
+    $('tbody tr').each((index, element) => {
+      try {
+        const cells = $(element).find('td');
+        if (cells.length < 9) return;
+        
+        // 期号
+        const issueEl = $(cells[0]).find('a').length > 0 ? $(cells[0]).find('a').text().trim() : $(cells[0]).text().trim();
+        const issue = issueEl;
+        if (!issue || !/^\d{5,6}$/.test(issue)) return;
+        
+        // 前区
+        const front: number[] = [];
+        for (let i = 1; i <= 5; i++) {
+          try {
+            const numText = $(cells[i]).text().trim();
+            const num = parseInt(numText, 10);
+            if (!isNaN(num) && num >= 1 && num <= 35) {
+              front.push(num);
+            }
+          } catch (e) {
+            // 跳过单个单元格解析错误
+          }
+        }
+        if (front.length !== 5) return;
+        
+        // 后区
+        const back: number[] = [];
+        for (let i = 6; i <= 7; i++) {
+          try {
+            const numText = $(cells[i]).text().trim();
+            const num = parseInt(numText, 10);
+            if (!isNaN(num) && num >= 1 && num <= 12) {
+              back.push(num);
+            }
+          } catch (e) {
+            // 跳过单个单元格解析错误
+          }
+        }
+        if (back.length !== 2) return;
+        
+        results.push({
+          issue,
+          front,
+          back
+        });
+      } catch (e) {
+        // 跳过单行解析错误
       }
-    }
-    if (front.length !== 5) return;
-    
-    // 后区
-    const back: number[] = [];
-    for (let i = 6; i <= 7; i++) {
-      const numText = $(cells[i]).text().trim();
-      const num = parseInt(numText, 10);
-      if (!isNaN(num) && num >= 1 && num <= 12) {
-        back.push(num);
-      }
-    }
-    if (back.length !== 2) return;
-    
-    results.push({
-      issue,
-      front,
-      back
     });
-  });
-  
-  console.log(`Parsed ${results.length} DLT entries from HTML`);
-  return results.slice(0, 30);
+    
+    console.log(`Parsed ${results.length} DLT entries from HTML`);
+    return results.slice(0, 30);
+  } catch (error: any) {
+    console.error('Error in parseDLTHtml:', error.message);
+    return [];
+  }
 }
 
-async function fetchSSQData() {
+async function fetchSSQData(): Promise<LotteryEntry[]> {
   const now = Date.now();
   if (now - ssqCache.timestamp < CACHE_DURATION && ssqCache.data.length > 0) {
     console.log('Returning cached SSQ data');
@@ -124,6 +167,11 @@ async function fetchSSQData() {
     });
     
     console.log('SSQ response status:', response.status);
+    
+    if (!response.data) {
+      throw new Error('Empty response from 500.com');
+    }
+    
     const data = parseSSQHtml(response.data);
     console.log('Parsed SSQ data count:', data.length);
     
@@ -139,12 +187,15 @@ async function fetchSSQData() {
     if (error.response) {
       console.error('Response status:', error.response.status);
       console.error('Response data:', error.response.data?.substring(0, 200));
+    } else if (error.request) {
+      console.error('No response received:', error.request);
     }
+    // 返回缓存数据，如果没有则返回空数组
     return ssqCache.data.length > 0 ? ssqCache.data : [];
   }
 }
 
-async function fetchDLTData() {
+async function fetchDLTData(): Promise<LotteryEntry[]> {
   const now = Date.now();
   if (now - dltCache.timestamp < CACHE_DURATION && dltCache.data.length > 0) {
     console.log('Returning cached DLT data');
@@ -164,6 +215,11 @@ async function fetchDLTData() {
     });
     
     console.log('DLT response status:', response.status);
+    
+    if (!response.data) {
+      throw new Error('Empty response from 500.com');
+    }
+    
     const data = parseDLTHtml(response.data);
     console.log('Parsed DLT data count:', data.length);
     
@@ -179,7 +235,10 @@ async function fetchDLTData() {
     if (error.response) {
       console.error('Response status:', error.response.status);
       console.error('Response data:', error.response.data?.substring(0, 200));
+    } else if (error.request) {
+      console.error('No response received:', error.request);
     }
+    // 返回缓存数据，如果没有则返回空数组
     return dltCache.data.length > 0 ? dltCache.data : [];
   }
 }
