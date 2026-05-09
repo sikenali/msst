@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "msst-lottery",
   "builds": [
     {
       "src": "package.json",
@@ -8,21 +7,16 @@
       "config": {
         "distDir": "dist"
       }
-    },
-    {
-      "src": "api/*.ts",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/lottery.ts"
+      "src": "/api",
+      "dest": "api/lottery.ts"
     },
     {
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ],
-  "outputDirectory": "dist"
+  ]
 }
