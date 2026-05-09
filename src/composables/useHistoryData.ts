@@ -68,18 +68,29 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
   
   console.log(`parseSSQHtml: Found ${rows.length} rows`)
   
-  for (let i = 0; i < rows.length; i++) {
+  const getText = (html: string) => html.replace(/<[^>]*>/g, '').trim()
+  
+  for (let i = 0; i < Math.min(5, rows.length); i++) {
     const row = rows[i]
     
     // 提取所有单元格
     const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
+    console.log(`Row ${i}: cells=${cellMatches ? cellMatches.length : 0}`)
+    
+    if (cellMatches) {
+      console.log(`Row ${i} first 3 cells:`, cellMatches.slice(0, 3).map(c => getText(c)))
+    }
+    
     if (!cellMatches || cellMatches.length < 8) continue
     
     // 提取文本内容
-    const getText = (html: string) => html.replace(/<[^>]*>/g, '').trim()
-    
     const issue = getText(cellMatches[0])
-    if (!issue || !/^\d{5,6}$/.test(issue)) continue
+    console.log(`Row ${i} issue: "${issue}"`)
+    
+    if (!issue || !/^\d{5,6}$/.test(issue)) {
+      console.log(`Row ${i} issue validation failed`)
+      continue
+    }
     
     const red: number[] = []
     for (let j = 1; j <= 6; j++) {
@@ -88,10 +99,16 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
         red.push(num)
       }
     }
-    if (red.length !== 6) continue
+    if (red.length !== 6) {
+      console.log(`Row ${i} red balls validation failed: ${red.length}`)
+      continue
+    }
     
     const blue = parseInt(getText(cellMatches[7]), 10)
-    if (isNaN(blue) || blue < 1 || blue > 16) continue
+    if (isNaN(blue) || blue < 1 || blue > 16) {
+      console.log(`Row ${i} blue ball validation failed: ${blue}`)
+      continue
+    }
     
     results.push({
       issue,
