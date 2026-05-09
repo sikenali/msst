@@ -84,6 +84,8 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
     const row = rows[i]
     const nums = getNumbers(row)
     
+    console.log(`Row ${i}: ${nums.length} nums: [${nums.slice(0, 10).join(', ')}...]`)
+    
     // 期号应该是 5-6 位数字，红球 1-33，蓝球 1-16
     if (nums.length >= 7) {
       const issue = nums[0]
@@ -91,6 +93,8 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
       if (issue >= 10000 && issue <= 999999) {
         const red = nums.slice(1, 7).filter(n => n >= 1 && n <= 33)
         const blue = nums[7]
+        
+        console.log(`  -> issue=${issue}, red=[${red}], blue=${blue}`)
         
         if (red.length === 6 && blue >= 1 && blue <= 16) {
           results.push({
