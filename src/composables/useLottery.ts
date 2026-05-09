@@ -15,7 +15,6 @@ import {
   dltLuckyNumbers,
   dltShengchen,
 } from './useUserSelections'
-import { getHotWarmColdNumbers } from './useLotteryHistory'
 import { useWuxingQilie, brokenRowEnabled, brokenColumnEnabled } from './useWuxingQilie'
 import { getHistoryDraws } from './useHistoryData'
 
@@ -207,7 +206,7 @@ const getConstellationLuckyNumbers = (): number[] => {
 
 /**
  * 获取所有法号/道号相关的加权池
- * 包含：生日、星座、幸运数、生辰、热温冷号
+ * 包含：生日、星座、幸运数、生辰
  */
 const getDivineNumberPools = (maxRange: number, isRed: boolean = true) => {
   const birthNums = getBirthdayLuckyNumbers().filter(n => n <= maxRange)
@@ -215,28 +214,13 @@ const getDivineNumberPools = (maxRange: number, isRed: boolean = true) => {
   const luckyNums = getUserLuckyNumbers().value.filter(n => n <= maxRange)
   const shengchenNums = getUserShengchenLuckyNumbers().filter(n => n <= maxRange)
 
-  // 红球/前区加入热温冷号统计
-  let hotNums: number[] = []
-  let warmNums: number[] = []
-  let coldNums: number[] = []
-
-  if (isRed) {
-    const hwc = getHotWarmColdNumbers(currentLotteryType)
-    hotNums = hwc.hot.filter(n => n <= maxRange)
-    warmNums = hwc.warm.filter(n => n <= maxRange)
-    coldNums = hwc.cold.filter(n => n <= maxRange)
-  }
-
-  // 热号权重+3，温号权重+2，冷号权重+1
+  // 热号权重 +3，温号权重 +2，冷号权重 +1（已移除热温冷号逻辑）
   const weightMap = new Map<number, number>()
   const sources = [
     { nums: birthNums, weight: 1 },
     { nums: constNums, weight: 1 },
     { nums: luckyNums, weight: 1 },
     { nums: shengchenNums, weight: 1 },
-    { nums: hotNums, weight: 3 },
-    { nums: warmNums, weight: 2 },
-    { nums: coldNums, weight: 1 },
   ]
 
   for (const { nums, weight } of sources) {
