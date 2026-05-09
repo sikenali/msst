@@ -55,33 +55,42 @@ function setupAutoUpdate() {
 function parseSSQHtml(html: string): SSQHistoryEntry[] {
   const results: SSQHistoryEntry[] = []
   
-  // 简单的 HTML 解析，提取表格数据
-  const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/i
-  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi
-  const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi
+  console.log(`parseSSQHtml: HTML length: ${html.length}`)
   
-  const tableMatch = html.match(tableRegex)
-  if (!tableMatch) return results
+  // 尝试提取所有行
+  const rowRegex = /<tr[^>]*>[\s\S]*?<\/tr>/gi
+  const rows = html.match(rowRegex)
   
-  const rows = tableMatch[1].matchAll(rowRegex)
+  if (!rows) {
+    console.log('parseSSQHtml: No rows found')
+    return results
+  }
   
-  for (const row of rows) {
-    const cells = [...row[1].matchAll(cellRegex)]
-    if (cells.length < 9) continue
+  console.log(`parseSSQHtml: Found ${rows.length} rows`)
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
     
-    const issue = cells[0][1].trim()
+    // 提取所有单元格
+    const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
+    if (!cellMatches || cellMatches.length < 8) continue
+    
+    // 提取文本内容
+    const getText = (html: string) => html.replace(/<[^>]*>/g, '').trim()
+    
+    const issue = getText(cellMatches[0])
     if (!issue || !/^\d{5,6}$/.test(issue)) continue
     
     const red: number[] = []
-    for (let i = 1; i <= 6; i++) {
-      const num = parseInt(cells[i][1].trim(), 10)
+    for (let j = 1; j <= 6; j++) {
+      const num = parseInt(getText(cellMatches[j]), 10)
       if (!isNaN(num) && num >= 1 && num <= 33) {
         red.push(num)
       }
     }
     if (red.length !== 6) continue
     
-    const blue = parseInt(cells[7][1].trim(), 10)
+    const blue = parseInt(getText(cellMatches[7]), 10)
     if (isNaN(blue) || blue < 1 || blue > 16) continue
     
     results.push({
@@ -91,31 +100,39 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
     })
   }
   
+  console.log(`parseSSQHtml: Parsed ${results.length} valid entries`)
   return results.slice(0, 30)
 }
 
 function parseDLTHtml(html: string): DLTHistoryEntry[] {
   const results: DLTHistoryEntry[] = []
   
-  const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/i
-  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi
-  const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi
+  console.log(`parseDLTHtml: HTML length: ${html.length}`)
   
-  const tableMatch = html.match(tableRegex)
-  if (!tableMatch) return results
+  const rowRegex = /<tr[^>]*>[\s\S]*?<\/tr>/gi
+  const rows = html.match(rowRegex)
   
-  const rows = tableMatch[1].matchAll(rowRegex)
+  if (!rows) {
+    console.log('parseDLTHtml: No rows found')
+    return results
+  }
   
-  for (const row of rows) {
-    const cells = [...row[1].matchAll(cellRegex)]
-    if (cells.length < 9) continue
+  console.log(`parseDLTHtml: Found ${rows.length} rows`)
+  
+  const getText = (html: string) => html.replace(/<[^>]*>/g, '').trim()
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
     
-    const issue = cells[0][1].trim()
+    const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
+    if (!cellMatches || cellMatches.length < 8) continue
+    
+    const issue = getText(cellMatches[0])
     if (!issue || !/^\d{5,6}$/.test(issue)) continue
     
     const front: number[] = []
-    for (let i = 1; i <= 5; i++) {
-      const num = parseInt(cells[i][1].trim(), 10)
+    for (let j = 1; j <= 5; j++) {
+      const num = parseInt(getText(cellMatches[j]), 10)
       if (!isNaN(num) && num >= 1 && num <= 35) {
         front.push(num)
       }
@@ -123,8 +140,8 @@ function parseDLTHtml(html: string): DLTHistoryEntry[] {
     if (front.length !== 5) continue
     
     const back: number[] = []
-    for (let i = 6; i <= 7; i++) {
-      const num = parseInt(cells[i][1].trim(), 10)
+    for (let j = 6; j <= 7; j++) {
+      const num = parseInt(getText(cellMatches[j]), 10)
       if (!isNaN(num) && num >= 1 && num <= 12) {
         back.push(num)
       }
@@ -138,6 +155,7 @@ function parseDLTHtml(html: string): DLTHistoryEntry[] {
     })
   }
   
+  console.log(`parseDLTHtml: Parsed ${results.length} valid entries`)
   return results.slice(0, 30)
 }
 
