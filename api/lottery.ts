@@ -20,23 +20,30 @@ function parseSSQHtml(html: string) {
   const $ = cheerio.load(html);
   const results: Array<{ issue: string; red: number[]; blue: number }> = [];
   
-  $('table tr').each((index, element) => {
+  // 更精确的选择器，针对 datachart.500.com 的表格结构
+  $('tbody tr').each((index, element) => {
     const cells = $(element).find('td');
     if (cells.length < 9) return;
     
-    const issue = $(cells[0]).text().trim();
+    // 期号
+    const issueEl = $(cells[0]).find('a').length > 0 ? $(cells[0]).find('a').text().trim() : $(cells[0]).text().trim();
+    const issue = issueEl;
     if (!issue || !/^\d{5,6}$/.test(issue)) return;
     
+    // 红球
     const red: number[] = [];
     for (let i = 1; i <= 6; i++) {
-      const num = parseInt($(cells[i]).text().trim(), 10);
+      const numText = $(cells[i]).text().trim();
+      const num = parseInt(numText, 10);
       if (!isNaN(num) && num >= 1 && num <= 33) {
         red.push(num);
       }
     }
     if (red.length !== 6) return;
     
-    const blue = parseInt($(cells[7]).text().trim(), 10);
+    // 蓝球
+    const blueText = $(cells[7]).text().trim();
+    const blue = parseInt(blueText, 10);
     if (isNaN(blue) || blue < 1 || blue > 16) return;
     
     results.push({
@@ -46,6 +53,7 @@ function parseSSQHtml(html: string) {
     });
   });
   
+  console.log(`Parsed ${results.length} SSQ entries from HTML`);
   return results.slice(0, 30);
 }
 
@@ -53,25 +61,32 @@ function parseDLTHtml(html: string) {
   const $ = cheerio.load(html);
   const results: Array<{ issue: string; front: number[]; back: number[] }> = [];
   
-  $('table tr').each((index, element) => {
+  // 更精确的选择器，针对 datachart.500.com 的表格结构
+  $('tbody tr').each((index, element) => {
     const cells = $(element).find('td');
     if (cells.length < 9) return;
     
-    const issue = $(cells[0]).text().trim();
+    // 期号
+    const issueEl = $(cells[0]).find('a').length > 0 ? $(cells[0]).find('a').text().trim() : $(cells[0]).text().trim();
+    const issue = issueEl;
     if (!issue || !/^\d{5,6}$/.test(issue)) return;
     
+    // 前区
     const front: number[] = [];
     for (let i = 1; i <= 5; i++) {
-      const num = parseInt($(cells[i]).text().trim(), 10);
+      const numText = $(cells[i]).text().trim();
+      const num = parseInt(numText, 10);
       if (!isNaN(num) && num >= 1 && num <= 35) {
         front.push(num);
       }
     }
     if (front.length !== 5) return;
     
+    // 后区
     const back: number[] = [];
     for (let i = 6; i <= 7; i++) {
-      const num = parseInt($(cells[i]).text().trim(), 10);
+      const numText = $(cells[i]).text().trim();
+      const num = parseInt(numText, 10);
       if (!isNaN(num) && num >= 1 && num <= 12) {
         back.push(num);
       }
@@ -85,24 +100,33 @@ function parseDLTHtml(html: string) {
     });
   });
   
+  console.log(`Parsed ${results.length} DLT entries from HTML`);
   return results.slice(0, 30);
 }
 
 async function fetchSSQData() {
   const now = Date.now();
   if (now - ssqCache.timestamp < CACHE_DURATION && ssqCache.data.length > 0) {
+    console.log('Returning cached SSQ data');
     return ssqCache.data;
   }
   
   try {
+    console.log('Fetching SSQ data from 500.com...');
     const response = await axios.get(SSQ_URL, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
       },
-      timeout: 10000
+      timeout: 10000,
+      maxRedirects: 5
     });
     
+    console.log('SSQ response status:', response.status);
     const data = parseSSQHtml(response.data);
+    console.log('Parsed SSQ data count:', data.length);
+    
     if (data.length > 0) {
       ssqCache.data = data;
       ssqCache.timestamp = now;
@@ -112,6 +136,10 @@ async function fetchSSQData() {
     return data;
   } catch (error: any) {
     console.error('Failed to fetch SSQ data:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data?.substring(0, 200));
+    }
     return ssqCache.data.length > 0 ? ssqCache.data : [];
   }
 }
@@ -119,18 +147,26 @@ async function fetchSSQData() {
 async function fetchDLTData() {
   const now = Date.now();
   if (now - dltCache.timestamp < CACHE_DURATION && dltCache.data.length > 0) {
+    console.log('Returning cached DLT data');
     return dltCache.data;
   }
   
   try {
+    console.log('Fetching DLT data from 500.com...');
     const response = await axios.get(DLT_URL, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
       },
-      timeout: 10000
+      timeout: 10000,
+      maxRedirects: 5
     });
     
+    console.log('DLT response status:', response.status);
     const data = parseDLTHtml(response.data);
+    console.log('Parsed DLT data count:', data.length);
+    
     if (data.length > 0) {
       dltCache.data = data;
       dltCache.timestamp = now;
@@ -140,6 +176,10 @@ async function fetchDLTData() {
     return data;
   } catch (error: any) {
     console.error('Failed to fetch DLT data:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data?.substring(0, 200));
+    }
     return dltCache.data.length > 0 ? dltCache.data : [];
   }
 }
@@ -162,10 +202,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { type } = req.query;
+  console.log('API request received, type:', type);
 
   try {
     if (type === 'ssq') {
+      console.log('Processing SSQ request...');
       const data = await fetchSSQData();
+      console.log('Returning SSQ response with', data.length, 'entries');
       return res.status(200).json({
         success: true,
         data,
@@ -173,7 +216,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         lastUpdated: ssqCache.lastUpdated
       });
     } else if (type === 'dlt') {
+      console.log('Processing DLT request...');
       const data = await fetchDLTData();
+      console.log('Returning DLT response with', data.length, 'entries');
       return res.status(200).json({
         success: true,
         data,
@@ -182,6 +227,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     } else if (type === 'refresh') {
       // 刷新缓存
+      console.log('Refreshing cache...');
       ssqCache.data = [];
       ssqCache.timestamp = 0;
       dltCache.data = [];
@@ -194,6 +240,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         message: '数据已刷新'
       });
     } else {
+      console.log('Invalid type parameter:', type);
       return res.status(400).json({
         success: false,
         error: 'Invalid type parameter. Use "ssq", "dlt", or "refresh"'
@@ -201,6 +248,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (error: any) {
     console.error('API error:', error.message);
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
     return res.status(500).json({
       success: false,
       error: error.message
