@@ -70,27 +70,34 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
   
   const getText = (html: string) => html.replace(/<[^>]*>/g, '').trim()
   
-  for (let i = 0; i < Math.min(5, rows.length); i++) {
+  // 跳过前几行（登录表单等），从数据行开始
+  let startIndex = 0
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
+    const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
+    if (cellMatches && cellMatches.length >= 8) {
+      const firstCell = getText(cellMatches[0])
+      // 查找以期号开头的行（数字）
+      if (/^\d{5,6}$/.test(firstCell)) {
+        startIndex = i
+        console.log(`parseSSQHtml: Data starts at row ${i}`)
+        break
+      }
+    }
+  }
+  
+  // 从数据行开始解析
+  for (let i = startIndex; i < rows.length; i++) {
     const row = rows[i]
     
     // 提取所有单元格
     const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
-    console.log(`Row ${i}: cells=${cellMatches ? cellMatches.length : 0}`)
-    
-    if (cellMatches) {
-      console.log(`Row ${i} first 3 cells:`, cellMatches.slice(0, 3).map(c => getText(c)))
-    }
-    
     if (!cellMatches || cellMatches.length < 8) continue
     
     // 提取文本内容
     const issue = getText(cellMatches[0])
-    console.log(`Row ${i} issue: "${issue}"`)
     
-    if (!issue || !/^\d{5,6}$/.test(issue)) {
-      console.log(`Row ${i} issue validation failed`)
-      continue
-    }
+    if (!issue || !/^\d{5,6}$/.test(issue)) continue
     
     const red: number[] = []
     for (let j = 1; j <= 6; j++) {
@@ -99,26 +106,22 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
         red.push(num)
       }
     }
-    if (red.length !== 6) {
-      console.log(`Row ${i} red balls validation failed: ${red.length}`)
-      continue
-    }
+    if (red.length !== 6) continue
     
     const blue = parseInt(getText(cellMatches[7]), 10)
-    if (isNaN(blue) || blue < 1 || blue > 16) {
-      console.log(`Row ${i} blue ball validation failed: ${blue}`)
-      continue
-    }
+    if (isNaN(blue) || blue < 1 || blue > 16) continue
     
     results.push({
       issue,
       red,
       blue
     })
+    
+    if (results.length >= 30) break
   }
   
   console.log(`parseSSQHtml: Parsed ${results.length} valid entries`)
-  return results.slice(0, 30)
+  return results
 }
 
 function parseDLTHtml(html: string): DLTHistoryEntry[] {
