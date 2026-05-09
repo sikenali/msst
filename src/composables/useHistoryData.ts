@@ -70,14 +70,14 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
   
   const getText = (html: string) => html.replace(/<[^>]*>/g, '').trim()
   
-  // 跳过前几行（登录表单等），从数据行开始
-  let startIndex = 0
+  // 先查找数据行起始位置
+  let startIndex = -1
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
     const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
     if (cellMatches && cellMatches.length >= 8) {
       const firstCell = getText(cellMatches[0])
-      // 查找以期号开头的行（数字）
+      console.log(`Row ${i}: cells=${cellMatches.length}, first="${firstCell}", test=${/^\d{5,6}$/.test(firstCell)}`)
       if (/^\d{5,6}$/.test(firstCell)) {
         startIndex = i
         console.log(`parseSSQHtml: Data starts at row ${i}`)
@@ -86,15 +86,20 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
     }
   }
   
+  if (startIndex === -1) {
+    console.log('parseSSQHtml: No data row found, checking all rows...')
+    // 如果没找到，尝试解析所有行
+    startIndex = 0
+  }
+  
   // 从数据行开始解析
+  let validCount = 0
   for (let i = startIndex; i < rows.length; i++) {
     const row = rows[i]
-    
-    // 提取所有单元格
     const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
+    
     if (!cellMatches || cellMatches.length < 8) continue
     
-    // 提取文本内容
     const issue = getText(cellMatches[0])
     
     if (!issue || !/^\d{5,6}$/.test(issue)) continue
@@ -116,8 +121,9 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
       red,
       blue
     })
+    validCount++
     
-    if (results.length >= 30) break
+    if (validCount >= 30) break
   }
   
   console.log(`parseSSQHtml: Parsed ${results.length} valid entries`)
