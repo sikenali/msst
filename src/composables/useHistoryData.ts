@@ -1,15 +1,10 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
-// 直接使用 500.com 数据源，通过 CORS 代理访问
-const SSQ_URL = 'https://datachart.500.com/ssq/history/history.shtml'
-const DLT_URL = 'https://datachart.500.com/dlt/history/history.shtml'
-// CORS 代理（使用多个备用代理）
-const CORS_PROXIES = [
-  'https://api.allorigins.win/raw?url=',
-  'https://corsproxy.io/?',
-  'https://api.codetabs.com/v1/proxy?quest=',
-  'https://proxy.cors.sh/'
-]
+// 使用环境变量配置 API 基础 URL，生产环境可配置实际后端地址
+// Vercel 部署时，使用相对路径即可
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/lottery'
+// Vercel Serverless 使用查询参数方式：/api/lottery?type=ssq
+const LOTTERY_API_URL = `${API_BASE_URL}`
 const SSQ_CACHE_KEY = 'msst_ssq_history'
 const DLT_CACHE_KEY = 'msst_dlt_history'
 const DEFAULT_DISPLAY_COUNT = 30
@@ -57,113 +52,6 @@ function setupAutoUpdate() {
   }, delay)
 }
 
-function parseSSQHtml(html: string): SSQHistoryEntry[] {
-  const results: SSQHistoryEntry[] = []
-  
-  console.log(`parseSSQHtml: HTML length: ${html.length}`)
-  
-  // 尝试提取所有行
-  const rowRegex = /<tr[^>]*>[\s\S]*?<\/tr>/gi
-  const rows = html.match(rowRegex)
-  
-  if (!rows) {
-    console.log('parseSSQHtml: No rows found')
-    return results
-  }
-  
-  console.log(`parseSSQHtml: Found ${rows.length} rows`)
-  
-  // 直接提取所有数字，不依赖文本编码
-  const getNumbers = (row: string): number[] => {
-    const nums = row.match(/\d+/g) || []
-    return nums.map(n => parseInt(n, 10)).filter(n => !isNaN(n))
-  }
-  
-  // 查找数据行（每行应该有 7 个数字：期号 6 个红球 + 1 个蓝球）
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i]
-    const nums = getNumbers(row)
-    
-    console.log(`Row ${i}: ${nums.length} nums: [${nums.slice(0, 10).join(', ')}...]`)
-    
-    // 期号应该是 5-6 位数字，红球 1-33，蓝球 1-16
-    if (nums.length >= 7) {
-      const issue = nums[0]
-      // 期号应该是 5-6 位，如 2024001
-      if (issue >= 10000 && issue <= 999999) {
-        const red = nums.slice(1, 7).filter(n => n >= 1 && n <= 33)
-        const blue = nums[7]
-        
-        console.log(`  -> issue=${issue}, red=[${red}], blue=${blue}`)
-        
-        if (red.length === 6 && blue >= 1 && blue <= 16) {
-          results.push({
-            issue: String(issue),
-            red: red.sort((a, b) => a - b),
-            blue
-          })
-        }
-      }
-    }
-    
-    if (results.length >= 30) break
-  }
-  
-  console.log(`parseSSQHtml: Parsed ${results.length} valid entries`)
-  return results
-}
-
-function parseDLTHtml(html: string): DLTHistoryEntry[] {
-  const results: DLTHistoryEntry[] = []
-  
-  console.log(`parseDLTHtml: HTML length: ${html.length}`)
-  
-  const rowRegex = /<tr[^>]*>[\s\S]*?<\/tr>/gi
-  const rows = html.match(rowRegex)
-  
-  if (!rows) {
-    console.log('parseDLTHtml: No rows found')
-    return results
-  }
-  
-  console.log(`parseDLTHtml: Found ${rows.length} rows`)
-  
-  // 直接提取所有数字，不依赖文本编码
-  const getNumbers = (row: string): number[] => {
-    const nums = row.match(/\d+/g) || []
-    return nums.map(n => parseInt(n, 10)).filter(n => !isNaN(n))
-  }
-  
-  // 查找数据行（每行应该有 7 个数字：期号 5 个前区 + 2 个后区）
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i]
-    const nums = getNumbers(row)
-    
-    // 期号应该是 5-6 位数字，前区 1-35，后区 1-12
-    if (nums.length >= 7) {
-      const issue = nums[0]
-      // 期号应该是 5-6 位，如 24001
-      if (issue >= 10000 && issue <= 999999) {
-        const front = nums.slice(1, 6).filter(n => n >= 1 && n <= 35)
-        const back = nums.slice(6, 8).filter(n => n >= 1 && n <= 12)
-        
-        if (front.length === 5 && back.length === 2) {
-          results.push({
-            issue: String(issue),
-            front: front.sort((a, b) => a - b),
-            back: back.sort((a, b) => a - b)
-          })
-        }
-      }
-    }
-    
-    if (results.length >= 30) break
-  }
-  
-  console.log(`parseDLTHtml: Parsed ${results.length} valid entries`)
-  return results
-}
-
 async function fetchWithTimeout(url: string, timeout: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -198,7 +86,8 @@ export async function fetchHistoryData(type: 'ssq' | 'dlt' = 'ssq'): Promise<voi
   isLoading.value = true
   
   try {
-    const url = type === 'ssq' ? SSQ_URL : DLT_URL
+    // Vercel Serverless 使用查询参数方式
+    const url = `${LOTTERY_API_URL}?type=${type}`
     const cacheKey = type === 'ssq' ? SSQ_CACHE_KEY : DLT_CACHE_KEY
 
     console.log(`fetchHistoryData: ${type}, url: ${url}`)
@@ -226,51 +115,29 @@ export async function fetchHistoryData(type: 'ssq' | 'dlt' = 'ssq'): Promise<voi
       console.log(`fetchHistoryData: ${type} no cache found`)
     }
 
-    // 尝试多个 CORS 代理
-    let html: string | null = null
-    let lastError: any = null
+    console.log(`fetchHistoryData: ${type} fetching from server...`)
+    const response = await fetchWithTimeout(url, 10000)
     
-    for (const proxy of CORS_PROXIES) {
-      const proxyUrl = `${proxy}${encodeURIComponent(url)}`
-      console.log(`fetchHistoryData: ${type} trying proxy: ${proxyUrl}`)
-      
-      try {
-        html = await fetchWithTimeout(proxyUrl, 15000)
-        console.log(`fetchHistoryData: ${type} HTML received, length: ${html.length}`)
-        if (html && html.length > 1000) {
-          break // 成功获取
-        }
-      } catch (err) {
-        console.warn(`fetchHistoryData: ${type} proxy ${proxy} failed:`, err)
-        lastError = err
-      }
+    console.log(`fetchHistoryData: ${type} response status: ${response.status}`)
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
     }
     
-    if (!html || html.length < 1000) {
-      throw lastError || new Error('所有代理都失败')
-    }
+    const result = await response.json()
     
-    console.log(`fetchHistoryData: ${type} HTML received, parsing...`)
+    console.log(`fetchHistoryData: ${type} result:`, result)
     
-    let data: any[] = []
-    if (type === 'ssq') {
-      data = parseSSQHtml(html)
-    } else {
-      data = parseDLTHtml(html)
-    }
-    
-    console.log(`fetchHistoryData: ${type} parsed ${data.length} entries`)
-    
-    if (data.length > 0) {
+    if (result.success && result.data && result.data.length > 0) {
       const now = Date.now()
-      localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: now }))
+      localStorage.setItem(cacheKey, JSON.stringify({ data: result.data, timestamp: now }))
       
       if (type === 'ssq') {
-        ssqHistoryData.value = data
-        lastUpdated.value = new Date(now).toLocaleString('zh-CN')
+        ssqHistoryData.value = result.data
+        lastUpdated.value = result.lastUpdated || new Date(now).toLocaleString('zh-CN')
       } else {
-        dltHistoryData.value = data
-        dltLastUpdated.value = new Date(now).toLocaleString('zh-CN')
+        dltHistoryData.value = result.data
+        dltLastUpdated.value = result.lastUpdated || new Date(now).toLocaleString('zh-CN')
       }
     }
   } catch (err) {
