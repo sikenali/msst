@@ -3,8 +3,13 @@ import { ref, onMounted, onUnmounted } from 'vue'
 // 直接使用 500.com 数据源，通过 CORS 代理访问
 const SSQ_URL = 'https://datachart.500.com/ssq/history/history.shtml'
 const DLT_URL = 'https://datachart.500.com/dlt/history/history.shtml'
-// CORS 代理（使用支持中文编码的代理）
-const CORS_PROXY = 'https://thingproxy.freeboard.io/fetch/'
+// CORS 代理（使用多个备用代理）
+const CORS_PROXIES = [
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.io/?',
+  'https://api.codetabs.com/v1/proxy?quest=',
+  'https://proxy.cors.sh/'
+]
 const SSQ_CACHE_KEY = 'msst_ssq_history'
 const DLT_CACHE_KEY = 'msst_dlt_history'
 const DEFAULT_DISPLAY_COUNT = 30
@@ -68,62 +73,36 @@ function parseSSQHtml(html: string): SSQHistoryEntry[] {
   
   console.log(`parseSSQHtml: Found ${rows.length} rows`)
   
-  const getText = (html: string) => html.replace(/<[^>]*>/g, '').trim()
+  // 直接提取所有数字，不依赖文本编码
+  const getNumbers = (row: string): number[] => {
+    const nums = row.match(/\d+/g) || []
+    return nums.map(n => parseInt(n, 10)).filter(n => !isNaN(n))
+  }
   
-  // 先查找数据行起始位置
-  let startIndex = -1
+  // 查找数据行（每行应该有 7 个数字：期号 6 个红球 + 1 个蓝球）
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
-    const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
-    if (cellMatches && cellMatches.length >= 8) {
-      const firstCell = getText(cellMatches[0])
-      console.log(`Row ${i}: cells=${cellMatches.length}, first="${firstCell}", test=${/^\d{5,6}$/.test(firstCell)}`)
-      if (/^\d{5,6}$/.test(firstCell)) {
-        startIndex = i
-        console.log(`parseSSQHtml: Data starts at row ${i}`)
-        break
+    const nums = getNumbers(row)
+    
+    // 期号应该是 5-6 位数字，红球 1-33，蓝球 1-16
+    if (nums.length >= 7) {
+      const issue = nums[0]
+      // 期号应该是 5-6 位，如 2024001
+      if (issue >= 10000 && issue <= 999999) {
+        const red = nums.slice(1, 7).filter(n => n >= 1 && n <= 33)
+        const blue = nums[7]
+        
+        if (red.length === 6 && blue >= 1 && blue <= 16) {
+          results.push({
+            issue: String(issue),
+            red: red.sort((a, b) => a - b),
+            blue
+          })
+        }
       }
     }
-  }
-  
-  if (startIndex === -1) {
-    console.log('parseSSQHtml: No data row found, checking all rows...')
-    // 如果没找到，尝试解析所有行
-    startIndex = 0
-  }
-  
-  // 从数据行开始解析
-  let validCount = 0
-  for (let i = startIndex; i < rows.length; i++) {
-    const row = rows[i]
-    const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
     
-    if (!cellMatches || cellMatches.length < 8) continue
-    
-    const issue = getText(cellMatches[0])
-    
-    if (!issue || !/^\d{5,6}$/.test(issue)) continue
-    
-    const red: number[] = []
-    for (let j = 1; j <= 6; j++) {
-      const num = parseInt(getText(cellMatches[j]), 10)
-      if (!isNaN(num) && num >= 1 && num <= 33) {
-        red.push(num)
-      }
-    }
-    if (red.length !== 6) continue
-    
-    const blue = parseInt(getText(cellMatches[7]), 10)
-    if (isNaN(blue) || blue < 1 || blue > 16) continue
-    
-    results.push({
-      issue,
-      red,
-      blue
-    })
-    validCount++
-    
-    if (validCount >= 30) break
+    if (results.length >= 30) break
   }
   
   console.log(`parseSSQHtml: Parsed ${results.length} valid entries`)
@@ -145,44 +124,40 @@ function parseDLTHtml(html: string): DLTHistoryEntry[] {
   
   console.log(`parseDLTHtml: Found ${rows.length} rows`)
   
-  const getText = (html: string) => html.replace(/<[^>]*>/g, '').trim()
+  // 直接提取所有数字，不依赖文本编码
+  const getNumbers = (row: string): number[] => {
+    const nums = row.match(/\d+/g) || []
+    return nums.map(n => parseInt(n, 10)).filter(n => !isNaN(n))
+  }
   
+  // 查找数据行（每行应该有 7 个数字：期号 5 个前区 + 2 个后区）
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
+    const nums = getNumbers(row)
     
-    const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)
-    if (!cellMatches || cellMatches.length < 8) continue
-    
-    const issue = getText(cellMatches[0])
-    if (!issue || !/^\d{5,6}$/.test(issue)) continue
-    
-    const front: number[] = []
-    for (let j = 1; j <= 5; j++) {
-      const num = parseInt(getText(cellMatches[j]), 10)
-      if (!isNaN(num) && num >= 1 && num <= 35) {
-        front.push(num)
+    // 期号应该是 5-6 位数字，前区 1-35，后区 1-12
+    if (nums.length >= 7) {
+      const issue = nums[0]
+      // 期号应该是 5-6 位，如 24001
+      if (issue >= 10000 && issue <= 999999) {
+        const front = nums.slice(1, 6).filter(n => n >= 1 && n <= 35)
+        const back = nums.slice(6, 8).filter(n => n >= 1 && n <= 12)
+        
+        if (front.length === 5 && back.length === 2) {
+          results.push({
+            issue: String(issue),
+            front: front.sort((a, b) => a - b),
+            back: back.sort((a, b) => a - b)
+          })
+        }
       }
     }
-    if (front.length !== 5) continue
     
-    const back: number[] = []
-    for (let j = 6; j <= 7; j++) {
-      const num = parseInt(getText(cellMatches[j]), 10)
-      if (!isNaN(num) && num >= 1 && num <= 12) {
-        back.push(num)
-      }
-    }
-    if (back.length !== 2) continue
-    
-    results.push({
-      issue,
-      front,
-      back
-    })
+    if (results.length >= 30) break
   }
   
   console.log(`parseDLTHtml: Parsed ${results.length} valid entries`)
-  return results.slice(0, 30)
+  return results
 }
 
 async function fetchWithTimeout(url: string, timeout: number): Promise<string> {
@@ -247,11 +222,30 @@ export async function fetchHistoryData(type: 'ssq' | 'dlt' = 'ssq'): Promise<voi
       console.log(`fetchHistoryData: ${type} no cache found`)
     }
 
-    console.log(`fetchHistoryData: ${type} fetching from 500.com via CORS proxy...`)
-    const proxyUrl = `${CORS_PROXY}${url}`
-    const html = await fetchWithTimeout(proxyUrl, 15000)
+    // 尝试多个 CORS 代理
+    let html: string | null = null
+    let lastError: any = null
     
-    console.log(`fetchHistoryData: ${type} HTML received, length: ${html.length}`)
+    for (const proxy of CORS_PROXIES) {
+      const proxyUrl = `${proxy}${encodeURIComponent(url)}`
+      console.log(`fetchHistoryData: ${type} trying proxy: ${proxyUrl}`)
+      
+      try {
+        html = await fetchWithTimeout(proxyUrl, 15000)
+        console.log(`fetchHistoryData: ${type} HTML received, length: ${html.length}`)
+        if (html && html.length > 1000) {
+          break // 成功获取
+        }
+      } catch (err) {
+        console.warn(`fetchHistoryData: ${type} proxy ${proxy} failed:`, err)
+        lastError = err
+      }
+    }
+    
+    if (!html || html.length < 1000) {
+      throw lastError || new Error('所有代理都失败')
+    }
+    
     console.log(`fetchHistoryData: ${type} HTML received, parsing...`)
     
     let data: any[] = []
