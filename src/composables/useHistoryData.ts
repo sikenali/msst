@@ -1,10 +1,10 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
-// 使用环境变量配置 API 基础 URL，生产环境可配置实际后端地址
-// Vercel 部署时，使用相对路径即可
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/lottery'
-// Vercel Serverless 使用查询参数方式：/api/lottery?type=ssq
-const LOTTERY_API_URL = `${API_BASE_URL}`
+// 直接使用 500.com 数据源，通过 CORS 代理访问
+const SSQ_URL = 'https://datachart.500.com/ssq/history/history.shtml'
+const DLT_URL = 'https://datachart.500.com/dlt/history/history.shtml'
+// CORS 代理（可以使用多个备用代理）
+const CORS_PROXY = 'https://api.allorigins.win/raw?url='
 const SSQ_CACHE_KEY = 'msst_ssq_history'
 const DLT_CACHE_KEY = 'msst_dlt_history'
 const DEFAULT_DISPLAY_COUNT = 30
@@ -52,7 +52,96 @@ function setupAutoUpdate() {
   }, delay)
 }
 
-async function fetchWithTimeout(url: string, timeout: number): Promise<Response> {
+function parseSSQHtml(html: string): SSQHistoryEntry[] {
+  const results: SSQHistoryEntry[] = []
+  
+  // 简单的 HTML 解析，提取表格数据
+  const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/i
+  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi
+  const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi
+  
+  const tableMatch = html.match(tableRegex)
+  if (!tableMatch) return results
+  
+  const rows = tableMatch[1].matchAll(rowRegex)
+  
+  for (const row of rows) {
+    const cells = [...row[1].matchAll(cellRegex)]
+    if (cells.length < 9) continue
+    
+    const issue = cells[0][1].trim()
+    if (!issue || !/^\d{5,6}$/.test(issue)) continue
+    
+    const red: number[] = []
+    for (let i = 1; i <= 6; i++) {
+      const num = parseInt(cells[i][1].trim(), 10)
+      if (!isNaN(num) && num >= 1 && num <= 33) {
+        red.push(num)
+      }
+    }
+    if (red.length !== 6) continue
+    
+    const blue = parseInt(cells[7][1].trim(), 10)
+    if (isNaN(blue) || blue < 1 || blue > 16) continue
+    
+    results.push({
+      issue,
+      red,
+      blue
+    })
+  }
+  
+  return results.slice(0, 30)
+}
+
+function parseDLTHtml(html: string): DLTHistoryEntry[] {
+  const results: DLTHistoryEntry[] = []
+  
+  const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/i
+  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi
+  const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi
+  
+  const tableMatch = html.match(tableRegex)
+  if (!tableMatch) return results
+  
+  const rows = tableMatch[1].matchAll(rowRegex)
+  
+  for (const row of rows) {
+    const cells = [...row[1].matchAll(cellRegex)]
+    if (cells.length < 9) continue
+    
+    const issue = cells[0][1].trim()
+    if (!issue || !/^\d{5,6}$/.test(issue)) continue
+    
+    const front: number[] = []
+    for (let i = 1; i <= 5; i++) {
+      const num = parseInt(cells[i][1].trim(), 10)
+      if (!isNaN(num) && num >= 1 && num <= 35) {
+        front.push(num)
+      }
+    }
+    if (front.length !== 5) continue
+    
+    const back: number[] = []
+    for (let i = 6; i <= 7; i++) {
+      const num = parseInt(cells[i][1].trim(), 10)
+      if (!isNaN(num) && num >= 1 && num <= 12) {
+        back.push(num)
+      }
+    }
+    if (back.length !== 2) continue
+    
+    results.push({
+      issue,
+      front,
+      back
+    })
+  }
+  
+  return results.slice(0, 30)
+}
+
+async function fetchWithTimeout(url: string, timeout: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       reject(new Error('请求超时'))
@@ -61,12 +150,18 @@ async function fetchWithTimeout(url: string, timeout: number): Promise<Response>
     fetch(url, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        'Accept': 'text/html',
       },
     })
     .then(response => {
       clearTimeout(timer)
-      resolve(response)
+      if (!response.ok) {
+        reject(new Error(`HTTP ${response.status}`))
+      }
+      return response.text()
+    })
+    .then(html => {
+      resolve(html)
     })
     .catch(error => {
       clearTimeout(timer)
@@ -80,12 +175,13 @@ export async function fetchHistoryData(type: 'ssq' | 'dlt' = 'ssq'): Promise<voi
   isLoading.value = true
   
   try {
-    // Vercel Serverless 使用查询参数方式
-    const url = `${LOTTERY_API_URL}?type=${type}`
+    const url = type === 'ssq' ? SSQ_URL : DLT_URL
     const cacheKey = type === 'ssq' ? SSQ_CACHE_KEY : DLT_CACHE_KEY
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(url)}`
 
     console.log(`fetchHistoryData: ${type}, url: ${url}`)
     
+    // 先检查缓存
     const cached = localStorage.getItem(cacheKey)
     if (cached) {
       const { data, timestamp } = JSON.parse(cached)
@@ -108,33 +204,44 @@ export async function fetchHistoryData(type: 'ssq' | 'dlt' = 'ssq'): Promise<voi
       console.log(`fetchHistoryData: ${type} no cache found`)
     }
 
-    console.log(`fetchHistoryData: ${type} fetching from server...`)
-    const response = await fetchWithTimeout(url, 10000)
+    console.log(`fetchHistoryData: ${type} fetching from 500.com via CORS proxy...`)
+    const html = await fetchWithTimeout(proxyUrl, 15000)
     
-    console.log(`fetchHistoryData: ${type} response status: ${response.status}`)
+    console.log(`fetchHistoryData: ${type} HTML received, parsing...`)
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
+    let data: any[] = []
+    if (type === 'ssq') {
+      data = parseSSQHtml(html)
+    } else {
+      data = parseDLTHtml(html)
     }
     
-    const result = await response.json()
+    console.log(`fetchHistoryData: ${type} parsed ${data.length} entries`)
     
-    console.log(`fetchHistoryData: ${type} result:`, result)
-    
-    if (result.success && result.data && result.data.length > 0) {
+    if (data.length > 0) {
       const now = Date.now()
-      localStorage.setItem(cacheKey, JSON.stringify({ data: result.data, timestamp: now }))
+      localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: now }))
       
       if (type === 'ssq') {
-        ssqHistoryData.value = result.data
-        lastUpdated.value = result.lastUpdated || new Date(now).toLocaleString('zh-CN')
+        ssqHistoryData.value = data
+        lastUpdated.value = new Date(now).toLocaleString('zh-CN')
       } else {
-        dltHistoryData.value = result.data
-        dltLastUpdated.value = result.lastUpdated || new Date(now).toLocaleString('zh-CN')
+        dltHistoryData.value = data
+        dltLastUpdated.value = new Date(now).toLocaleString('zh-CN')
       }
     }
   } catch (err) {
     console.error(`Failed to fetch ${type} history data:`, err)
+    // 出错时使用缓存数据
+    const cached = localStorage.getItem(type === 'ssq' ? SSQ_CACHE_KEY : DLT_CACHE_KEY)
+    if (cached) {
+      const { data } = JSON.parse(cached)
+      if (type === 'ssq') {
+        ssqHistoryData.value = data
+      } else {
+        dltHistoryData.value = data
+      }
+    }
   } finally {
     isLoading.value = false
   }
