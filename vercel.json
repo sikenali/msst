@@ -7,6 +7,20 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "pages/api/*.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/lottery",
+      "dest": "/pages/api/lottery.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
