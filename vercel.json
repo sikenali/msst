@@ -10,6 +10,8 @@
     }
   },
   "rewrites": [
+    { "source": "/api/ssq", "destination": "/api/lottery?type=ssq" },
+    { "source": "/api/dlt", "destination": "/api/lottery?type=dlt" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
