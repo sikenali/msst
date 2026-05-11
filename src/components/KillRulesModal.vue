@@ -325,7 +325,7 @@ function handleOverlayClick(e: MouseEvent) {
 .kr-loading-spinner { width: 24px; height: 24px; border: 2px solid #FCD34D; border-top-color: #F59E0B; border-radius: 50%; animation: kr-spin 0.8s linear infinite; }
 @keyframes kr-spin { to { transform: rotate(360deg); } }
 
-.kr-rules-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 8px; }
+.kr-rules-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 10px 12px; }
 .kr-rules-count { font-size: 13px; color: #92400E; font-family: 'SourceHanSans-Regular'; }
 
 .kr-all-toggle { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }

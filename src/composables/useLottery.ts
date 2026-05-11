@@ -16,6 +16,7 @@ import {
   dltShengchen,
 } from './useUserSelections'
 import { useWuxingQilie, brokenRowEnabled, brokenColumnEnabled } from './useWuxingQilie'
+import { useKillRules } from './useKillRules'
 import { getHistoryDraws } from './useHistoryData'
 
 // 当前彩种类型（需要外部设置）
@@ -157,6 +158,17 @@ function getKilledSet(range: number): Set<number> {
   if (historyDraws.length === 0) return killed
   const allNums = Array.from({ length: range }, (_, i) => i + 1)
 
+  // 应用杀号规则
+  const { applyKillRules } = useKillRules()
+  if (historyDraws.length > 0) {
+    const survivedFromKillRules = applyKillRules([...allNums], historyDraws, range)
+    const survivedSet = new Set(survivedFromKillRules)
+    for (const n of allNums) {
+      if (!survivedSet.has(n)) killed.add(n)
+    }
+  }
+
+  // 应用五行七列规则
   const { brokenRowEnabled, brokenColumnEnabled, analyzeAndKill } = useWuxingQilie()
   if (brokenRowEnabled.value || brokenColumnEnabled.value) {
     const survivors = analyzeAndKill(historyDraws, range)
