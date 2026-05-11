@@ -167,6 +167,8 @@ const trigrams = [
           <!-- Trigrams - 卦象线条放在太极圆外部 -->
           <g :stroke="tc.trigram" stroke-width="3.5" stroke-linecap="round" fill="none">
             <g v-for="tg in trigrams" :key="tg.name" :transform="`rotate(${tg.angle}, 140, 140)`">
+              <!-- 卦名标签 -->
+              <text x="140" y="8" text-anchor="middle" dominant-baseline="middle" fill="#000" font-size="9" font-weight="600" font-family="serif">{{ tg.name }}</text>
               <!-- 外爻 (最外层，更靠外) -->
               <template v-if="tg.lines[2]">
                 <line x1="116" y1="18" x2="164" y2="18" />
@@ -193,6 +195,43 @@ const trigrams = [
               </template>
             </g>
           </g>
+
+          <!-- Floating Particles (floating light dots around the ring) -->
+          <g class="bagua-particles">
+            <circle class="particle p1" cx="140" cy="12" r="2.5" :fill="tc.trigram" />
+            <circle class="particle p2" cx="228" cy="52" r="2" :fill="tc.trigram" />
+            <circle class="particle p3" cx="228" cy="228" r="2.5" :fill="tc.trigram" />
+            <circle class="particle p4" cx="140" cy="268" r="2" :fill="tc.trigram" />
+            <circle class="particle p5" cx="52" cy="228" r="2.5" :fill="tc.trigram" />
+            <circle class="particle p6" cx="52" cy="52" r="2" :fill="tc.trigram" />
+            <circle class="particle p7" cx="195" cy="25" r="1.5" :fill="tc.trigram" />
+            <circle class="particle p8" cx="255" cy="140" r="1.5" :fill="tc.trigram" />
+            <circle class="particle p9" cx="195" cy="255" r="1.5" :fill="tc.trigram" />
+            <circle class="particle p10" cx="85" cy="255" r="1.5" :fill="tc.trigram" />
+            <circle class="particle p11" cx="25" cy="140" r="1.5" :fill="tc.trigram" />
+            <circle class="particle p12" cx="85" cy="25" r="1.5" :fill="tc.trigram" />
+          </g>
+        </g>
+
+        <!-- Motion Trail (ghost images during spin) -->
+          <g class="trail-1">
+            <circle cx="140" cy="140" r="100" fill="#000000" />
+            <path d="M 140 40 A 100 100 0 0 0 140 240 A 50 50 0 0 1 140 140 A 50 50 0 0 0 140 40 Z" fill="#FFFFFF" opacity="0.15" />
+            <circle cx="140" cy="90" r="12" fill="#000000" opacity="0.15" />
+            <circle cx="140" cy="190" r="12" fill="#FFFFFF" opacity="0.15" />
+          </g>
+          <g class="trail-2">
+            <circle cx="140" cy="140" r="100" fill="#000000" />
+            <path d="M 140 40 A 100 100 0 0 0 140 240 A 50 50 0 0 1 140 140 A 50 50 0 0 0 140 40 Z" fill="#FFFFFF" opacity="0.08" />
+            <circle cx="140" cy="90" r="12" fill="#000000" opacity="0.08" />
+            <circle cx="140" cy="190" r="12" fill="#FFFFFF" opacity="0.08" />
+          </g>
+        </g>
+
+        <!-- Taiji Eye Glow Rings (pulsing halos) -->
+        <g class="taiji-eye-glow">
+          <circle class="eye-glow-1" cx="140" cy="90" r="18" :fill="tc.glow" opacity="0.6" />
+          <circle class="eye-glow-2" cx="140" cy="190" r="18" :fill="tc.glow" opacity="0.6" />
         </g>
       </svg>
     </div>
@@ -297,5 +336,121 @@ const trigrams = [
     width: 180px;
     height: 180px;
   }
+}
+
+/* === Enhanced Animation Effects === */
+
+/* Taiji Eye Glow Pulsing */
+.taiji-eye-glow {
+  pointer-events: none;
+}
+
+.eye-glow-1,
+.eye-glow-2 {
+  animation: eye-pulse 2.5s ease-in-out infinite;
+}
+
+.eye-glow-2 {
+  animation-delay: 1.25s;
+}
+
+@keyframes eye-pulse {
+  0%, 100% { r: 16; opacity: 0.3; }
+  50% { r: 22; opacity: 0.7; }
+}
+
+/* Particle Float Animation */
+.bagua-particles {
+  pointer-events: none;
+}
+
+.particle {
+  opacity: 0.5;
+}
+
+.p1 { animation: particle-orbit 6s ease-in-out infinite; }
+.p2 { animation: particle-orbit 8s ease-in-out infinite 0.5s; }
+.p3 { animation: particle-orbit 7s ease-in-out infinite 1s; }
+.p4 { animation: particle-orbit 9s ease-in-out infinite 1.5s; }
+.p5 { animation: particle-orbit 6.5s ease-in-out infinite 2s; }
+.p6 { animation: particle-orbit 7.5s ease-in-out infinite 2.5s; }
+.p7 { animation: particle-orbit 5.5s ease-in-out infinite 0.3s; }
+.p8 { animation: particle-orbit 8.5s ease-in-out infinite 0.8s; }
+.p9 { animation: particle-orbit 6s ease-in-out infinite 1.3s; }
+.p10 { animation: particle-orbit 7s ease-in-out infinite 1.8s; }
+.p11 { animation: particle-orbit 5.8s ease-in-out infinite 2.3s; }
+.p12 { animation: particle-orbit 8s ease-in-out infinite 2.8s; }
+
+@keyframes particle-orbit {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+  25% { transform: translateY(-5px) scale(1.3); opacity: 0.9; }
+  50% { transform: translateY(0) scale(1); opacity: 0.5; }
+  75% { transform: translateY(5px) scale(1.2); opacity: 0.8; }
+}
+
+/* Motion Trail during spin */
+.bagua-trail {
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.trail-1 {
+  transform: rotate(calc(var(--spin-rotations, 3) * 8deg));
+  transform-origin: 140px 140px;
+}
+
+.trail-2 {
+  transform: rotate(calc(var(--spin-rotations, 3) * 16deg));
+  transform-origin: 140px 140px;
+}
+
+.bagua-spinning .trail-1 {
+  animation: trail-spin-1 var(--spin-duration, 8s) cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.bagua-spinning .trail-2 {
+  animation: trail-spin-2 var(--spin-duration, 8s) cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes trail-spin-1 {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(calc(var(--spin-rotations, 3) * 360deg)); }
+}
+
+@keyframes trail-spin-2 {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(calc(var(--spin-rotations, 3) * 360deg)); }
+}
+
+/* Flash burst on spin start */
+.bagua-spinning .bagua-inner::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at center, var(--glow-color) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: flash-burst 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes flash-burst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+/* Enhanced glow during spin */
+.bagua-glow {
+  animation: bagua-glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes bagua-glow-pulse {
+  0% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.8; transform: scale(1.3); }
 }
 </style>
