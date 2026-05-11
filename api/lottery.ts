@@ -1,5 +1,5 @@
 import axios from 'axios';
-import cheerio from 'cheerio';
+import { load } from 'cheerio';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const SSQ_URL = 'https://datachart.500.com/ssq/history/history.shtml';
@@ -51,7 +51,7 @@ async function fetchWithRetry(url: string, attempt = 0): Promise<any> {
 
 function parseSSQHtml(html: string): LotteryEntry[] {
   try {
-    const $ = cheerio.load(html);
+    const $ = load(html);
     const results: Array<{ issue: string; red: number[]; blue: number }> = [];
 
     $('tbody tr').each((_index, element) => {
@@ -87,7 +87,7 @@ function parseSSQHtml(html: string): LotteryEntry[] {
 
 function parseDLTHtml(html: string): LotteryEntry[] {
   try {
-    const $ = cheerio.load(html);
+    const $ = load(html);
     const results: Array<{ issue: string; front: number[]; back: number[] }> = [];
 
     $('tbody tr').each((_index, element) => {
