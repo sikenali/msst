@@ -2,10 +2,14 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
+  "regions": ["hkg1"],
   "functions": {
-    "api/*.ts": {
+    "api/lottery.ts": {
       "memory": 1024,
-      "maxDuration": 10
+      "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }
