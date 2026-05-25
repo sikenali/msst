@@ -68,7 +68,8 @@ export function useKillRules() {
       for (let n = 1; n <= range; n++) coldCounts[n] = 0
       let allNumbers = new Set<number>()
       for (const draw of historyData) {
-        for (const n of draw) {
+        const mainNums = currentType.value === 'dlt' ? draw.slice(0, 5) : draw.slice(0, 6)
+        for (const n of mainNums) {
           allNumbers.add(n)
         }
       }
@@ -77,7 +78,8 @@ export function useKillRules() {
           coldCounts[n] = historyData.length + 1
         } else {
           for (let i = 0; i < historyData.length; i++) {
-            if (historyData[i].includes(n)) {
+            const mainNums = currentType.value === 'dlt' ? historyData[i].slice(0, 5) : historyData[i].slice(0, 6)
+            if (mainNums.includes(n)) {
               coldCounts[n] = i
               break
             }
@@ -91,18 +93,21 @@ export function useKillRules() {
     if (rules['last3']) {
       if (historyData.length > 0) {
         const lastDraw = historyData[0]
-        const keepCount = Math.max(0, lastDraw.length - 3)
-        const toRemove = lastDraw.slice(keepCount)
+        const mainNums = currentType.value === 'dlt' ? lastDraw.slice(0, 5) : lastDraw.slice(0, 6)
+        const sorted = [...mainNums].sort((a, b) => a - b)
+        const toRemove = sorted.slice(-3)
         toRemove.forEach(n => killed.add(n))
       }
     }
 
     if (rules['consecutive']) {
       if (historyData.length > 0) {
-        const lastDraw = historyData[0].sort((a, b) => a - b)
-        for (let i = 1; i < lastDraw.length; i++) {
-          if (lastDraw[i] === lastDraw[i - 1] + 1) {
-            killed.add(lastDraw[i])
+        const lastDraw = historyData[0]
+        const mainNums = currentType.value === 'dlt' ? lastDraw.slice(0, 5) : lastDraw.slice(0, 6)
+        const sorted = [...mainNums].sort((a, b) => a - b)
+        for (let i = 1; i < sorted.length; i++) {
+          if (sorted[i] === sorted[i - 1] + 1) {
+            killed.add(sorted[i])
           }
         }
       }
@@ -110,20 +115,18 @@ export function useKillRules() {
 
     if (rules['zone2']) {
       const zones = [[1, 12], [13, 24], [25, range]]
-      const zoneFreq: Record<number, number> = { 0: 0, 1: 0, 2: 0 }
-      for (const draw of historyData.slice(0, 10)) {
-        for (const n of draw) {
-          zones.forEach(([start, end], idx) => {
-            if (n >= start && n <= end) zoneFreq[idx]++
-          })
-        }
+      const zoneCounts: Record<number, number> = { 0: 0, 1: 0, 2: 0 }
+      for (const n of pool) {
+        zones.forEach(([start, end], idx) => {
+          if (n >= start && n <= end) zoneCounts[idx]++
+        })
       }
-      const avgFreq = Object.values(zoneFreq).reduce((a, b) => a + b, 0) / 3
       zones.forEach(([start, end], idx) => {
-        if (zoneFreq[idx] > avgFreq * 1.5) {
-          for (let n = start; n <= end; n++) {
-            killed.add(n)
-          }
+        if (zoneCounts[idx] > 2) {
+          const zoneNums = pool.filter(n => n >= start && n <= end)
+          const sorted = [...zoneNums].sort(() => Math.random() - 0.5)
+          const toKill = sorted.slice(2)
+          toKill.forEach(n => killed.add(n))
         }
       })
     }

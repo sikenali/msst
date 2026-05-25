@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { RiCloseLine, RiRefreshLine, RiTimerLine } from '@remixicon/vue'
 import { useHistoryData } from '@/composables/useHistoryData'
 import { useKillRules } from '@/composables/useKillRules'
@@ -81,9 +81,14 @@ function toggleShowAll() {
 }
 
 onMounted(() => {
+  setKillRulesType(props.lotteryType)
   if (!updatedText.value && !isLoading.value) {
     handleRefresh()
   }
+})
+
+watch(() => props.lotteryType, (newType) => {
+  setKillRulesType(newType)
 })
 
 function handleToggle(key: string) {
