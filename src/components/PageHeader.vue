@@ -113,7 +113,7 @@ function handleUpdateModelValue(value: unknown) {
   width: 28px;
   height: 28px;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #C43D3D 0%, #D4A843 100%);
+  background: linear-gradient(180deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -135,7 +135,7 @@ function handleUpdateModelValue(value: unknown) {
   font-size: 18px;
   font-weight: 800;
   line-height: 1.2;
-  color: #5D4E37;
+  color: #92400E;
   font-family: 'SourceHanSans-ExtraBold';
   margin: 0;
 }
@@ -158,24 +158,24 @@ function handleUpdateModelValue(value: unknown) {
   width: 40px;
   height: 40px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #F5F0EB 0%, #EDE6DC 100%);
+  background: linear-gradient(135deg, rgba(254,243,199,1) 0%, rgba(255,251,235,1) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #D4C5B0;
+  border: 1.5px solid #FCD34D;
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
   z-index: 1;
   margin-right: 12px;
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 2px 8px rgba(180, 150, 120, 0.15);
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
 }
 
 .info-btn:hover {
-  background: linear-gradient(135deg, #EDE6DC 0%, #E0D5C8 100%);
+  background: linear-gradient(135deg, rgba(253,224,71,1) 0%, rgba(252,211,77,1) 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(180, 150, 120, 0.25);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
 }
 
 .info-btn:active {
@@ -185,7 +185,7 @@ function handleUpdateModelValue(value: unknown) {
 .info-icon-svg {
   width: 22px;
   height: 22px;
-  color: #8B7355;
+  color: #D97706;
 }
 
 /* 移动端适配 */

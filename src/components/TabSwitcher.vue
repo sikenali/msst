@@ -40,7 +40,7 @@ function switchTab(type: 'ssq' | 'dlt') {
   justify-content: center;
   height: 40px;
   border-radius: 8px;
-  background: #F5F0EB;
+  background: #FFFBEB;
   padding: 0;
   white-space: nowrap;
 }
@@ -59,13 +59,13 @@ function switchTab(type: 'ssq' | 'dlt') {
   cursor: pointer;
   box-sizing: border-box;
   background: transparent;
-  color: #8B7355;
+  color: #92400E;
   font-family: 'SourceHanSans-Medium';
   white-space: nowrap;
 }
 
 .tab-btn--active-ssq {
-  background: linear-gradient(90deg, #C43D3D 0%, #D4A843 100%);
+  background: linear-gradient(90deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
   color: #FFFFFF;
   font-family: 'SourceHanSans-SemiBold';
   box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.1);
