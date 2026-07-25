@@ -763,6 +763,7 @@ function reload() {
   flex: 0.7;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
 }
 .layout-col--center {
