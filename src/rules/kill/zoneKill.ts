@@ -66,6 +66,7 @@ export const zoneOmissionKill: KillRule = {
 export const emptyRowColKill: KillRule = {
   name: '空行空列整区杀号',
   description: '6×6矩阵中连续2期无号的整行/整列批量绝杀',
+  appliesTo: ['ssq'],
   apply(history: number[][], range: number, type: LotteryType): Set<number> {
     const killed = new Set<number>()
     if (type !== 'ssq' || history.length < 2) return killed

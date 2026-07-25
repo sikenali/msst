@@ -9,6 +9,7 @@ export interface RuleResult<T = number[]> {
 export interface KillRule {
   name: string
   description: string
+  appliesTo?: LotteryType[]
   apply(history: number[][], range: number, type: LotteryType): Set<number>
 }
 
@@ -18,24 +19,28 @@ export interface SelectRule {
   name: string
   description: string
   bagua: BaguaType
+  appliesTo?: LotteryType[]
   apply(history: number[][], range: number, type: LotteryType): RuleResult
 }
 
 export interface BoldRule {
   name: string
   description: string
+  appliesTo?: LotteryType[]
   apply(history: number[][]): number[]
 }
 
 export interface FilterRule {
   name: string
   description: string
+  appliesTo?: LotteryType[]
   check(nums: number[], type: LotteryType): boolean
 }
 
 export interface MatrixRule {
   name: string
   description: string
+  appliesTo?: LotteryType[]
   apply(pool: number[], pickCount: number, guarantee: string): number[][]
 }
 

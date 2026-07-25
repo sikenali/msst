@@ -5,6 +5,7 @@ export const twinStarSelect: SelectRule = {
   name: '后区双子星组合法',
   description: '大乐透后区专用，双子星配对冷热筛选',
   bagua: 'dui',
+  appliesTo: ['dlt'],
   apply(history, range, type) {
     if (type !== 'dlt' || history.length < 5) {
       return { name: '后区双子星组合法', description: '需要大乐透历史数据', output: [] }

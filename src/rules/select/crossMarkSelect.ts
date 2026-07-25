@@ -5,6 +5,7 @@ export const crossMarkSelect: SelectRule = {
   name: '横标纵标法',
   description: '大乐透专用，横标分区冷热+纵标同位平衡',
   bagua: 'li',
+  appliesTo: ['dlt'],
   apply(history: number[][], range: number, type: 'ssq' | 'dlt') {
     if (type !== 'dlt' || history.length < 10) {
       return { name: '横标纵标法', description: '需要至少10期大乐透历史数据', output: [] }
@@ -56,6 +57,7 @@ export const crossMarkBackSelect: SelectRule = {
   name: '后区横标法',
   description: '大乐透后区横标冷热搭配选号',
   bagua: 'li',
+  appliesTo: ['dlt'],
   apply(history: number[][], range: number, type: 'ssq' | 'dlt') {
     if (type !== 'dlt' || history.length < 5) {
       return { name: '后区横标法', description: '需要至少5期大乐透历史数据', output: [] }

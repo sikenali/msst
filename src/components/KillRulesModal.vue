@@ -23,7 +23,12 @@ const currentTab = ref<'regular' | 'wuxing'>('regular')
 const enabledRules = ref<Record<string, boolean>>({})
 const showPool = ref(true)
 
-const regularRules = computed(() => allKillRules.filter(r => r.name !== '五行七列杀号'))
+const regularRules = computed(() =>
+  allKillRules.filter(r =>
+    r.name !== '五行七列杀号' &&
+    (!r.appliesTo || r.appliesTo.includes(props.lotteryType))
+  )
+)
 
 const enabledCount = computed(() =>
   Object.entries(enabledRules.value).filter(([, v]) => v).length

@@ -4,6 +4,7 @@ export const goldenRatioDLTSelect: SelectRule = {
   name: '大乐透黄金分割法',
   description: '黄金比例0.618，锚点13和22',
   bagua: 'li',
+  appliesTo: ['dlt'],
   apply(history, range, type) {
     if (type !== 'dlt') {
       return { name: '大乐透黄金分割法', description: '仅适用于大乐透', output: [] }

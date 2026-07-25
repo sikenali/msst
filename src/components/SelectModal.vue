@@ -20,6 +20,10 @@ const emit = defineEmits<{
 const enabledRules = ref<Record<string, boolean>>({})
 const previewRule = ref<null | (typeof allSelectRules[number])>(null)
 
+const filteredRules = computed(() =>
+  allSelectRules.filter(r => !r.appliesTo || r.appliesTo.includes(props.lotteryType))
+)
+
 const enabledCount = computed(() =>
   Object.entries(enabledRules.value).filter(([, v]) => v).length
 )
@@ -52,7 +56,7 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 function initRules() {
-  for (const r of allSelectRules) {
+  for (const r of filteredRules.value) {
     enabledRules.value[r.name] = selectRuleNames.value.includes(r.name)
   }
 }
@@ -72,14 +76,14 @@ watch(() => props.visible, (v) => { if (v) initRules() })
         <div class="sm-divider"></div>
         <div class="sm-body">
           <div class="sm-rules-header">
-            <span class="sm-rules-count">已选 {{ enabledCount }}/{{ allSelectRules.length }}</span>
+            <span class="sm-rules-count">已选 {{ enabledCount }}/{{ filteredRules.length }}</span>
             <div class="sm-header-actions">
               <button class="sm-toggle-all" @click="toggleAll(true)">全部开启</button>
               <button class="sm-toggle-all" @click="toggleAll(false)">全部关闭</button>
             </div>
           </div>
           <div class="sm-rules-list">
-            <div v-for="rule in allSelectRules" :key="rule.name" class="sm-rule-item" :class="{ 'sm-rule-item--active': previewRule?.name === rule.name }">
+            <div v-for="rule in filteredRules" :key="rule.name" class="sm-rule-item" :class="{ 'sm-rule-item--active': previewRule?.name === rule.name }">
               <div class="sm-rule-left" @click="previewRule = previewRule?.name === rule.name ? null : rule">
                 <div class="sm-rule-bagua"><BaguaIcon :type="rule.bagua" /></div>
                 <div class="sm-rule-info">

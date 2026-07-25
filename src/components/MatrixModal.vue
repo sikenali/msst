@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { RiCloseLine } from '@remixicon/vue'
 import { allMatrixRules } from '@/rules/matrix/index'
 import { setMatrixRuleName, matrixRuleName } from '@/composables/useRuleEngine'
@@ -15,6 +15,10 @@ const emit = defineEmits<{
   close: []
   apply: []
 }>()
+
+const filteredRules = computed(() =>
+  allMatrixRules.filter(r => !r.appliesTo || r.appliesTo.includes(props.lotteryType))
+)
 
 const selectedRule = ref('')
 
@@ -33,10 +37,11 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 function initRules() {
-  if (matrixRuleName.value && allMatrixRules.some(r => r.name === matrixRuleName.value)) {
+  const rules = filteredRules.value
+  if (matrixRuleName.value && rules.some(r => r.name === matrixRuleName.value)) {
     selectedRule.value = matrixRuleName.value
-  } else if (allMatrixRules.length > 0) {
-    selectedRule.value = allMatrixRules[0].name
+  } else if (rules.length > 0) {
+    selectedRule.value = rules[0].name
   }
 }
 
@@ -58,7 +63,7 @@ watch(() => props.visible, (v) => { if (v) initRules() })
             <span class="mm-rules-count">请选择一种矩阵方式</span>
           </div>
           <div class="mm-rules-list">
-            <div v-for="rule in allMatrixRules" :key="rule.name"
+            <div v-for="rule in filteredRules" :key="rule.name"
               class="mm-rule-item" :class="{ selected: selectedRule === rule.name }"
               @click="selectedRule = rule.name">
               <div class="mm-radio">

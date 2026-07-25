@@ -18,6 +18,10 @@ const emit = defineEmits<{
 
 const enabledRules = ref<Record<string, boolean>>({})
 
+const filteredRules = computed(() =>
+  allFilters.filter(r => !r.appliesTo || r.appliesTo.includes(props.lotteryType))
+)
+
 const enabledCount = computed(() =>
   Object.entries(enabledRules.value).filter(([, v]) => v).length
 )
@@ -50,7 +54,7 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 function initRules() {
-  for (const r of allFilters) {
+  for (const r of filteredRules.value) {
     enabledRules.value[r.name] = filterNames.value.includes(r.name)
   }
 }
@@ -70,14 +74,14 @@ watch(() => props.visible, (v) => { if (v) initRules() })
         <div class="fm-divider"></div>
         <div class="fm-body">
           <div class="fm-rules-header">
-            <span class="fm-rules-count">已选 {{ enabledCount }}/{{ allFilters.length }}</span>
+            <span class="fm-rules-count">已选 {{ enabledCount }}/{{ filteredRules.length }}</span>
             <div class="fm-header-actions">
               <button class="fm-toggle-all" @click="toggleAll(true)">全部开启</button>
               <button class="fm-toggle-all" @click="toggleAll(false)">全部关闭</button>
             </div>
           </div>
           <div class="fm-rules-list">
-            <div v-for="rule in allFilters" :key="rule.name" class="fm-rule-item">
+            <div v-for="rule in filteredRules" :key="rule.name" class="fm-rule-item">
               <div class="fm-rule-info">
                 <span class="fm-rule-name">{{ rule.name }}</span>
                 <span class="fm-rule-desc">{{ rule.description }}</span>

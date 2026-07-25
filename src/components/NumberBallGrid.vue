@@ -52,13 +52,13 @@ const rows = computed(() => {
 const themeColors = computed(() => {
   if (props.zone === 'front') {
     return {
-      selected: { bg: 'rgb(196, 61, 61)', text: '#FFFFFF' },
-      inactive: { bg: '#FFFFFF', border: 'rgb(232, 220, 200)', text: 'rgb(61, 43, 31)' }
+      selected: { bg: '#EF4444', text: '#FFFFFF' },
+      inactive: { bg: 'rgba(239,68,68,0.094)', border: 'rgba(239,68,68,0.25)', text: '#EF4444' }
     }
   } else {
     return {
-      selected: { bg: 'rgb(91, 140, 90)', text: '#FFFFFF' },
-      inactive: { bg: '#FFFFFF', border: 'rgb(232, 220, 200)', text: 'rgb(61, 43, 31)' }
+      selected: { bg: '#3B82F6', text: '#FFFFFF' },
+      inactive: { bg: 'rgba(59,130,246,0.094)', border: 'rgba(59,130,246,0.25)', text: '#3B82F6' }
     }
   }
 })

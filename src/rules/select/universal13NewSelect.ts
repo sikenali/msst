@@ -5,6 +5,7 @@ export const universal13NewSelect: SelectRule = {
   name: '万能13码新版',
   description: '70期数据筛选13码覆盖，核心胆码+中坚稳码+边缘活码',
   bagua: 'dui',
+  appliesTo: ['ssq'],
   apply(history, range, type) {
     if (type !== 'ssq') {
       return { name: '万能13码新版', description: '仅适用于双色球', output: [] }

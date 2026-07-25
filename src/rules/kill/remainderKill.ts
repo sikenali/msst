@@ -4,6 +4,7 @@ import { getMainNums, SSQ_REMAINDER_0, SSQ_REMAINDER_1, SSQ_REMAINDER_2 } from '
 export const remainder012Kill: KillRule = {
   name: '012路杀号',
   description: '上期某路号码开出≥4个极端热出，下期该路降温，杀该路冷号',
+  appliesTo: ['ssq'],
   apply(history: number[][], range: number, type: LotteryType): Set<number> {
     const killed = new Set<number>()
     if (type !== 'ssq' || history.length < 2) return killed

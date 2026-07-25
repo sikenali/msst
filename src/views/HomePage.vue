@@ -12,7 +12,8 @@ import NoteCounter from '@/components/NoteCounter.vue'
 import ModeSelector from '@/components/ModeSelector.vue'
 import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
 import TurtleIcon from '@/components/TurtleIcon.vue'
-import NumberBallGrid from '@/components/NumberBallGrid.vue'
+import WuxingNumberGrid from '@/components/WuxingNumberGrid.vue'
+import BackZoneGrid from '@/components/BackZoneGrid.vue'
 import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
 import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
 import IconModal from '@/components/IconModal.vue'
@@ -388,9 +389,9 @@ function reload() {
         <div class="layout-col layout-col--left">
           <div class="inline-section">
             <div class="inline-section__title" style="color:#EF4444">红佛女</div>
-            <NumberBallGrid
+            <WuxingNumberGrid
               v-model="userRedNumbers"
-              zone="front"
+              :lottery-type="lotteryType"
               :total-numbers="lotteryType === 'ssq' ? 33 : 35"
               :max-count="lotteryType === 'ssq' ? 6 : 5"
               @select="setRedNumbers"
@@ -398,9 +399,9 @@ function reload() {
           </div>
           <div class="inline-section">
             <div class="inline-section__title" style="color:#3B82F6">蓝若寺</div>
-            <NumberBallGrid
+            <BackZoneGrid
               v-model="userBlueNumbers"
-              zone="back"
+              :lottery-type="lotteryType"
               :total-numbers="lotteryType === 'ssq' ? 16 : 12"
               :max-count="lotteryType === 'ssq' ? 1 : 2"
               @select="setBlueNumbers"
@@ -684,9 +685,9 @@ function reload() {
   padding: 16px 24px;
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
   gap: 0;
   position: relative;
@@ -698,7 +699,7 @@ function reload() {
   justify-content: center;
 }
 .layout-col--left {
-  flex: 1;
+  flex: 1.6;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -724,7 +725,7 @@ function reload() {
   padding: 16px 0 0 0;
 }
 .layout-col--right {
-  flex: 1;
+  flex: 1.6;
   justify-content: flex-start;
   padding-left: 24px;
 }

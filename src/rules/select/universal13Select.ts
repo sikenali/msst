@@ -5,6 +5,7 @@ export const universal13Select: SelectRule = {
   name: '万能13码参考',
   description: '十年高频13码中选2-3个，搭配温号+冷号',
   bagua: 'xun',
+  appliesTo: ['ssq'],
   apply(history: number[][], range: number, type: 'ssq' | 'dlt') {
     if (type !== 'ssq' || history.length < 10) {
       return { name: '万能13码参考', description: '需要至少10期双色球历史数据', output: [] }

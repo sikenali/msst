@@ -18,6 +18,10 @@ const emit = defineEmits<{
 
 const enabledRules = ref<Record<string, boolean>>({})
 
+const filteredRules = computed(() =>
+  allBoldRules.filter(r => !r.appliesTo || r.appliesTo.includes(props.lotteryType))
+)
+
 const enabledCount = computed(() =>
   Object.entries(enabledRules.value).filter(([, v]) => v).length
 )
@@ -50,7 +54,7 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 function initRules() {
-  for (const r of allBoldRules) {
+  for (const r of filteredRules.value) {
     enabledRules.value[r.name] = boldRuleNames.value.includes(r.name)
   }
 }
@@ -70,14 +74,14 @@ watch(() => props.visible, (v) => { if (v) initRules() })
         <div class="bm-divider"></div>
         <div class="bm-body">
           <div class="bm-rules-header">
-            <span class="bm-rules-count">已选 {{ enabledCount }}/{{ allBoldRules.length }}</span>
+            <span class="bm-rules-count">已选 {{ enabledCount }}/{{ filteredRules.length }}</span>
             <div class="bm-header-actions">
               <button class="bm-toggle-all" @click="toggleAll(true)">全部开启</button>
               <button class="bm-toggle-all" @click="toggleAll(false)">全部关闭</button>
             </div>
           </div>
           <div class="bm-rules-list">
-            <div v-for="rule in allBoldRules" :key="rule.name" class="bm-rule-item">
+            <div v-for="rule in filteredRules" :key="rule.name" class="bm-rule-item">
               <div class="bm-rule-info">
                 <span class="bm-rule-name">{{ rule.name }}</span>
                 <span class="bm-rule-desc">{{ rule.description }}</span>

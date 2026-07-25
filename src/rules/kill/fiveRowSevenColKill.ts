@@ -4,6 +4,7 @@ import { FIVE_ROWS, SEVEN_COLS } from '../base'
 export const fiveRowSevenColKill: KillRule = {
   name: '五行七列杀号',
   description: '5行7列矩阵，断行+断列交叉杀号',
+  appliesTo: ['dlt'],
   apply(history, range, type) {
     const killed = new Set<number>()
     if (history.length < 3 || type !== 'dlt') return killed

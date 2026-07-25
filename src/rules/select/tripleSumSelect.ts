@@ -5,6 +5,7 @@ export const tripleSumSelect: SelectRule = {
   name: '首尾和+2-4位和+18中位法',
   description: '大乐透专用：首尾和≈36, 2-4位和≈36, 中位≈18',
   bagua: 'gen',
+  appliesTo: ['dlt'],
   apply(history, range, type) {
     if (type !== 'dlt' || history.length < 5) {
       return { name: '首尾和+2-4位和+18中位法', description: '需要大乐透历史数据', output: [] }
