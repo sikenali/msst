@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import ResultPage from '@/views/ResultPage.vue'
+import RuleAnalysis from '@/views/RuleAnalysis.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -14,6 +15,11 @@ export const router = createRouter({
       path: '/result',
       name: 'result',
       component: ResultPage,
+    },
+    {
+      path: '/analysis',
+      name: 'analysis',
+      component: RuleAnalysis,
     },
   ],
 })

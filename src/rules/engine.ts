@@ -5,6 +5,7 @@ import { allBoldRules, runAllBoldRules, crossValidateBold } from './bold/index'
 import { allFilters, validateCombination, filterCombinations } from './filters/index'
 import { allMatrixRules } from './matrix/index'
 import { getMainNums, getBackNums } from './base'
+import { getHistoryForRule } from './config'
 
 export interface EngineConfig {
   type: LotteryType
@@ -77,7 +78,8 @@ export class RuleEngine {
     let candidates: number[] = []
     const selectRules = this.getSelectRules()
     if (selectRules.length > 0) {
-      const result = selectRules[0].apply(history, range, this.config.type)
+      const h = getHistoryForRule(history, selectRules[0].name)
+      const result = selectRules[0].apply(h, range, this.config.type)
       candidates = result.output.filter((n: number) => !killed.has(n))
     } else {
       candidates = Array.from({ length: range }, (_, i) => i + 1)
@@ -122,7 +124,8 @@ export class RuleEngine {
     if (this.config.blueSelectRuleNames) {
       const blueSelectors = allSelectRules.filter(r => this.config.blueSelectRuleNames!.includes(r.name))
       if (blueSelectors.length > 0) {
-        const br = blueSelectors[0].apply(history, backRange, this.config.type)
+        const bh = getHistoryForRule(history, blueSelectors[0].name)
+        const br = blueSelectors[0].apply(bh, backRange, this.config.type)
         backCandidates = br.output.filter((n: number) => !backKilled.has(n))
       }
     }

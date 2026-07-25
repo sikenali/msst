@@ -46,6 +46,7 @@ function switchTab(type: 'ssq' | 'dlt') {
 }
 
 .tab-btn {
+  position: relative;
   height: 40px;
   border-radius: 8px;
   font-size: 16px;
@@ -54,7 +55,6 @@ function switchTab(type: 'ssq' | 'dlt') {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
   border: none;
   cursor: pointer;
   box-sizing: border-box;
@@ -62,19 +62,38 @@ function switchTab(type: 'ssq' | 'dlt') {
   color: #92400E;
   font-family: 'SourceHanSans-Medium';
   white-space: nowrap;
+  transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+  pointer-events: none;
 }
 
 .tab-btn--active-ssq {
-  background: linear-gradient(90deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
   color: #FFFFFF;
   font-family: 'SourceHanSans-SemiBold';
+}
+.tab-btn--active-ssq::before {
+  opacity: 1;
+  background: linear-gradient(90deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .tab-btn--active-dlt {
-  background: linear-gradient(90deg, rgba(59,130,246,1) 0%, rgba(99,102,241,1) 100%);
   color: #FFFFFF;
   font-family: 'SourceHanSans-SemiBold';
+}
+.tab-btn--active-dlt::before {
+  opacity: 1;
+  background: linear-gradient(90deg, rgba(59,130,246,1) 0%, rgba(99,102,241,1) 100%);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.1);
 }
 

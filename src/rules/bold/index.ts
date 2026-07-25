@@ -1,4 +1,5 @@
 import type { BoldRule } from '../types'
+import { getHistoryForRule } from '../config'
 import { sumHalfBold } from './sumHalfBold'
 import { spanAvgBold } from './spanAvgBold'
 import { tailSumBold } from './tailSumBold'
@@ -28,7 +29,8 @@ export const allBoldRules: BoldRule[] = [
 export function runAllBoldRules(history: number[][]): Map<string, number[]> {
   const results = new Map<string, number[]>()
   for (const rule of allBoldRules) {
-    results.set(rule.name, rule.apply(history))
+    const h = getHistoryForRule(history, rule.name)
+    results.set(rule.name, rule.apply(h))
   }
   return results
 }
@@ -36,7 +38,8 @@ export function runAllBoldRules(history: number[][]): Map<string, number[]> {
 export function crossValidateBold(history: number[][]): number[] {
   const freq: Record<number, number> = {}
   for (const rule of allBoldRules) {
-    const nums = rule.apply(history)
+    const h = getHistoryForRule(history, rule.name)
+    const nums = rule.apply(h)
     for (const n of nums) {
       freq[n] = (freq[n] || 0) + 1
     }

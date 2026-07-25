@@ -16,8 +16,19 @@ import NumberBall from '@/components/NumberBall.vue'
 import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
 import BaguaFullIcon from '@/components/BaguaFullIcon.vue'
 import Toast, { showToast } from '@/components/Toast.vue'
+import KillRulesModal from '@/components/KillRulesModal.vue'
 import { generateSSQ, generateDLT, formatTime, getIssueNumber, setIssueNumber, currentIssueNumber, currentIssuePrefix, currentIssueSuffix } from '@/composables/useLottery'
 import { useUserSelections } from '@/composables/useUserSelections'
+
+const showKillRulesModal = ref(false)
+
+function handleHistory() {
+  showKillRulesModal.value = true
+}
+
+function handleKillRulesClose() {
+  showKillRulesModal.value = false
+}
 
 const ssqLogo = '/ssq.png'
 const dltLogo = '/dlt.png'
@@ -629,8 +640,8 @@ function handleBack() {
     <!-- 顶部导航栏 -->
     <PageHeader
       v-model="lotteryType"
-      @info="openRules"
       @logo-click="router.push('/')"
+      @history="handleHistory"
     />
 
     <!-- 主内容区 -->
@@ -992,8 +1003,9 @@ function handleBack() {
     <footer class="result-footer">
       <div class="footer-inner">
         <p class="footer-text">
-          <span v-if="lotteryType === 'ssq'">一花一世界 · 一叶一菩提</span>
-          <span v-else>道生一 一生二 · 二生三 三生万物</span>
+          <span class="footer-left">© 2026 妙手神透</span>
+          <span class="footer-center">Powered by LightOS</span>
+          <span class="footer-right">主任的机制不如机智的我</span>
         </p>
       </div>
     </footer>
@@ -1033,6 +1045,14 @@ function handleBack() {
         </div>
       </div>
     </div>
+
+    <!-- 杀号规则弹框 -->
+    <KillRulesModal
+      :visible="showKillRulesModal"
+      :lottery-type="lotteryType"
+      @close="handleKillRulesClose"
+      @apply="handleKillRulesClose"
+    />
 
     <!-- Toast 提示组件 -->
     <Toast />
@@ -2308,10 +2328,24 @@ function handleBack() {
   width: 100%;
   font-size: 13px;
   line-height: 1.2;
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   color: #92400E;
   font-family: 'SourceHanSans-Regular';
   margin: 0;
+}
+
+.footer-left,
+.footer-right {
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+.footer-center {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
 }
 
 /* 移动端适配 */

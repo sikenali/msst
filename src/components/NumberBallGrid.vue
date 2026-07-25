@@ -29,7 +29,7 @@ function handleToggle(num: number) {
   if (idx > -1) {
     newSelection = modelValue.value.filter(n => n !== num)
   } else {
-    if (modelValue.value.length >= maxCount) return
+    if (modelValue.value.length >= props.maxCount) return
     newSelection = [...modelValue.value, num].sort((a, b) => a - b)
   }
   modelValue.value = newSelection

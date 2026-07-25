@@ -193,8 +193,31 @@ app.get('/api/refresh', async (req, res) => {
   }
 });
 
+async function refreshAllData() {
+  console.log('[调度] 开始刷新所有数据...');
+  ssqCache = { data: [], timestamp: 0 };
+  dltCache = { data: [], timestamp: 0 };
+  await Promise.all([fetchSSQData(), fetchDLTData()]);
+  console.log('[调度] 数据刷新完成');
+}
+
+function scheduleMidnightRefresh() {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setDate(midnight.getDate() + 1);
+  midnight.setHours(0, 0, 0, 0);
+  const delay = midnight.getTime() - now.getTime();
+
+  console.log(`[调度] 距下次自动更新还有 ${Math.round(delay / 1000 / 60)} 分钟`);
+  setTimeout(async () => {
+    await refreshAllData();
+    setInterval(refreshAllData, 86400000);
+  }, delay);
+}
+
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
+  scheduleMidnightRefresh();
 });
 
 module.exports = app;

@@ -1,31 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import {
-  RiCake2Line,
-  RiMagicLine,
-  RiPlanetLine,
-  RiSparkling2Line,
+  RiScissors2Line,
+  RiNumbersLine,
+  RiCandleLine,
+  RiDropLine,
   RiGridLine,
 } from '@remixicon/vue'
-import MuYuIcon from '@/components/MuYuIcon.vue'
 
 const emit = defineEmits<{
   openModal: [type: string]
 }>()
 
-const isExpanded = ref(false)
-
 const icons = [
-  { type: 'shengri', label: '生日', icon: RiCake2Line, color: '#EC4899' },
-  { type: 'xingzuo', label: '星座', icon: RiMagicLine, color: '#8B5CF6' },
-  { type: 'shengchen', label: '生辰', icon: RiPlanetLine, color: '#F59E0B' },
-  { type: 'xingyunshu', label: '幸运数', icon: RiSparkling2Line, color: '#10B981' },
-  { type: 'wuxingqilie', label: '五行七列', icon: RiGridLine, color: '#8B5CF6' },
+  { type: 'shahao', label: '杀号', icon: RiScissors2Line, color: '#EF4444' },
+  { type: 'xuanhao', label: '选号', icon: RiNumbersLine, color: '#F59E0B' },
+  { type: 'dingdan', label: '定胆', icon: RiCandleLine, color: '#8B5CF6' },
+  { type: 'guolv', label: '过滤', icon: RiDropLine, color: '#3B82F6' },
+  { type: 'juzhen', label: '矩阵', icon: RiGridLine, color: '#8B5CF6' },
 ]
-
-function toggle() {
-  isExpanded.value = !isExpanded.value
-}
 
 function handleIconClick(type: string) {
   emit('openModal', type)
@@ -34,17 +26,11 @@ function handleIconClick(type: string) {
 
 <template>
   <div class="float-widget float-right">
-    <button class="main-btn" @click="toggle">
-      <MuYuIcon class="btn-icon" />
-      <span class="main-btn-tooltip">道号</span>
-    </button>
-    <div class="icon-list" :class="{ show: isExpanded }">
+    <div class="icon-list">
       <button
-        v-for="(icon, index) in icons"
+        v-for="icon in icons"
         :key="icon.type"
         class="icon-item"
-        :class="{ show: isExpanded }"
-        :style="{ transitionDelay: isExpanded ? `${(index + 1) * 0.08}s` : '0s' }"
         @click="handleIconClick(icon.type)"
         :aria-label="icon.label"
       >
@@ -70,97 +56,12 @@ function handleIconClick(type: string) {
   right: -50px;
 }
 
-/* 液态玻璃主按钮 */
-.main-btn {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(16px) saturate(200%);
-  -webkit-backdrop-filter: blur(16px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  color: #92400E;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  padding: 0;
-  outline: none;
-}
-
-.main-btn:hover {
-  background: rgba(255, 255, 255, 0.55);
-  transform: scale(1.06);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-}
-
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  color: #92400E;
-}
-
-/* 主按钮 Tooltip */
-.main-btn {
-  position: relative;
-}
-
-.main-btn-tooltip {
-  position: absolute;
-  right: calc(100% + 12px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #FFFFFF;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 12px;
-  border-radius: 8px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s, visibility 0.2s;
-  pointer-events: none;
-  font-family: 'SourceHanSans-Medium';
-}
-
-.main-btn-tooltip::before {
-  content: '';
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 6px solid transparent;
-  border-left-color: rgba(0, 0, 0, 0.75);
-}
-
-.main-btn:hover .main-btn-tooltip {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* 图标列表容器 */
 .icon-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 0;
-  overflow: visible;
-  opacity: 0;
-  transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.icon-list.show {
-  max-height: 500px;
-  opacity: 1;
-}
-
-/* 子图标 */
 .icon-item {
   position: relative;
   width: 52px;
@@ -176,32 +77,12 @@ function handleIconClick(type: string) {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  
-  /* 柔和向下弹出动画 */
-  opacity: 0;
-  transform: translateY(-16px) scale(0.85);
-  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s ease;
 }
 
-.icon-item.show {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.icon-item:nth-child(1) { transition-delay: 0.05s; }
-.icon-item:nth-child(2) { transition-delay: 0.1s; }
-.icon-item:nth-child(3) { transition-delay: 0.15s; }
-.icon-item:nth-child(4) { transition-delay: 0.2s; }
-.icon-item:nth-child(5) { transition-delay: 0.25s; }
-
-/* 确保 hover 时显示 tooltip */
 .icon-item:hover {
   background: rgba(255, 255, 255, 0.6);
-}
-
-.icon-item.show:hover {
   transform: scale(1.08);
-  transition: transform 0.2s ease;
 }
 
 .icon-item:hover .icon-item-tooltip {
@@ -223,7 +104,6 @@ function handleIconClick(type: string) {
   height: 22px;
 }
 
-/* Tooltip - 右侧面板 tooltip 在左边显示 */
 .icon-item-tooltip {
   position: absolute;
   right: calc(100% + 12px);
@@ -256,28 +136,12 @@ function handleIconClick(type: string) {
   border-left-color: rgba(0, 0, 0, 0.75);
 }
 
-.icon-item:hover .icon-item-tooltip {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* 移动端适配 */
 @media screen and (max-width: 768px) {
   .float-widget {
     position: fixed;
     top: 50%;
     transform: translateY(-50%);
     right: 12px;
-  }
-
-  .main-btn {
-    width: 50px;
-    height: 50px;
-  }
-
-  .btn-icon {
-    width: 28px;
-    height: 28px;
   }
 
   .icon-item {
@@ -296,10 +160,6 @@ function handleIconClick(type: string) {
   }
 
   .icon-item-tooltip {
-    display: none;
-  }
-
-  .main-btn-tooltip {
     display: none;
   }
 }

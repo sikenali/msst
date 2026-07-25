@@ -17,6 +17,10 @@ import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
 import IconModal from '@/components/IconModal.vue'
 import NumberPickerModal from '@/components/NumberPickerModal.vue'
 import KillRulesModal from '@/components/KillRulesModal.vue'
+import SelectModal from '@/components/SelectModal.vue'
+import BoldModal from '@/components/BoldModal.vue'
+import FilterModal from '@/components/FilterModal.vue'
+import MatrixModal from '@/components/MatrixModal.vue'
 import WuxingQilieModal from '@/components/WuxingQilieModal.vue'
 
 const router = useRouter()
@@ -62,6 +66,10 @@ const showIconModal = ref(false)
 const currentModalType = ref('')
 
 const showKillRulesModal = ref(false)
+const showSelectModal = ref(false)
+const showBoldModal = ref(false)
+const showFilterModal = ref(false)
+const showMatrixModal = ref(false)
 const showWuxingQilieModal = ref(false)
 
 // 号码选择弹框
@@ -98,13 +106,31 @@ function handleOpenModal(type: string) {
     return
   }
 
-  // 杀号规则
   if (type === 'shahao') {
     showKillRulesModal.value = true
     return
   }
 
-  // 五行七列
+  if (type === 'xuanhao') {
+    showSelectModal.value = true
+    return
+  }
+
+  if (type === 'dingdan') {
+    showBoldModal.value = true
+    return
+  }
+
+  if (type === 'guolv') {
+    showFilterModal.value = true
+    return
+  }
+
+  if (type === 'juzhen') {
+    showMatrixModal.value = true
+    return
+  }
+
   if (type === 'wuxingqilie') {
     showWuxingQilieModal.value = true
     return
@@ -123,8 +149,28 @@ function handleKillRulesClose() {
   showKillRulesModal.value = false
 }
 
+function handleSelectClose() {
+  showSelectModal.value = false
+}
+
+function handleBoldClose() {
+  showBoldModal.value = false
+}
+
+function handleFilterClose() {
+  showFilterModal.value = false
+}
+
+function handleMatrixClose() {
+  showMatrixModal.value = false
+}
+
 function handleWuxingQilieClose() {
   showWuxingQilieModal.value = false
+}
+
+function handleHistory() {
+  showKillRulesModal.value = true
 }
 
 function handlePickerConfirm(numbers: number[]) {
@@ -362,8 +408,8 @@ function reload() {
     <!-- 顶部导航栏 -->
     <PageHeader
       v-model="lotteryType"
-      @info="openRules"
       @logo-click="reload"
+      @history="handleHistory"
     />
 
     <!-- 规则弹窗 -->
@@ -431,8 +477,9 @@ function reload() {
     <footer class="home-footer">
       <div class="footer-inner">
         <p class="footer-text">
-          <span v-if="lotteryType === 'ssq'">一花一世界 · 一叶一菩提</span>
-          <span v-else>道生一 一生二 · 二生三 三生万物</span>
+          <span class="footer-left">© 2026 妙手神透</span>
+          <span class="footer-center">Powered by LightOS</span>
+          <span class="footer-right">主任的机制不如机智的我</span>
         </p>
       </div>
     </footer>
@@ -451,6 +498,35 @@ function reload() {
       :lottery-type="lotteryType"
       @close="handleKillRulesClose"
       @apply="handleKillRulesClose"
+    />
+
+    <!-- 选号方法弹框 -->
+    <SelectModal
+      :visible="showSelectModal"
+      :lottery-type="lotteryType"
+      @close="handleSelectClose"
+      @apply="handleSelectClose"
+    />
+
+    <BoldModal
+      :visible="showBoldModal"
+      :lottery-type="lotteryType"
+      @close="handleBoldClose"
+      @apply="handleBoldClose"
+    />
+
+    <FilterModal
+      :visible="showFilterModal"
+      :lottery-type="lotteryType"
+      @close="handleFilterClose"
+      @apply="handleFilterClose"
+    />
+
+    <MatrixModal
+      :visible="showMatrixModal"
+      :lottery-type="lotteryType"
+      @close="handleMatrixClose"
+      @apply="handleMatrixClose"
     />
 
     <!-- 五行七列弹框 -->
@@ -806,12 +882,26 @@ function reload() {
   width: 100%;
   font-size: 13px;
   line-height: 1.2;
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   color: #92400E;
   font-family: 'SourceHanSans-Regular';
   margin: 0;
   position: relative;
   z-index: 2;
+}
+
+.footer-left,
+.footer-right {
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+.footer-center {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
 }
 
 /* 平板适配 */

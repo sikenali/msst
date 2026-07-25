@@ -4,6 +4,7 @@ import { getMainNums } from '../base'
 export const threePointSelect: SelectRule = {
   name: '三点合围选号法',
   description: '本位+顺延+区间对称三重叠加入围',
+  bagua: 'zhen',
   apply(history: number[][], range: number, type: 'ssq' | 'dlt') {
     if (history.length === 0) {
       return { name: '三点合围选号法', description: '无历史数据', output: [] }

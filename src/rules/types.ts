@@ -12,9 +12,12 @@ export interface KillRule {
   apply(history: number[][], range: number, type: LotteryType): Set<number>
 }
 
+export type BaguaType = 'qian' | 'dui' | 'li' | 'zhen' | 'xun' | 'kan' | 'gen' | 'kun' | 'taiji'
+
 export interface SelectRule {
   name: string
   description: string
+  bagua: BaguaType
   apply(history: number[][], range: number, type: LotteryType): RuleResult
 }
 

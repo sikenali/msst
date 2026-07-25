@@ -33,7 +33,7 @@ function setupAutoUpdate() {
   
   const now = new Date()
   const targetTime = new Date()
-  targetTime.setHours(22, 0, 0, 0)
+  targetTime.setHours(24, 0, 0, 0)
   
   let delay = targetTime.getTime() - now.getTime()
   if (delay < 0) {

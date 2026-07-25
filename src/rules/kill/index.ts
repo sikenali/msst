@@ -12,6 +12,7 @@ import { fiveRowSevenColKill } from './fiveRowSevenColKill'
 import { singularKill } from './singularKill'
 import { blue12Kill } from './blue12Kill'
 import type { KillRule } from '../types'
+import { getHistoryForRule } from '../config'
 
 export const allKillRules: KillRule[] = [
   subtractionKill,
@@ -52,7 +53,8 @@ export function applyAllKillRules(
 ): Set<number> {
   const combined = new Set<number>()
   for (const rule of rules) {
-    const result = rule.apply(history, range, type)
+    const h = getHistoryForRule(history, rule.name)
+    const result = rule.apply(h, range, type)
     for (const n of result) combined.add(n)
   }
   return combined

@@ -17,6 +17,12 @@ import {
 } from './useUserSelections'
 import { useWuxingQilie, brokenRowEnabled, brokenColumnEnabled } from './useWuxingQilie'
 import { useKillRules } from './useKillRules'
+import { computeKilledSet, hasActiveKillRules, killRuleNames, selectRuleNames, boldRuleNames, filterNames, matrixRuleName } from './useRuleEngine'
+import { RuleEngine } from '@/rules/engine'
+import { allSelectRules } from '@/rules/select/index'
+import { allBoldRules, runAllBoldRules, crossValidateBold } from '@/rules/bold/index'
+import { allFilters, validateCombination } from '@/rules/filters/index'
+import { allMatrixRules } from '@/rules/matrix/index'
 import { getHistoryDraws } from './useHistoryData'
 
 // 当前彩种类型（需要外部设置）
@@ -158,9 +164,13 @@ function getKilledSet(range: number): Set<number> {
   if (historyDraws.length === 0) return killed
   const allNums = Array.from({ length: range }, (_, i) => i + 1)
 
-  // 应用杀号规则
-  const { applyKillRules } = useKillRules()
-  if (historyDraws.length > 0) {
+  // 应用引擎杀号规则 (来自 new KillRulesModal)
+  if (hasActiveKillRules()) {
+    const engineKilled = computeKilledSet(historyDraws, range, currentLotteryType)
+    for (const n of engineKilled) killed.add(n)
+  } else {
+    // 兼容旧版 useKillRules
+    const { applyKillRules } = useKillRules()
     const survivedFromKillRules = applyKillRules([...allNums], historyDraws, range)
     const survivedSet = new Set(survivedFromKillRules)
     for (const n of allNums) {
@@ -168,9 +178,8 @@ function getKilledSet(range: number): Set<number> {
     }
   }
 
-  // 应用五行七列规则
-  const { brokenRowEnabled, brokenColumnEnabled, analyzeAndKill } = useWuxingQilie()
   if (brokenRowEnabled.value || brokenColumnEnabled.value) {
+    const { analyzeAndKill } = useWuxingQilie()
     const survivors = analyzeAndKill(historyDraws, range)
     const survivorSet = new Set(survivors)
     for (const n of allNums) {
@@ -179,6 +188,38 @@ function getKilledSet(range: number): Set<number> {
   }
 
   return killed
+}
+
+function getEngineEnrichedData(type: 'ssq' | 'dlt') {
+  const history = getHistoryDraws(type)
+  const range = type === 'ssq' ? 33 : 35
+  const pickCount = type === 'ssq' ? 6 : 5
+
+  const engine = new RuleEngine({
+    type,
+    enabledKillRuleNames: killRuleNames.value.length > 0 ? killRuleNames.value : undefined,
+    enabledSelectRuleNames: selectRuleNames.value.length > 0 ? selectRuleNames.value : undefined,
+    enabledBoldRuleNames: boldRuleNames.value.length > 0 ? boldRuleNames.value : undefined,
+    enabledFilterNames: filterNames.value.length > 0 ? filterNames.value : undefined,
+    enabledMatrixRuleNames: matrixRuleName.value ? [matrixRuleName.value] : undefined,
+  })
+
+  const result = engine.execute(history, 1)
+
+  return {
+    engine,
+    result,
+    hasSelect: selectRuleNames.value.length > 0,
+    hasBold: boldRuleNames.value.length > 0,
+    hasFilter: filterNames.value.length > 0,
+    hasMatrix: !!matrixRuleName.value,
+    candidates: selectRuleNames.value.length > 0
+      ? result.candidates
+      : Array.from({ length: range }, (_, i) => i + 1).filter(n => !result.killed.has(n)),
+    boldCross: boldRuleNames.value.length > 0 ? result.boldCross : [],
+    pickCount,
+    range,
+  }
 }
 
 /**
@@ -251,29 +292,46 @@ const getDivineNumberPools = (maxRange: number, isRed: boolean = true) => {
  * 根据用户选择的红球/蓝球数量自动判断模式
  */
 export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single'): SSQResult[] {
-  // 获取用户固定的红蓝球
   const fixedRed = getUserRedNumbers().value.filter(n => n >= 1 && n <= 33)
   const fixedBlue = getUserBlueNumbers().value.filter(n => n >= 1 && n <= 16)
 
-  // 获取加权池
   const redWeightMap = getDivineNumberPools(33, true)
   const blueWeightMap = getDivineNumberPools(16, false)
 
   const killedRed = getKilledSet(33)
   const killedBlue = getKilledSet(16)
 
-  // 智能合并固定号码和法号推荐（去重+组合）
+  const hasEngineRules = hasActiveKillRules() || selectRuleNames.value.length > 0 ||
+    boldRuleNames.value.length > 0 || !!matrixRuleName.value
+  let engineData = hasEngineRules ? getEngineEnrichedData('ssq') : null
+
   const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number, killed: Set<number> = new Set()): number[] => {
     const unique = new Set<number>(fixed)
 
-    // 从加权池中按优先级选取（优先选择权重大于1的号码）
+    if (engineData?.hasSelect && engineData.candidates.length > 0) {
+      const needFromCandidates = target - unique.size
+      if (needFromCandidates > 0) {
+        const available = engineData.candidates.filter(n => !unique.has(n))
+        for (const n of available) {
+          if (unique.size >= target) break
+          unique.add(n)
+        }
+      }
+    }
+
+    if (engineData?.hasBold && engineData.boldCross.length > 0) {
+      for (const n of engineData.boldCross) {
+        if (unique.size >= target) break
+        if (n >= 1 && n <= range) unique.add(n)
+      }
+    }
+
     if (unique.size < target) {
       const needed = target - unique.size
       const weightedSelection = selectFromWeightedPool(weightMap, [...fixed, ...Array.from(killed)], needed)
       weightedSelection.forEach(n => unique.add(n))
     }
 
-    // 不足则随机补充（排除已杀号码）
     if (unique.size < target) {
       const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n) && !killed.has(n))
       if (remaining.length > 0) {
@@ -282,7 +340,6 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
       }
     }
 
-    // 仍不足则从全池补充（忽略杀号，保证有足够号码）
     if (unique.size < target) {
       const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n))
       const randomPick = getRandomNumsFromPool(remaining, target - unique.size)
@@ -432,61 +489,90 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     useFixedBlue = true
   }
 
+  let results: SSQResult[]
+
   if (finalMode === 'single') {
-    return Array.from({ length: notes }, () => ({
-      type: 'single',
+    results = Array.from({ length: notes }, () => ({
+      type: 'single' as const,
       red: generateRed(targetRedCount, useFixedRed),
       blue: generateBlue(targetBlueCount, useFixedBlue),
     }))
-  }
-
-  if (finalMode === 'multiple') {
-    return Array.from({ length: notes }, () => ({
-      type: 'multiple',
+  } else if (finalMode === 'multiple') {
+    results = Array.from({ length: notes }, () => ({
+      type: 'multiple' as const,
       red: generateRed(targetRedCount, useFixedRed),
       blue: generateBlue(targetBlueCount, useFixedBlue),
     }))
-  }
+  } else {
+    results = Array.from({ length: notes }, () => {
+      const bankerCount = 1 + Math.floor(Math.random() * 3)
+      const dragCount = 2 + Math.floor(Math.random() * 3)
 
-  // 胆拖
-  return Array.from({ length: notes }, () => {
-    const bankerCount = 1 + Math.floor(Math.random() * 3) // 1-3
-    const dragCount = 2 + Math.floor(Math.random() * 3) // 2-4
+      const bankers = useFixedRed && fixedRed.length > 0
+        ? fixedRed.slice(0, Math.min(bankerCount, fixedRed.length))
+        : mergeNumbers([], redWeightMap, 33, bankerCount, killedRed)
 
-    // 胆码
-    const bankers = useFixedRed && fixedRed.length > 0
-      ? fixedRed.slice(0, Math.min(bankerCount, fixedRed.length))
-      : mergeNumbers([], redWeightMap, 33, bankerCount, killedRed)
-
-    // 拖码
-    let drags: number[]
-    if (useFixedRed && fixedRed.length > bankers.length) {
-      drags = fixedRed.slice(bankers.length, bankers.length + dragCount)
-      if (drags.length < dragCount) {
-        const need = dragCount - drags.length
-        const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n) && !killedRed.has(n))
-        drags.push(...getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n)), need))
+      let drags: number[]
+      if (useFixedRed && fixedRed.length > bankers.length) {
+        drags = fixedRed.slice(bankers.length, bankers.length + dragCount)
+        if (drags.length < dragCount) {
+          const need = dragCount - drags.length
+          const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n) && !killedRed.has(n))
+          drags.push(...getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n)), need))
+        }
+      } else {
+        const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !killedRed.has(n))
+        drags = getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n)), dragCount)
       }
-    } else {
-      const pool = Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !killedRed.has(n))
-      drags = getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 33 }, (_, i) => i + 1).filter(n => !bankers.includes(n)), dragCount)
-    }
 
-    // 蓝球：五行七列模式下随机，否则从加权池选取
-    const blues = wuxingActive
-      ? [Math.floor(Math.random() * 16) + 1]
-      : (useFixedBlue && fixedBlue.length > 0
-        ? [...fixedBlue].sort((a, b) => a - b)
-        : mergeNumbers([], blueWeightMap, 16, 1, killedBlue))
+      const blues = wuxingActive
+        ? [Math.floor(Math.random() * 16) + 1]
+        : (useFixedBlue && fixedBlue.length > 0
+          ? [...fixedBlue].sort((a, b) => a - b)
+          : mergeNumbers([], blueWeightMap, 16, 1, killedBlue))
 
-    return {
-      type: 'dantuo',
-      red: [...bankers, ...drags].sort((a, b) => a - b),
-      blue: blues,
-      redBanker: bankers.sort((a, b) => a - b),
-      redDrag: drags.sort((a, b) => a - b),
+      return {
+        type: 'dantuo' as const,
+        red: [...bankers, ...drags].sort((a, b) => a - b),
+        blue: blues,
+        redBanker: bankers.sort((a, b) => a - b),
+        redDrag: drags.sort((a, b) => a - b),
+      }
+    })
+  }
+
+  // 引擎过滤: 验证每个组合是否通过过滤规则
+  if (engineData?.hasFilter && filterNames.value.length > 0) {
+    const history = getHistoryDraws('ssq')
+    const activeFilters = allFilters.filter(f => filterNames.value.includes(f.name))
+    results = results.filter(r => {
+      for (const f of activeFilters) {
+        if (!f.check(r.red, 'ssq')) return false
+      }
+      return true
+    })
+    if (results.length === 0) {
+      results = Array.from({ length: notes }, () => ({
+        type: finalMode === 'dantuo' ? 'dantuo' as const : 'single' as const,
+        red: generateRed(targetRedCount, useFixedRed),
+        blue: generateBlue(targetBlueCount, useFixedBlue),
+      }))
     }
-  })
+  }
+
+  // 引擎矩阵: 当注数匹配时使用矩阵输出
+  if (engineData?.hasMatrix && engineData.result.matrices.size > 0) {
+    const matrixCombos = engineData.result.matrices.values().next().value as number[][] | undefined
+    if (matrixCombos && matrixCombos.length > 0) {
+      return matrixCombos.slice(0, notes).map(combo => ({
+        type: 'single' as const,
+        red: combo,
+        blue: [Math.floor(Math.random() * 16) + 1],
+      }))
+    }
+  }
+
+  return results
 }
 
 /**
@@ -506,18 +592,37 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
   const killedFront = getKilledSet(35)
   const killedBack = getKilledSet(12)
 
-  // 智能合并固定号码和道号推荐（去重+组合）
+  const hasEngineDLT = hasActiveKillRules() || selectRuleNames.value.length > 0 ||
+    boldRuleNames.value.length > 0 || !!matrixRuleName.value
+  let engineDLT = hasEngineDLT ? getEngineEnrichedData('dlt') : null
+
   const mergeNumbers = (fixed: number[], weightMap: Map<number, number>, range: number, target: number, killed: Set<number> = new Set()): number[] => {
     const unique = new Set<number>(fixed)
 
-    // 从加权池中按优先级选取（优先选择权重大于1的号码）
+    if (engineDLT?.hasSelect && engineDLT.candidates.length > 0) {
+      const needFromCandidates = target - unique.size
+      if (needFromCandidates > 0) {
+        const available = engineDLT.candidates.filter(n => !unique.has(n))
+        for (const n of available) {
+          if (unique.size >= target) break
+          unique.add(n)
+        }
+      }
+    }
+
+    if (engineDLT?.hasBold && engineDLT.boldCross.length > 0) {
+      for (const n of engineDLT.boldCross) {
+        if (unique.size >= target) break
+        if (n >= 1 && n <= range) unique.add(n)
+      }
+    }
+
     if (unique.size < target) {
       const needed = target - unique.size
       const weightedSelection = selectFromWeightedPool(weightMap, [...fixed, ...Array.from(killed)], needed)
       weightedSelection.forEach(n => unique.add(n))
     }
 
-    // 不足则随机补充（排除已杀号码）
     if (unique.size < target) {
       const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n) && !killed.has(n))
       if (remaining.length > 0) {
@@ -526,7 +631,6 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
       }
     }
 
-    // 仍不足则从全池补充（忽略杀号，保证有足够号码）
     if (unique.size < target) {
       const remaining = Array.from({ length: range }, (_, i) => i + 1).filter(n => !unique.has(n))
       const randomPick = getRandomNumsFromPool(remaining, target - unique.size)
@@ -676,61 +780,88 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     useFixedBack = true
   }
 
+  let dltResults: DLTResult[]
+
   if (finalMode === 'single') {
-    return Array.from({ length: notes }, () => ({
-      type: 'single',
+    dltResults = Array.from({ length: notes }, () => ({
+      type: 'single' as const,
       front: generateFront(targetFrontCount, useFixedFront),
       back: generateBack(targetBackCount, useFixedBack),
     }))
-  }
-
-  if (finalMode === 'multiple') {
-    return Array.from({ length: notes }, () => ({
-      type: 'multiple',
+  } else if (finalMode === 'multiple') {
+    dltResults = Array.from({ length: notes }, () => ({
+      type: 'multiple' as const,
       front: generateFront(targetFrontCount, useFixedFront),
       back: generateBack(targetBackCount, useFixedBack),
     }))
-  }
+  } else {
+    dltResults = Array.from({ length: notes }, () => {
+      const bankerCount = 1 + Math.floor(Math.random() * 2)
+      const dragCount = 2 + Math.floor(Math.random() * 2)
 
-  // 胆拖
-  return Array.from({ length: notes }, () => {
-    const bankerCount = 1 + Math.floor(Math.random() * 2) // 1-2
-    const dragCount = 2 + Math.floor(Math.random() * 2) // 2-3
+      const bankers = useFixedFront && fixedFront.length > 0
+        ? fixedFront.slice(0, Math.min(bankerCount, fixedFront.length))
+        : mergeNumbers([], frontWeightMap, 35, bankerCount, killedFront)
 
-    // 胆码
-    const bankers = useFixedFront && fixedFront.length > 0
-      ? fixedFront.slice(0, Math.min(bankerCount, fixedFront.length))
-      : mergeNumbers([], frontWeightMap, 35, bankerCount, killedFront)
-
-    // 拖码
-    let drags: number[]
-    if (useFixedFront && fixedFront.length > bankers.length) {
-      drags = fixedFront.slice(bankers.length, bankers.length + dragCount)
-      if (drags.length < dragCount) {
-        const need = dragCount - drags.length
-        const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n) && !killedFront.has(n))
-        drags.push(...getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n)), need))
+      let drags: number[]
+      if (useFixedFront && fixedFront.length > bankers.length) {
+        drags = fixedFront.slice(bankers.length, bankers.length + dragCount)
+        if (drags.length < dragCount) {
+          const need = dragCount - drags.length
+          const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n) && !killedFront.has(n))
+          drags.push(...getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !drags.includes(n)), need))
+        }
+      } else {
+        const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !killedFront.has(n))
+        drags = getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n)), dragCount)
       }
-    } else {
-      const pool = Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n) && !killedFront.has(n))
-      drags = getRandomNumsFromPool(pool.length > 0 ? pool : Array.from({ length: 35 }, (_, i) => i + 1).filter(n => !bankers.includes(n)), dragCount)
-    }
 
-    // 后区：五行七列模式下随机，否则从加权池选取
-    const backs = wuxingActive
-      ? getRandomNumsFromPool(Array.from({ length: 12 }, (_, i) => i + 1), 2)
-      : (useFixedBack && fixedBack.length > 0
-        ? [...fixedBack].sort((a, b) => a - b)
-        : mergeNumbers([], backWeightMap, 12, 2, killedBack))
+      const backs = wuxingActive
+        ? getRandomNumsFromPool(Array.from({ length: 12 }, (_, i) => i + 1), 2)
+        : (useFixedBack && fixedBack.length > 0
+          ? [...fixedBack].sort((a, b) => a - b)
+          : mergeNumbers([], backWeightMap, 12, 2, killedBack))
 
-    return {
-      type: 'dantuo',
-      front: [...bankers, ...drags].sort((a, b) => a - b),
-      back: backs,
-      frontBanker: bankers.sort((a, b) => a - b),
-      frontDrag: drags.sort((a, b) => a - b),
+      return {
+        type: 'dantuo' as const,
+        front: [...bankers, ...drags].sort((a, b) => a - b),
+        back: backs,
+        frontBanker: bankers.sort((a, b) => a - b),
+        frontDrag: drags.sort((a, b) => a - b),
+      }
+    })
+  }
+
+  if (engineDLT?.hasFilter && filterNames.value.length > 0) {
+    const history = getHistoryDraws('dlt')
+    const activeFilters = allFilters.filter(f => filterNames.value.includes(f.name))
+    dltResults = dltResults.filter(r => {
+      for (const f of activeFilters) {
+        if (!f.check(r.front, 'dlt')) return false
+      }
+      return true
+    })
+    if (dltResults.length === 0) {
+      dltResults = Array.from({ length: notes }, () => ({
+        type: finalMode === 'dantuo' ? 'dantuo' as const : 'single' as const,
+        front: generateFront(targetFrontCount, useFixedFront),
+        back: generateBack(targetBackCount, useFixedBack),
+      }))
     }
-  })
+  }
+
+  if (engineDLT?.hasMatrix && engineDLT.result.matrices.size > 0) {
+    const matrixCombos = engineDLT.result.matrices.values().next().value as number[][] | undefined
+    if (matrixCombos && matrixCombos.length > 0) {
+      return matrixCombos.slice(0, notes).map(combo => ({
+        type: 'single' as const,
+        front: combo,
+        back: getRandomNumsFromPool(Array.from({ length: 12 }, (_, i) => i + 1), 2),
+      }))
+    }
+  }
+
+  return dltResults
 }
 
 /**

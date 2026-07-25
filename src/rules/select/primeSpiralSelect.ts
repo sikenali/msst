@@ -4,6 +4,7 @@ import { isPrime, getMainNums } from '../base'
 export const primeSpiralSelect: SelectRule = {
   name: '质合数螺旋选号法',
   description: '质合配比+三层圈层分配，四句口诀校验',
+  bagua: 'qian',
   apply(history: number[][], range: number, type: 'ssq' | 'dlt') {
     if (type !== 'ssq' || history.length < 10) {
       return { name: '质合数螺旋选号法', description: '需要至少10期双色球历史数据', output: [] }

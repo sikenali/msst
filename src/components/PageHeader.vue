@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { RiMoneyCnyCircleFill } from '@remixicon/vue'
+import { ref } from 'vue'
+import { RiMoneyCnyCircleFill, RiHistoryLine } from '@remixicon/vue'
 import TabSwitcher from '@/components/TabSwitcher.vue'
+import DrawHistoryPanel from '@/components/DrawHistoryPanel.vue'
 
 interface Props {
   modelValue?: 'ssq' | 'dlt'
@@ -9,8 +11,8 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: 'ssq' | 'dlt'): void
-  (e: 'info'): void
   (e: 'logo-click'): void
+  (e: 'history'): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,13 +22,20 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+const showTrend = ref(false)
+
+function toggleTrend() {
+  showTrend.value = !showTrend.value
+}
+
 function handleLogoClick() {
   emit('logo-click')
 }
 
-function handleInfo() {
-  emit('info')
+function handleHistory() {
+  emit('history')
 }
+
 function handleUpdateModelValue(value: unknown) {
   if (value === 'ssq' || value === 'dlt') {
     emit('update:modelValue', value)
@@ -52,17 +61,24 @@ function handleUpdateModelValue(value: unknown) {
           <TabSwitcher :model-value="modelValue" @update:model-value="handleUpdateModelValue" />
         </div>
 
-        <!-- 温馨提示按钮 -->
-        <button v-if="showInfoBtn" class="info-btn" @click="handleInfo">
-          <svg class="info-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C10 4 8 6 8 9C8 12 10 14 12 16C14 14 16 12 16 9C16 6 14 4 12 2Z" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.2"/>
-            <path d="M7 10C5 11 3 14 4 17C5 20 8 21 10 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            <path d="M17 10C19 11 21 14 20 17C19 20 16 21 14 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            <path d="M10 18L12 22L14 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          </svg>
-        </button>
+        <!-- 右侧按钮组 -->
+        <div class="header-actions">
+          <!-- 趋势按钮 -->
+          <button v-if="showInfoBtn" class="trend-btn" @click="toggleTrend">
+            <svg class="trend-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 20L8.4 11.8L12.4 13.6L17 8L21 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M17 8H21V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <!-- 开奖历史按钮 -->
+          <button class="history-btn" @click="handleHistory">
+            <RiHistoryLine class="history-icon-svg" />
+          </button>
+        </div>
       </div>
     </div>
+    <!-- 开奖历史弹窗 -->
+    <DrawHistoryPanel :visible="showTrend" @close="showTrend = false" />
   </header>
 </template>
 
@@ -154,7 +170,7 @@ function handleUpdateModelValue(value: unknown) {
   pointer-events: auto;
 }
 
-.info-btn {
+.history-btn {
   width: 40px;
   height: 40px;
   border-radius: 9999px;
@@ -167,24 +183,64 @@ function handleUpdateModelValue(value: unknown) {
   padding: 0;
   flex-shrink: 0;
   z-index: 1;
-  margin-right: 12px;
+  margin-right: 4px;
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
 }
 
-.info-btn:hover {
+.history-btn:hover {
   background: linear-gradient(135deg, rgba(253,224,71,1) 0%, rgba(252,211,77,1) 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
 }
 
-.info-btn:active {
+.history-btn:active {
   transform: translateY(0);
 }
 
-.info-icon-svg {
-  width: 22px;
-  height: 22px;
+.history-icon-svg {
+  width: 20px;
+  height: 20px;
+  color: #D97706;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.trend-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(254,243,199,1) 0%, rgba(255,251,235,1) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #FCD34D;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
+}
+
+.trend-btn:hover {
+  background: linear-gradient(135deg, rgba(253,224,71,1) 0%, rgba(252,211,77,1) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
+}
+
+.trend-btn:active {
+  transform: translateY(0);
+}
+
+.trend-icon-svg {
+  width: 20px;
+  height: 20px;
   color: #D97706;
 }
 
@@ -263,17 +319,21 @@ function handleUpdateModelValue(value: unknown) {
     transform-origin: center center;
   }
 
-  .info-btn {
+  .trend-btn,
+  .history-btn {
     width: 32px;
     height: 32px;
-    margin-left: 0;
-    margin-right: 0;
     flex-shrink: 0;
   }
 
-  .info-icon-svg {
-    width: 18px;
-    height: 18px;
+  .trend-icon-svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .history-icon-svg {
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -297,6 +357,11 @@ function handleUpdateModelValue(value: unknown) {
     position: absolute;
     left: 0;
     right: 0;
+    pointer-events: none;
+  }
+
+  .tab-wrapper > :deep(*) {
+    pointer-events: auto;
   }
 }
 
@@ -338,14 +403,20 @@ function handleUpdateModelValue(value: unknown) {
     font-size: 20px;
   }
 
-  .info-btn {
+  .trend-btn,
+  .history-btn {
     width: 42px;
     height: 42px;
   }
 
-  .info-icon-svg {
-    width: 24px;
-    height: 24px;
+  .trend-icon-svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .history-icon-svg {
+    width: 20px;
+    height: 20px;
   }
 }
 </style>

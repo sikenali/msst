@@ -4,6 +4,7 @@ import { getMainNums } from '../base'
 export const clockSelect: SelectRule = {
   name: '奖号时钟法',
   description: '33个红球排成圆形钟面，热号走3格，冷号逆5格',
+  bagua: 'kan',
   apply(history: number[][], range: number, type: 'ssq' | 'dlt') {
     if (type !== 'ssq' || history.length < 5) {
       return { name: '奖号时钟法', description: '需要至少5期双色球历史数据', output: [] }
