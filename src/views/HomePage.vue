@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { RiMoneyCnyCircleFill, RiSparkling2Fill } from '@remixicon/vue'
+import { RiMoneyCnyCircleFill, RiSparkling2Fill, RiScissors2Line, RiNumbersLine, RiCandleLine, RiDropLine, RiGridLine } from '@remixicon/vue'
 import { useUserSelections, setCurrentType } from '@/composables/useUserSelections'
 import { setCurrentLotteryType } from '@/composables/useLottery'
 import Toast, { showToast } from '@/components/Toast.vue'
@@ -10,12 +10,12 @@ import PageHeader from '@/components/PageHeader.vue'
 import BaguaDiagram from '@/components/BaguaDiagram.vue'
 import NoteCounter from '@/components/NoteCounter.vue'
 import ModeSelector from '@/components/ModeSelector.vue'
+import { RiSubtractLine, RiAddLine } from '@remixicon/vue'
 import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
 import TurtleIcon from '@/components/TurtleIcon.vue'
 import WuxingNumberGrid from '@/components/WuxingNumberGrid.vue'
 import BackZoneGrid from '@/components/BackZoneGrid.vue'
 import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
-import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
 import IconModal from '@/components/IconModal.vue'
 import NumberPickerModal from '@/components/NumberPickerModal.vue'
 import KillRulesModal from '@/components/KillRulesModal.vue'
@@ -27,6 +27,14 @@ import WuxingQilieModal from '@/components/WuxingQilieModal.vue'
 
 const router = useRouter()
 const route = useRoute()
+
+const rulesIcons = [
+  { type: 'shahao', label: '杀号', icon: RiScissors2Line, color: '#EF4444' },
+  { type: 'xuanhao', label: '选号', icon: RiNumbersLine, color: '#F59E0B' },
+  { type: 'dingdan', label: '定胆', icon: RiCandleLine, color: '#8B5CF6' },
+  { type: 'guolv', label: '过滤', icon: RiDropLine, color: '#3B82F6' },
+  { type: 'juzhen', label: '矩阵', icon: RiGridLine, color: '#8B5CF6' },
+]
 
 // 九字真言字符
 const mantraChars = ['临', '兵', '斗', '者', '皆', '列', '阵', '前', '行']
@@ -45,6 +53,19 @@ watch(lotteryType, (newType) => {
 }, { immediate: true })
 
 // 使用 computed 动态获取当前彩种的注数
+const redCount = ref(6)
+const blueCount = ref(1)
+const multiplierCount = ref(1)
+watch(lotteryType, (type) => {
+  if (type === 'ssq') {
+    redCount.value = 6
+    blueCount.value = 1
+  } else {
+    redCount.value = 5
+    blueCount.value = 2
+  }
+}, { immediate: true })
+
 const notes = computed({
   get: () => userNotes.value,
   set: (val: number) => {
@@ -383,7 +404,7 @@ function reload() {
       </div>
     </div>
 
-    <!-- 主内容区：左中右三栏布局 -->
+    <!-- 主内容区：左右两栏布局 -->
     <main class="home-main">
       <div class="main-inner">
         <div class="layout-col layout-col--left">
@@ -409,11 +430,54 @@ function reload() {
           </div>
           <div class="inline-section">
             <div class="inline-section__title" style="color:#F59E0B">运数</div>
-            <NoteCounter v-model="notes" :theme="lotteryType" />
+            <div class="counter-row">
+              <div class="counter-item">
+                <span class="counter-item__title" style="color:#EF4444">红佛女</span>
+                <NoteCounter v-model="redCount" :theme="lotteryType" compact />
+              </div>
+              <div class="counter-item">
+                <span class="counter-item__title" style="color:#3B82F6">蓝若寺</span>
+                <NoteCounter v-model="blueCount" :theme="lotteryType" compact />
+              </div>
+              <div class="counter-item">
+                <span class="counter-item__title" style="color:#F59E0B">倍数</span>
+                <NoteCounter v-model="multiplierCount" :theme="lotteryType" compact />
+              </div>
+            </div>
           </div>
           <div class="inline-section">
             <div class="inline-section__title" style="color:#8B5CF6">运式</div>
-            <ModeSelector v-model="mode" :theme="lotteryType" />
+            <div class="mode-row">
+              <div class="mode-item">
+                <span class="mode-item__label" style="color:#EF4444">单式</span>
+                <button class="mode-selector-btn" :class="{ active: mode === 'single' }" @click="mode = 'single'">
+                  <span class="mode-icon-emoji"><span class="die die--1">⚀</span></span>
+                </button>
+              </div>
+              <div class="mode-item">
+                <span class="mode-item__label" style="color:#F59E0B">复式</span>
+                <button class="mode-selector-btn" :class="{ active: mode === 'multiple' }" @click="mode = 'multiple'">
+                  <span class="mode-icon-emoji"><span class="die die--2">⚁</span></span>
+                </button>
+              </div>
+              <div class="mode-item">
+                <span class="mode-item__label" style="color:#8B5CF6">胆拖</span>
+                <button class="mode-selector-btn" :class="{ active: mode === 'dantuo' }" @click="mode = 'dantuo'">
+                  <span class="mode-icon-emoji"><span class="die die--3">⚂</span></span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="inline-section">
+            <div class="inline-section__title" style="color:#F59E0B">运势</div>
+            <div class="rule-icon-row">
+              <button v-for="r in rulesIcons" :key="r.type" class="rule-icon" @click="handleOpenModal(r.type)">
+                <span class="rule-icon-emoji" :style="{ color: r.color }">
+                  <component :is="r.icon" class="rule-icon-svg" />
+                </span>
+                <span class="rule-icon-label">{{ r.label }}</span>
+              </button>
+            </div>
           </div>
         </div>
         <div class="layout-col layout-col--center">
@@ -431,9 +495,6 @@ function reload() {
               <span class="generate-text">{{ buttonText }}</span>
             </button>
           </div>
-        </div>
-        <div class="layout-col layout-col--right">
-          <FloatingRightPanel @open-modal="handleOpenModal" />
         </div>
       </div>
     </main>
@@ -699,12 +760,17 @@ function reload() {
   justify-content: center;
 }
 .layout-col--left {
-  flex: 1.6;
+  flex: 0.7;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: 8px;
+}
+.layout-col--center {
+  flex: 0.3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 16px;
-  padding-right: 24px;
 }
 .inline-section {
   width: 100%;
@@ -715,25 +781,190 @@ function reload() {
   font-family: 'SourceHanSans-Bold';
   margin-bottom: 6px;
 }
-.layout-col--center {
-  flex-shrink: 0;
+.counter-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+}
+.counter-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  width: 268px;
+  gap: 6px;
 }
-.layout-col--center :deep(.bagua-container) {
-  padding: 16px 0 0 0;
+.counter-item__title {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'SourceHanSans-Bold';
+  white-space: nowrap;
+  text-align: center;
+  width: 100%;
+}
+.note-counter.compact .counter-input {
+  height: 30px;
+  border-radius: 6px;
+}
+.note-counter.compact .counter-btn {
+  flex: 0 0 28px;
+  min-width: 28px;
+  width: 28px;
+}
+.note-counter.compact .counter-icon {
+  width: 12px;
+  height: 12px;
+}
+.note-counter.compact .counter-value-input {
+  font-size: 12px;
+}
+.note-counter {
+  flex: 1;
+  min-width: 0;
+}
+.note-counter :deep(.counter-input) {
+  border: none !important;
+  background: transparent !important;
+}
+.note-counter :deep(.counter-btn) {
+  flex: 0 0 28px !important;
+  min-width: 28px !important;
+  width: 28px !important;
+}
+.note-counter :deep(.counter-icon) {
+  width: 12px !important;
+  height: 12px !important;
+}
+.note-counter :deep(.counter-value-input) {
+  font-size: 12px !important;
+}
+.mode-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.mode-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.mode-item__label {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'SourceHanSans-Bold';
+  white-space: nowrap;
+  text-align: center;
+}
+.mode-selector-btn {
+  width: 100%;
+  padding: 8px 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: all 0.2s ease;
+}
+.mode-selector-btn:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.04);
+}
+.mode-selector-btn.active {
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.mode-icon-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+.die {
+  font-size: 24px;
+  line-height: 1;
+  color: #DC2626;
+}
+.die--1 { color: #EF4444; }
+.die--2 { color: #F59E0B; }
+.die--3 { color: #8B5CF6; }
+.rule-icon-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+.rule-icon {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: all 0.2s ease;
+  color: #92400E;
+  font-family: 'SourceHanSans-Medium';
+}
+.rule-icon:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.04);
+}
+.rule-icon-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.rule-icon-svg {
+  width: 18px;
+  height: 18px;
+}
+.rule-icon-label {
+  font-size: 11px;
+  white-space: nowrap;
+  line-height: 1;
+}
+.counter-item__label {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'SourceHanSans-Bold';
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .layout-col--right {
-  flex: 1.6;
-  justify-content: flex-start;
-  padding-left: 24px;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.layout-col--right :deep(.bagua-container) {
+  padding: 16px 0 0 0;
 }
 .layout-col--right :deep(.float-widget) {
   position: static;
   transform: none;
   top: auto;
   right: auto;
+  width: 100%;
 }
 
 /* 配置标题 */

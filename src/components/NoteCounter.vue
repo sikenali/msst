@@ -5,11 +5,13 @@ import { RiSubtractLine, RiAddLine } from '@remixicon/vue'
 interface Props {
   theme?: 'ssq' | 'dlt'
   autofocus?: boolean
+  compact?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   theme: 'ssq',
-  autofocus: false
+  autofocus: false,
+  compact: false
 })
 
 const modelValue = defineModel<number>({ default: 1 })
@@ -93,7 +95,7 @@ const counterBg = computed(() => props.theme === 'ssq' ? '#FFFBEB' : 'rgba(219,2
 </script>
 
 <template>
-  <div class="note-counter" :style="{ '--counter-border': counterBorder, '--counter-bg': counterBg }">
+  <div class="note-counter" :class="{ compact }" :style="{ '--counter-border': counterBorder, '--counter-bg': counterBg }">
     <div class="counter-input">
       <button class="counter-btn" @click="decrement" :disabled="count <= 1">
         <RiSubtractLine class="counter-icon" />
@@ -188,6 +190,24 @@ const counterBg = computed(() => props.theme === 'ssq' ? '#FFFBEB' : 'rgba(219,2
   width: 0; /* Force flex to calculate width */
   min-width: 0;
   z-index: 1;
+}
+
+/* Compact mode */
+.note-counter.compact .counter-input {
+  height: 36px;
+  border-radius: 6px;
+}
+.note-counter.compact .counter-btn {
+  flex: 0 0 36px;
+  min-width: 36px;
+  width: 36px;
+}
+.note-counter.compact .counter-icon {
+  width: 16px;
+  height: 16px;
+}
+.note-counter.compact .counter-value-input {
+  font-size: 15px;
 }
 
 /* Mobile Responsive */

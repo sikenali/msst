@@ -1,88 +1,51 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import RedCandleIcon from '@/components/RedCandleIcon.vue'
 
 interface Props {
   theme?: 'ssq' | 'dlt'
+  compact?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  theme: 'ssq'
+  theme: 'ssq',
+  compact: false
 })
 
 const modelValue = defineModel<'single' | 'multiple' | 'dantuo'>({ default: 'single' })
 
-const activeGradient = computed(() => props.theme === 'ssq'
+const activeGradient = props.theme === 'ssq'
   ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
   : 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
-)
-const activeBorder = computed(() => props.theme === 'ssq' ? '#D97706' : '#2563EB')
-const activeText = computed(() => '#FFFFFF')
-const inactiveBorderColor = computed(() => props.theme === 'ssq' ? '#FDE68A' : '#BFDBFE')
-const inactiveBgColor = computed(() => props.theme === 'ssq' ? 'rgba(255,251,235,1)' : 'rgba(238,242,255,1)')
-const inactiveTextColor = computed(() => props.theme === 'ssq' ? '#D97706' : '#2563EB')
 
-// 点击后主动 blur，防止按钮保持焦点
 function handleClick(value: 'single' | 'multiple' | 'dantuo') {
   modelValue.value = value
   if (document.activeElement instanceof HTMLElement) {
     document.activeElement.blur()
   }
 }
+
+const modes = [
+  { value: 'single' as const, label: '单式', count: 1 as const },
+  { value: 'multiple' as const, label: '复式', count: 2 as const },
+  { value: 'dantuo' as const, label: '胆拖', count: 3 as const },
+]
 </script>
 
 <template>
   <div class="mode-selector">
-    <!-- 模式选项 -->
     <div class="mode-buttons">
-      <!-- 单式 -->
       <button
-        class="mode-btn"
-        :class="{ active: modelValue === 'single' }"
-        :style="modelValue === 'single'
-          ? { background: activeGradient, border: `2px solid ${activeBorder}`, color: activeText }
-          : { border: `2px solid ${inactiveBorderColor}`, background: inactiveBgColor, color: inactiveTextColor }"
-        @click="handleClick('single')"
-        tabindex="-1"
+        v-for="m in modes"
+        :key="m.value"
+        class="icon-item"
+        :class="{ active: modelValue === m.value }"
+        :style="modelValue === m.value ? { background: activeGradient, borderColor: 'transparent', color: '#fff' } : {}"
+        @click="handleClick(m.value)"
       >
-        <span class="mode-icon-wrapper">
-          <RedCandleIcon class="mode-icon" :count="1" />
+        <span class="icon-emoji">
+          <RedCandleIcon class="mode-icon" :count="m.count" />
         </span>
-        单式
-      </button>
-      <!-- 间距 12px -->
-      <div class="mode-gap"></div>
-      <!-- 复式 -->
-      <button
-        class="mode-btn"
-        :class="{ active: modelValue === 'multiple' }"
-        :style="modelValue === 'multiple'
-          ? { background: activeGradient, border: `2px solid ${activeBorder}`, color: activeText }
-          : { border: `2px solid ${inactiveBorderColor}`, background: inactiveBgColor, color: inactiveTextColor }"
-        @click="handleClick('multiple')"
-        tabindex="-1"
-      >
-        <span class="mode-icon-wrapper">
-          <RedCandleIcon class="mode-icon" :count="2" />
-        </span>
-        复式
-      </button>
-      <!-- 间距 12px -->
-      <div class="mode-gap"></div>
-      <!-- 胆拖 -->
-      <button
-        class="mode-btn"
-        :class="{ active: modelValue === 'dantuo' }"
-        :style="modelValue === 'dantuo'
-          ? { background: activeGradient, border: `2px solid ${activeBorder}`, color: activeText }
-          : { border: `2px solid ${inactiveBorderColor}`, background: inactiveBgColor, color: inactiveTextColor }"
-        @click="handleClick('dantuo')"
-        tabindex="-1"
-      >
-        <span class="mode-icon-wrapper">
-          <RedCandleIcon class="mode-icon" :count="3" />
-        </span>
-        胆拖
+        <span v-if="!compact" class="icon-label">{{ m.label }}</span>
       </button>
     </div>
   </div>
@@ -94,34 +57,51 @@ function handleClick(value: 'single' | 'multiple' | 'dantuo') {
 }
 
 .mode-buttons {
-  width: 100%;
-  height: 56px;
   display: flex;
-  align-items: center;
+  gap: 8px;
 }
 
-.mode-btn {
+.icon-item {
   flex: 1;
-  height: 56px;
-  border-radius: 8px;
-  font-size: 16px;
-  line-height: 1.2;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
-  gap: 4px;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  color: #92400E;
+  cursor: pointer;
   outline: none;
   user-select: none;
   -webkit-user-select: none;
-}
-
-.mode-btn.active {
-  font-family: 'SourceHanSans-SemiBold';
-}
-
-.mode-btn:not(.active) {
   font-family: 'SourceHanSans-Medium';
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.icon-item:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.04);
+}
+
+.icon-item.active {
+  font-family: 'SourceHanSans-SemiBold';
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.icon-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
 }
 
 .mode-icon {
@@ -129,32 +109,23 @@ function handleClick(value: 'single' | 'multiple' | 'dantuo') {
   height: 18px;
 }
 
-.mode-icon-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
+.icon-label {
+  white-space: nowrap;
 }
 
-.mode-gap {
-  width: 12px;
-}
-
-/* 移动端适配 */
 @media screen and (max-width: 480px) {
-  .mode-buttons {
-    height: 48px;
+  .icon-item {
+    padding: 6px 8px;
+    font-size: 12px;
+    gap: 4px;
   }
-
-  .mode-btn {
-    height: 48px;
-    font-size: 14px;
+  .icon-emoji {
+    width: 18px;
+    height: 18px;
   }
-
   .mode-icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
   }
 }
 </style>

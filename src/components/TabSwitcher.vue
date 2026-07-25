@@ -49,7 +49,7 @@ function switchTab(type: 'ssq' | 'dlt') {
   position: relative;
   height: 40px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.2;
   padding: 8px 24px;
   display: flex;
@@ -106,7 +106,7 @@ function switchTab(type: 'ssq' | 'dlt') {
 
   .tab-btn {
     height: 38px;
-    font-size: 14px;
+    font-size: 13px;
     padding: 8px 16px;
   }
 }
@@ -120,7 +120,7 @@ function switchTab(type: 'ssq' | 'dlt') {
 
   .tab-btn {
     height: 34px;
-    font-size: 13px;
+    font-size: 12px;
     padding: 6px 12px;
   }
 }
@@ -134,7 +134,7 @@ function switchTab(type: 'ssq' | 'dlt') {
 
   .tab-btn {
     height: 42px;
-    font-size: 16px;
+    font-size: 14px;
     padding: 10px 24px;
   }
 }

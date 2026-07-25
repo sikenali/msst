@@ -77,9 +77,9 @@ function handleUpdateModelValue(value: unknown) {
         </div>
       </div>
     </div>
+    </header>
     <!-- 开奖历史弹窗 -->
     <DrawHistoryPanel :visible="showTrend" @close="showTrend = false" />
-  </header>
 </template>
 
 <style scoped>
@@ -148,7 +148,7 @@ function handleUpdateModelValue(value: unknown) {
 }
 
 .logo-text {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   line-height: 1.2;
   color: #92400E;
@@ -294,7 +294,7 @@ function handleUpdateModelValue(value: unknown) {
 
   .logo-text {
     font-size: 15px;
-    max-width: 90px;
+    max-width: 80px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -400,7 +400,7 @@ function handleUpdateModelValue(value: unknown) {
   }
 
   .logo-text {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .trend-btn,

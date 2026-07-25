@@ -159,7 +159,6 @@ export function useUserSelections() {
   }
 
   function clearRedBlueNumbers() {
-    // 只清空当前彩种的红球蓝球
     if (currentType.value === 'ssq') {
       ssqBlueNumbers.value = []
       ssqRedNumbers.value = []
@@ -170,7 +169,6 @@ export function useUserSelections() {
   }
 
   function clearAllIncludingRedBlue() {
-    // 清除当前彩种所有数据（包括红球蓝球、注数、模式）
     if (currentType.value === 'ssq') {
       ssqBlueNumbers.value = []
       ssqRedNumbers.value = []
