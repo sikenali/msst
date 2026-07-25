@@ -12,6 +12,7 @@ import NoteCounter from '@/components/NoteCounter.vue'
 import ModeSelector from '@/components/ModeSelector.vue'
 import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
 import TurtleIcon from '@/components/TurtleIcon.vue'
+import NumberBallGrid from '@/components/NumberBallGrid.vue'
 import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
 import FloatingRightPanel from '@/components/FloatingRightPanel.vue'
 import IconModal from '@/components/IconModal.vue'
@@ -72,40 +73,7 @@ const showFilterModal = ref(false)
 const showMatrixModal = ref(false)
 const showWuxingQilieModal = ref(false)
 
-// 号码选择弹框
-const showPickerModal = ref(false)
-const pickerType = ref<'blue' | 'red'>('blue')
-const pickerTitle = ref('')
-
-// 蓝若寺和红佛女各自独立存储选中的号码
-const pickerSelectedBlue = ref<number[]>([])
-const pickerSelectedRed = ref<number[]>([])
-
-// 当前弹框使用的选中号码（computed 动态绑定）
-const pickerSelectedNumbers = computed(() =>
-  pickerType.value === 'blue' ? pickerSelectedBlue.value : pickerSelectedRed.value
-)
-
 function handleOpenModal(type: string) {
-  // 蓝若寺和红佛女打开号码选择器
-  if (type === 'lanruo') {
-    pickerType.value = 'blue'
-    pickerTitle.value = '蓝若寺'
-    // 从全局状态初始化选中号码，确保弹框显示与全局状态同步
-    pickerSelectedBlue.value = [...userBlueNumbers.value]
-    showPickerModal.value = true
-    return
-  }
-
-  if (type === 'hongfolv') {
-    pickerType.value = 'red'
-    pickerTitle.value = '红佛女'
-    // 从全局状态初始化选中号码，确保弹框显示与全局状态同步
-    pickerSelectedRed.value = [...userRedNumbers.value]
-    showPickerModal.value = true
-    return
-  }
-
   if (type === 'shahao') {
     showKillRulesModal.value = true
     return
@@ -171,33 +139,6 @@ function handleWuxingQilieClose() {
 
 function handleHistory() {
   showKillRulesModal.value = true
-}
-
-function handlePickerConfirm(numbers: number[]) {
-  console.log('选中的号码:', numbers)
-
-  // 将选中的号码分别存储到独立状态
-  if (pickerType.value === 'blue') {
-    pickerSelectedBlue.value = [...numbers]
-  } else if (pickerType.value === 'red') {
-    pickerSelectedRed.value = [...numbers]
-  }
-
-  // 使用顶层已解构的函数保存到全局状态（用于号码生成）
-  if (pickerType.value === 'blue') {
-    setBlueNumbers(numbers)
-  } else if (pickerType.value === 'red') {
-    setRedNumbers(numbers)
-  }
-
-  // 关闭弹框
-  showPickerModal.value = false
-
-  showToast(`已选择 ${numbers.length} 个号码`, 'success')
-}
-
-function handlePickerClose() {
-  showPickerModal.value = false
 }
 
 // 监听类型切换，触发输入框聚焦
@@ -441,31 +382,57 @@ function reload() {
       </div>
     </div>
 
-    <!-- 主内容区 -->
+    <!-- 主内容区：左中右三栏布局 -->
     <main class="home-main">
       <div class="main-inner">
-        <!-- 左侧浮动面板（乌龟） -->
-        <FloatingLeftPanel @open-modal="handleOpenModal" />
-
-        <!-- 右侧浮动面板（木鱼） -->
-        <FloatingRightPanel @open-modal="handleOpenModal" />
-
-        <!-- 八卦图 -->
-        <BaguaDiagram :theme="lotteryType" :spinning="isSpinning" :notes="notes" />
-
-        <!-- 生财/有道按钮 -->
-        <div class="generate-btn-wrapper">
-          <button 
-            class="generate-btn" 
-            :style="{ background: buttonGradient }" 
-            @click="handleGenerate"
-            :aria-label="lotteryType === 'ssq' ? '生成双色球号码' : '生成大乐透号码'"
-          >
-            <RiMoneyCnyCircleFill v-if="lotteryType === 'ssq'" class="generate-icon" />
-            <CopperCoinIcon v-else class="generate-icon" />
-            <div class="generate-spacer"></div>
-            <span class="generate-text">{{ buttonText }}</span>
-          </button>
+        <div class="layout-col layout-col--left">
+          <div class="inline-section">
+            <div class="inline-section__title" style="color:#EF4444">红佛女</div>
+            <NumberBallGrid
+              v-model="userRedNumbers"
+              zone="front"
+              :total-numbers="lotteryType === 'ssq' ? 33 : 35"
+              :max-count="lotteryType === 'ssq' ? 6 : 5"
+              @select="setRedNumbers"
+            />
+          </div>
+          <div class="inline-section">
+            <div class="inline-section__title" style="color:#3B82F6">蓝若寺</div>
+            <NumberBallGrid
+              v-model="userBlueNumbers"
+              zone="back"
+              :total-numbers="lotteryType === 'ssq' ? 16 : 12"
+              :max-count="lotteryType === 'ssq' ? 1 : 2"
+              @select="setBlueNumbers"
+            />
+          </div>
+          <div class="inline-section">
+            <div class="inline-section__title" style="color:#F59E0B">运数</div>
+            <NoteCounter v-model="notes" :theme="lotteryType" />
+          </div>
+          <div class="inline-section">
+            <div class="inline-section__title" style="color:#8B5CF6">运式</div>
+            <ModeSelector v-model="mode" :theme="lotteryType" />
+          </div>
+        </div>
+        <div class="layout-col layout-col--center">
+          <BaguaDiagram :theme="lotteryType" :spinning="isSpinning" :notes="notes" />
+          <div class="generate-btn-wrapper">
+            <button 
+              class="generate-btn" 
+              :style="{ background: buttonGradient }" 
+              @click="handleGenerate"
+              :aria-label="lotteryType === 'ssq' ? '生成双色球号码' : '生成大乐透号码'"
+            >
+              <RiMoneyCnyCircleFill v-if="lotteryType === 'ssq'" class="generate-icon" />
+              <CopperCoinIcon v-else class="generate-icon" />
+              <div class="generate-spacer"></div>
+              <span class="generate-text">{{ buttonText }}</span>
+            </button>
+          </div>
+        </div>
+        <div class="layout-col layout-col--right">
+          <FloatingRightPanel @open-modal="handleOpenModal" />
         </div>
       </div>
     </main>
@@ -537,16 +504,7 @@ function reload() {
       @apply="handleWuxingQilieClose"
     />
 
-    <!-- 号码选择弹框 -->
-    <NumberPickerModal
-      :visible="showPickerModal"
-      :title="pickerTitle"
-      :type="pickerType"
-      :lottery-type="lotteryType"
-      :selected-numbers="pickerSelectedNumbers"
-      @confirm="handlePickerConfirm"
-      @close="handlePickerClose"
-    />
+
 
     <!-- Toast 提示组件 -->
     <Toast />
@@ -725,12 +683,56 @@ function reload() {
 .main-inner {
   padding: 16px 24px;
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  max-width: 720px;
+  margin: 0 auto;
+  gap: 0;
+  position: relative;
+}
+
+.layout-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.layout-col--left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding-right: 24px;
+}
+.inline-section {
+  width: 100%;
+}
+.inline-section__title {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'SourceHanSans-Bold';
+  margin-bottom: 6px;
+}
+.layout-col--center {
+  flex-shrink: 0;
   flex-direction: column;
   align-items: center;
-  max-width: 672px;
-  margin: 0 auto;
-  gap: 10px;
-  position: relative;
+  width: 268px;
+}
+.layout-col--center :deep(.bagua-container) {
+  padding: 16px 0 0 0;
+}
+.layout-col--right {
+  flex: 1;
+  justify-content: flex-start;
+  padding-left: 24px;
+}
+.layout-col--right :deep(.float-widget) {
+  position: static;
+  transform: none;
+  top: auto;
+  right: auto;
 }
 
 /* 配置标题 */
@@ -779,7 +781,7 @@ function reload() {
   position: relative;
   display: flex;
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .generate-btn {
@@ -1017,7 +1019,6 @@ function reload() {
   .main-inner {
     padding: 12px 144px;
     max-width: 672px;
-    gap: 6px;
   }
 
   .config-card {
