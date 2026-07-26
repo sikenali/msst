@@ -23,11 +23,12 @@ const ariaLabel = computed(() => `规则设置 - ${props.title}`)
     <Transition name="drawer-fade">
       <div v-if="visible" class="rule-drawer-overlay" @click="$emit('close')">
         <Transition name="drawer-slide">
-          <div v-if="visible" class="rule-drawer-panel" @click.stop>
-            <div class="drawer-header">
-              <span class="drawer-title">{{ title }}</span>
-              <button class="drawer-close-btn" @click="$emit('close')" :aria-label="ariaLabel">
-                <RiCloseLine />
+          <div v-if="visible" class="rule-drawer-panel" @click.stop role="dialog" aria-modal="true">
+            <div class="drawer-header" v-if="title || true">
+              <span class="drawer-title" v-if="title">{{ title }}</span>
+              <span v-else class="drawer-title">规则设置</span>
+              <button class="drawer-close-btn" @click="$emit('close')" :aria-label="title ? `关闭 ${title}` : '关闭规则设置'">
+                <RiCloseLine aria-hidden="true" />
               </button>
             </div>
             <div class="drawer-body">
@@ -120,6 +121,6 @@ const ariaLabel = computed(() => `规则设置 - ${props.title}`)
 }
 .drawer-slide-enter-from,
 .drawer-slide-leave-to {
-  transform: translateX(40px);
+  transform: translateX(50px);
 }
 </style>
