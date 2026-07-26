@@ -131,6 +131,11 @@ const showRulesModal = ref(false)
 const isSpinning = ref(false)
 const counterAutofocus = ref(false)
 
+// Mobile tab state
+const mobileTabActive = ref(0)
+const mobileModalOpen = ref(false)
+const mobileModalIndex = ref(0)
+
 // 侧滑抽屉状态
 const showRuleDrawer = ref(false)
 const activeRuleType = ref('')
@@ -342,6 +347,29 @@ function reload() {
   // 使用 router.replace 重置查询参数，避免硬刷新丢失 SPA 状态
   router.replace({ query: {} })
 }
+
+const mobileTabs = [
+  { label: '红佛女', color: '#EF4444' },
+  { label: '蓝若寺', color: '#3B82F6' },
+  { label: '运数', color: '#EF4444' },
+  { label: '运式', color: '#3B82F6' },
+]
+
+function openMobileModal(index: number) {
+  mobileModalIndex.value = index
+  mobileModalOpen.value = true
+}
+
+function closeMobileModal() {
+  mobileModalOpen.value = false
+}
+
+function getTabContent(index: number) {
+  if (index === 0) return 'wuxing'
+  if (index === 1) return 'backzone'
+  if (index === 2) return 'params'
+  return 'mode'
+}
 </script>
 
 <template>
@@ -401,14 +429,28 @@ function reload() {
       </div>
     </div>
 
+    <!-- 移动端顶部横排标签栏 -->
+    <div class="mobile-tab-bar">
+      <button
+        v-for="(tab, index) in mobileTabs"
+        :key="index"
+        class="mobile-tab-btn"
+        :class="{ active: mobileTabActive === index }"
+        :style="{ color: mobileTabActive === index ? tab.color : undefined }"
+        @click="() => { mobileTabActive = index; openMobileModal(index); }"
+      >
+        {{ tab.label }}
+      </button>
+    </div>
+
     <!-- 主内容区：两栏布局（40% / 60%） -->
     <main class="home-main">
       <div class="main-inner" :class="'theme-' + lotteryType">
         <!-- 左栏：选号 + 参数 -->
         <div class="layout-col layout-col--left">
           <!-- 选号面板 -->
-          <div class="panel section--selection">
-            <div class="inline-section">
+          <div class="panel section--selection" id="section-selection">
+            <div class="inline-section" id="section-wuxing">
               <div class="inline-section__title" style="color:#EF4444">红佛女</div>
               <WuxingNumberGrid
                 v-model="userRedNumbers"
@@ -418,7 +460,7 @@ function reload() {
                 @select="setRedNumbers"
               />
             </div>
-            <div class="inline-section">
+            <div class="inline-section" id="section-backzone">
               <div class="inline-section__title" style="color:#3B82F6">蓝若寺</div>
               <BackZoneGrid
                 v-model="userBlueNumbers"
@@ -430,8 +472,8 @@ function reload() {
             </div>
           </div>
           <!-- 参数面板 -->
-          <div class="panel section--params">
-            <div class="inline-section">
+          <div class="panel section--params" id="section-params">
+            <div class="inline-section" id="section-counter">
               <div class="inline-section__title" style="color:#EF4444">运数</div>
               <div class="counter-row">
                 <div class="counter-item">
@@ -448,7 +490,7 @@ function reload() {
                 </div>
               </div>
             </div>
-            <div class="inline-section">
+            <div class="inline-section" id="section-mode">
               <div class="inline-section__title" style="color:#3B82F6">运式</div>
               <div class="mode-row">
                 <div class="mode-item">
@@ -495,6 +537,78 @@ function reload() {
         </div>
       </div>
     </main>
+
+    <!-- 移动端弹窗 -->
+    <div class="mobile-modal-overlay" v-if="mobileModalOpen" @click="closeMobileModal">
+      <div class="mobile-modal-content" @click.stop>
+        <div class="mobile-modal-header">
+          <span class="mobile-modal-title" :style="{ color: mobileTabs[mobileModalIndex].color }">{{ mobileTabs[mobileModalIndex].label }}</span>
+          <button class="mobile-modal-close" @click="closeMobileModal">✕</button>
+        </div>
+        <div class="mobile-modal-body" :class="getTabContent(mobileModalIndex)">
+          <!-- 红佛女 (wuxing) -->
+          <template v-if="mobileModalIndex === 0">
+            <WuxingNumberGrid
+              v-model="userRedNumbers"
+              :lottery-type="lotteryType"
+              :total-numbers="lotteryType === 'ssq' ? 33 : 35"
+              :max-count="lotteryType === 'ssq' ? 6 : 5"
+              @select="setRedNumbers"
+            />
+          </template>
+          <!-- 蓝若寺 (backzone) -->
+          <template v-else-if="mobileModalIndex === 1">
+            <BackZoneGrid
+              v-model="userBlueNumbers"
+              :lottery-type="lotteryType"
+              :total-numbers="lotteryType === 'ssq' ? 16 : 12"
+              :max-count="lotteryType === 'ssq' ? 1 : 2"
+              @select="setBlueNumbers"
+            />
+          </template>
+          <!-- 运数 (params/counter) -->
+          <template v-else-if="mobileModalIndex === 2">
+            <div class="counter-row">
+              <div class="counter-item">
+                <span class="counter-item__title" style="color:#EF4444">红佛女</span>
+                <NoteCounter v-model="redCount" :theme="lotteryType" compact />
+              </div>
+              <div class="counter-item">
+                <span class="counter-item__title" style="color:#3B82F6">蓝若寺</span>
+                <NoteCounter v-model="blueCount" :theme="lotteryType" compact />
+              </div>
+              <div class="counter-item">
+                <span class="counter-item__title">注数</span>
+                <NoteCounter v-model="multiplierCount" :theme="lotteryType" compact />
+              </div>
+            </div>
+          </template>
+          <!-- 运式 (mode) -->
+          <template v-else>
+            <div class="mode-row">
+              <div class="mode-item">
+                <span class="mode-item__label">单式</span>
+                <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'single' }" @click="() => { mode = 'single'; closeMobileModal(); }">
+                  <span class="die die--1">⚀</span>
+                </button>
+              </div>
+              <div class="mode-item">
+                <span class="mode-item__label">复式</span>
+                <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'multiple' }" @click="() => { mode = 'multiple'; closeMobileModal(); }">
+                  <span class="die die--2">⚁</span>
+                </button>
+              </div>
+              <div class="mode-item">
+                <span class="mode-item__label">胆拖</span>
+                <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'dantuo' }" @click="() => { mode = 'dantuo'; closeMobileModal(); }">
+                  <span class="die die--3">⚂</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
 
     <!-- 侧滑抽屉面板 -->
     <RuleDrawer :visible="showRuleDrawer" :title="ruleTitles[activeRuleType] || '规则设置'" @close="handleDrawerClose">
@@ -1176,6 +1290,158 @@ function reload() {
   .modal-content {
     width: 500px;
     height: 400px;
+  }
+
+  /* 隐藏左栏实际内容，移动端显示 tab 标签+弹窗 */
+  .layout-col--left {
+    display: none;
+  }
+
+  /* 移动端顶部横排标签栏 */
+  .mobile-tab-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    padding: 8px 12px;
+    background: rgba(255, 251, 235, 0.95);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+  }
+
+  .mobile-tab-btn {
+    flex: 1;
+    padding: 8px 4px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'SourceHanSans-Bold';
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    color: #92400E;
+    opacity: 0.6;
+  }
+
+  .mobile-tab-btn.active {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .mobile-tab-btn:not(.active):hover {
+    opacity: 0.8;
+  }
+
+  /* 移动端弹窗 */
+  .mobile-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 16px;
+    animation: modal-fade-in 0.2s ease;
+  }
+
+  @keyframes modal-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .mobile-modal-content {
+    width: 100%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow: hidden;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px) saturate(200%);
+    -webkit-backdrop-filter: blur(20px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    animation: modal-scale-in 0.2s ease;
+  }
+
+  @keyframes modal-scale-in {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .mobile-modal-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+  }
+
+  .mobile-modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'SourceHanSans-Bold';
+  }
+
+  .mobile-modal-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 50%;
+    color: #92400E;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .mobile-modal-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .mobile-modal-body.wuxing {
+    max-height: 60vh;
+  }
+
+  .mobile-modal-body.backzone {
+    max-height: 60vh;
+  }
+
+  .mobile-modal-body.params {
+    max-height: 40vh;
+  }
+
+  .mobile-modal-body.mode {
+    max-height: 40vh;
   }
 }
 </style>
