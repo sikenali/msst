@@ -50,7 +50,7 @@ watch(lotteryType, (newType) => {
 // 使用 computed 动态获取当前彩种的注数
 const redCount = ref(6)
 const blueCount = ref(1)
-const multiplierCount = ref(1)
+const multiplierCount = ref(5)
 watch(lotteryType, (type) => {
   if (type === 'ssq') {
     redCount.value = 6
@@ -60,6 +60,58 @@ watch(lotteryType, (type) => {
     blueCount.value = 2
   }
 }, { immediate: true })
+
+// 监听注数变化，自动切换模式并计算注数
+watch([redCount, blueCount, lotteryType], ([newRed, newBlue, newType]) => {
+  const currentMode = mode.value
+  if (currentMode === 'single') {
+    let shouldSwitch = false
+    if (newType === 'ssq' && (newRed > 6 || newBlue > 1)) {
+      shouldSwitch = true
+    } else if (newType === 'dlt' && (newRed > 5 || newBlue > 2)) {
+      shouldSwitch = true
+    }
+    if (shouldSwitch) {
+      mode.value = 'multiple'
+      counterAutofocus.value = false
+      setTimeout(() => {
+        counterAutofocus.value = true
+        setTimeout(() => {
+          const input = document.querySelector('.counter-value-input') as HTMLInputElement
+          if (input) {
+            input.focus()
+            input.select()
+          }
+        }, 100)
+      }, 50)
+      if (newType === 'ssq') {
+        multiplierCount.value = calculateSSQNotes(newRed, newBlue)
+      } else {
+        multiplierCount.value = calculateDLTNotes(newRed, newBlue)
+      }
+    }
+  }
+})
+
+// 双色球注数计算
+function calculateSSQNotes(red: number, blue: number): number {
+  const combs = factorial(red) / (factorial(6) * factorial(red - 6))
+  return Math.round(combs * blue)
+}
+
+// 大乐透注数计算
+function calculateDLTNotes(red: number, blue: number): number {
+  const redCombs = factorial(red) / (factorial(5) * factorial(red - 5))
+  const blueCombs = factorial(blue) / (factorial(2) * factorial(blue - 2))
+  return Math.round(redCombs * blueCombs)
+}
+
+function factorial(n: number): number {
+  if (n <= 1) return 1
+  let result = 1
+  for (let i = 2; i <= n; i++) result *= i
+  return result
+}
 
 const notes = computed({
   get: () => userNotes.value,
