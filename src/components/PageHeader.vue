@@ -46,7 +46,7 @@ function handleUpdateModelValue(value: unknown) {
 <template>
   <header class="home-header">
     <div class="header-inner">
-      <div class="header-content">
+      <div class="header-content" :class="'theme-' + modelValue">
         <!-- Logo区域 -->
         <div class="logo-area" style="cursor: pointer;" @click="handleLogoClick">
           <div class="logo-icon">
@@ -86,22 +86,19 @@ function handleUpdateModelValue(value: unknown) {
 /* 顶部导航栏 - 悬浮透明背景 */
 .home-header {
   width: 100%;
-  max-width: 1158px;
-  margin: 0 auto;
+  padding: 0;
+  margin: 0;
   background: transparent;
   box-shadow: none;
-  padding: 12px 0;
   position: relative;
   z-index: 10;
-  box-sizing: border-box;
 }
 
 .header-inner {
-  padding: 0 24px;
-  max-width: 1158px;
-  margin: 0 auto;
+  padding: 0;
+  max-width: none;
+  margin: 0;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .header-content {
@@ -109,13 +106,18 @@ function handleUpdateModelValue(value: unknown) {
   align-items: center;
   justify-content: space-between;
   position: relative;
-  padding: 12px 0;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
-  box-sizing: border-box;
+  padding: 10px 0;
+}
+
+/* 极浅分隔线 */
+.header-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .logo-area {
@@ -170,38 +172,25 @@ function handleUpdateModelValue(value: unknown) {
   pointer-events: auto;
 }
 
-.history-btn {
-  width: 40px;
-  height: 40px;
+/* TabSwitcher 胶囊高亮样式 */
+.tab-wrapper :deep(.tab-container .tab-item.active) {
   border-radius: 9999px;
-  background: linear-gradient(135deg, rgba(254,243,199,1) 0%, rgba(255,251,235,1) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid #FCD34D;
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  z-index: 1;
-  margin-right: 4px;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
+  padding: 6px 20px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  transform: scale(1.05);
 }
 
-.history-btn:hover {
-  background: linear-gradient(135deg, rgba(253,224,71,1) 0%, rgba(252,211,77,1) 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
+/* 双色球主题 Tab */
+.theme-ssq .tab-wrapper :deep(.tab-item.active) {
+  background: linear-gradient(90deg, rgba(239,68,68,1) 0%, rgba(245,158,11,1) 100%);
+  color: white;
 }
 
-.history-btn:active {
-  transform: translateY(0);
-}
-
-.history-icon-svg {
-  width: 20px;
-  height: 20px;
-  color: #D97706;
+/* 大乐透主题 Tab */
+.theme-dlt .tab-wrapper :deep(.tab-item.active) {
+  background: linear-gradient(90deg, rgba(59,130,246,1) 0%, rgba(99,102,241,1) 100%);
+  color: white;
 }
 
 .header-actions {
@@ -212,36 +201,27 @@ function handleUpdateModelValue(value: unknown) {
   z-index: 1;
 }
 
+.history-btn,
 .trend-btn {
   width: 40px;
   height: 40px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, rgba(254,243,199,1) 0%, rgba(255,251,235,1) 100%);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #FCD34D;
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
+  z-index: 1;
+  transition: transform 0.2s ease;
 }
 
+.history-btn:hover,
 .trend-btn:hover {
-  background: linear-gradient(135deg, rgba(253,224,71,1) 0%, rgba(252,211,77,1) 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
-}
-
-.trend-btn:active {
-  transform: translateY(0);
-}
-
-.trend-icon-svg {
-  width: 20px;
-  height: 20px;
-  color: #D97706;
+  transform: scale(1.1);
 }
 
 /* 移动端适配 */
@@ -251,7 +231,7 @@ function handleUpdateModelValue(value: unknown) {
   }
 
   .header-inner {
-    padding: 0 16px;
+    padding: 0;
     max-width: 1158px;
     width: 100%;
     margin: 0 auto;
@@ -264,11 +244,6 @@ function handleUpdateModelValue(value: unknown) {
     align-items: center;
     justify-content: space-around;
     padding: 12px 8px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
     box-sizing: border-box;
   }
 
@@ -349,7 +324,6 @@ function handleUpdateModelValue(value: unknown) {
 
   .header-content {
     padding: 12px 0;
-    border-radius: 20px;
     justify-content: space-between;
   }
 
@@ -381,7 +355,6 @@ function handleUpdateModelValue(value: unknown) {
 
   .header-content {
     padding: 12px 0;
-    border-radius: 24px;
   }
 
   .logo-icon {
