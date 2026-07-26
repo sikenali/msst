@@ -4,20 +4,15 @@ import { useRouter, useRoute } from 'vue-router'
 import { RiMoneyCnyCircleFill, RiSparkling2Fill, RiScissors2Line, RiNumbersLine, RiCandleLine, RiDropLine, RiGridLine } from '@remixicon/vue'
 import { useUserSelections, setCurrentType } from '@/composables/useUserSelections'
 import { setCurrentLotteryType } from '@/composables/useLottery'
-import Toast, { showToast } from '@/components/Toast.vue'
+import Toast from '@/components/Toast.vue'
 import TabSwitcher from '@/components/TabSwitcher.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import BaguaDiagram from '@/components/BaguaDiagram.vue'
 import NoteCounter from '@/components/NoteCounter.vue'
-import ModeSelector from '@/components/ModeSelector.vue'
-import { RiSubtractLine, RiAddLine } from '@remixicon/vue'
 import CopperCoinIcon from '@/components/CopperCoinIcon.vue'
-import TurtleIcon from '@/components/TurtleIcon.vue'
 import WuxingNumberGrid from '@/components/WuxingNumberGrid.vue'
 import BackZoneGrid from '@/components/BackZoneGrid.vue'
-import FloatingLeftPanel from '@/components/FloatingLeftPanel.vue'
-import IconModal from '@/components/IconModal.vue'
-import NumberPickerModal from '@/components/NumberPickerModal.vue'
+import RuleDrawer from '@/components/RuleDrawer.vue'
 import KillRulesModal from '@/components/KillRulesModal.vue'
 import SelectModal from '@/components/SelectModal.vue'
 import BoldModal from '@/components/BoldModal.vue'
@@ -84,79 +79,30 @@ const showRulesModal = ref(false)
 const isSpinning = ref(false)
 const counterAutofocus = ref(false)
 
-// 浮动面板弹框
-const showIconModal = ref(false)
-const currentModalType = ref('')
+// 侧滑抽屉状态
+const showRuleDrawer = ref(false)
+const activeRuleType = ref('')
 
-const showKillRulesModal = ref(false)
-const showSelectModal = ref(false)
-const showBoldModal = ref(false)
-const showFilterModal = ref(false)
-const showMatrixModal = ref(false)
-const showWuxingQilieModal = ref(false)
+const ruleTitles: Record<string, string> = {
+  shahao: '杀号',
+  xuanhao: '选号',
+  dingdan: '定胆',
+  guolv: '过滤',
+  juzhen: '矩阵',
+}
+
+function handleDrawerClose() {
+  showRuleDrawer.value = false
+  activeRuleType.value = ''
+}
 
 function handleOpenModal(type: string) {
-  if (type === 'shahao') {
-    showKillRulesModal.value = true
-    return
+  const titles: Record<string, string> = {
+    shahao: '杀号', xuanhao: '选号', dingdan: '定胆',
+    guolv: '过滤', juzhen: '矩阵'
   }
-
-  if (type === 'xuanhao') {
-    showSelectModal.value = true
-    return
-  }
-
-  if (type === 'dingdan') {
-    showBoldModal.value = true
-    return
-  }
-
-  if (type === 'guolv') {
-    showFilterModal.value = true
-    return
-  }
-
-  if (type === 'juzhen') {
-    showMatrixModal.value = true
-    return
-  }
-
-  if (type === 'wuxingqilie') {
-    showWuxingQilieModal.value = true
-    return
-  }
-
-  // 其他类型打开普通弹框
-  currentModalType.value = type
-  showIconModal.value = true
-}
-
-function handleCloseModal() {
-  showIconModal.value = false
-}
-
-function handleKillRulesClose() {
-  showKillRulesModal.value = false
-}
-
-function handleSelectClose() {
-  showSelectModal.value = false
-}
-
-function handleBoldClose() {
-  showBoldModal.value = false
-}
-
-function handleFilterClose() {
-  showFilterModal.value = false
-}
-
-function handleMatrixClose() {
-  showMatrixModal.value = false
-}
-
-function handleWuxingQilieClose() {
-  showWuxingQilieModal.value = false
+  activeRuleType.value = type
+  showRuleDrawer.value = true
 }
 
 function handleHistory() {
@@ -218,8 +164,8 @@ const autoGenerate = computed(() => route.query.autoGenerate === '1')
 // 监听 autoGenerate，触发八卦图旋转后跳转
 watch(autoGenerate, async (shouldAutoGenerate) => {
   if (shouldAutoGenerate) {
-    // 使用路由参数中的注数和模式
-    const notesCount = Number(route.query.notes) || 5
+    // 使用路由参数中的注数和模式，或默认值
+    const notesCount = Number(route.query.notes) || multiplierCount.value
     const currentMode = (route.query.mode as string) || 'single'
 
     console.log('🔄 重新生成 - 注数:', notesCount, '模式:', currentMode)
@@ -276,8 +222,7 @@ watch(() => route.query.mode, (val) => {
 }, { immediate: true })
 
 async function handleGenerate() {
-  // 直接传递用户选择的模式和注数，让 useLottery.ts 负责具体判断
-  const finalNotes = notes.value
+  const finalNotes = Math.max(1, multiplierCount.value)
   const finalMode = mode.value
 
   console.log('🎲 生成参数:', {
@@ -404,10 +349,12 @@ function reload() {
       </div>
     </div>
 
-    <!-- 主内容区：左右两栏布局 -->
+    <!-- 主内容区：三栏布局（40% / 35% / 25%） -->
     <main class="home-main">
-      <div class="main-inner">
+      <div class="main-inner" :class="'theme-' + lotteryType">
+        <!-- 左栏 40%：选号 + 参数 -->
         <div class="layout-col layout-col--left">
+          <!-- 红佛女 -->
           <div class="inline-section">
             <div class="inline-section__title" style="color:#EF4444">红佛女</div>
             <WuxingNumberGrid
@@ -418,6 +365,7 @@ function reload() {
               @select="setRedNumbers"
             />
           </div>
+          <!-- 蓝若寺 -->
           <div class="inline-section">
             <div class="inline-section__title" style="color:#3B82F6">蓝若寺</div>
             <BackZoneGrid
@@ -428,8 +376,9 @@ function reload() {
               @select="setBlueNumbers"
             />
           </div>
+          <!-- 运数 -->
           <div class="inline-section">
-            <div class="inline-section__title" style="color:#F59E0B">运数</div>
+            <div class="inline-section__title">运数</div>
             <div class="counter-row">
               <div class="counter-item">
                 <span class="counter-item__title" style="color:#EF4444">红佛女</span>
@@ -440,36 +389,61 @@ function reload() {
                 <NoteCounter v-model="blueCount" :theme="lotteryType" compact />
               </div>
               <div class="counter-item">
-                <span class="counter-item__title" style="color:#F59E0B">倍数</span>
+                <span class="counter-item__title">注数</span>
                 <NoteCounter v-model="multiplierCount" :theme="lotteryType" compact />
               </div>
             </div>
           </div>
+          <!-- 运式 -->
           <div class="inline-section">
-            <div class="inline-section__title" style="color:#8B5CF6">运式</div>
+            <div class="inline-section__title">运式</div>
             <div class="mode-row">
               <div class="mode-item">
-                <span class="mode-item__label" style="color:#EF4444">单式</span>
-                <button class="mode-selector-btn" :class="{ active: mode === 'single' }" @click="mode = 'single'">
-                  <span class="mode-icon-emoji"><span class="die die--1">⚀</span></span>
+                <span class="mode-item__label">单式</span>
+                <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'single' }" @click="mode = 'single'">
+                  <span class="die die--1">⚀</span>
                 </button>
               </div>
               <div class="mode-item">
-                <span class="mode-item__label" style="color:#F59E0B">复式</span>
-                <button class="mode-selector-btn" :class="{ active: mode === 'multiple' }" @click="mode = 'multiple'">
-                  <span class="mode-icon-emoji"><span class="die die--2">⚁</span></span>
+                <span class="mode-item__label">复式</span>
+                <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'multiple' }" @click="mode = 'multiple'">
+                  <span class="die die--2">⚁</span>
                 </button>
               </div>
               <div class="mode-item">
-                <span class="mode-item__label" style="color:#8B5CF6">胆拖</span>
-                <button class="mode-selector-btn" :class="{ active: mode === 'dantuo' }" @click="mode = 'dantuo'">
-                  <span class="mode-icon-emoji"><span class="die die--3">⚂</span></span>
+                <span class="mode-item__label">胆拖</span>
+                <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'dantuo' }" @click="mode = 'dantuo'">
+                  <span class="die die--3">⚂</span>
                 </button>
               </div>
             </div>
           </div>
-          <div class="inline-section">
-            <div class="inline-section__title" style="color:#F59E0B">运势</div>
+        </div>
+
+        <!-- 中栏 35%：八卦图卡片 -->
+        <div class="layout-col layout-col--center">
+          <div class="bagua-card-wrapper">
+            <BaguaDiagram :theme="lotteryType" :spinning="isSpinning" :notes="notes" />
+            <div class="generate-btn-wrapper">
+              <button 
+                class="generate-btn theme-btn" 
+                :style="{ background: buttonGradient }" 
+                @click="handleGenerate"
+                :aria-label="lotteryType === 'ssq' ? '生成双色球号码' : '生成大乐透号码'"
+              >
+                <RiMoneyCnyCircleFill v-if="lotteryType === 'ssq'" class="generate-icon" />
+                <CopperCoinIcon v-else class="generate-icon" />
+                <div class="generate-spacer"></div>
+                <span class="generate-text">{{ buttonText }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右栏 25%：规则入口 -->
+        <div class="layout-col layout-col--right">
+          <div class="rule-entry-section">
+            <div class="inline-section__title">运势</div>
             <div class="rule-icon-row">
               <button v-for="r in rulesIcons" :key="r.type" class="rule-icon" @click="handleOpenModal(r.type)">
                 <span class="rule-icon-emoji" :style="{ color: r.color }">
@@ -480,24 +454,47 @@ function reload() {
             </div>
           </div>
         </div>
-        <div class="layout-col layout-col--center">
-          <BaguaDiagram :theme="lotteryType" :spinning="isSpinning" :notes="notes" />
-          <div class="generate-btn-wrapper">
-            <button 
-              class="generate-btn" 
-              :style="{ background: buttonGradient }" 
-              @click="handleGenerate"
-              :aria-label="lotteryType === 'ssq' ? '生成双色球号码' : '生成大乐透号码'"
-            >
-              <RiMoneyCnyCircleFill v-if="lotteryType === 'ssq'" class="generate-icon" />
-              <CopperCoinIcon v-else class="generate-icon" />
-              <div class="generate-spacer"></div>
-              <span class="generate-text">{{ buttonText }}</span>
-            </button>
-          </div>
-        </div>
       </div>
     </main>
+
+    <!-- 侧滑抽屉面板 -->
+    <RuleDrawer :visible="showRuleDrawer" :title="ruleTitles[activeRuleType] || '规则设置'" @close="handleDrawerClose">
+      <KillRulesModal
+        v-if="showRuleDrawer && activeRuleType === 'shahao'"
+        :visible="true"
+        :lottery-type="lotteryType"
+        @close="handleDrawerClose"
+        @apply="handleDrawerClose"
+      />
+      <SelectModal
+        v-else-if="showRuleDrawer && activeRuleType === 'xuanhao'"
+        :visible="true"
+        :lottery-type="lotteryType"
+        @close="handleDrawerClose"
+        @apply="handleDrawerClose"
+      />
+      <BoldModal
+        v-else-if="showRuleDrawer && activeRuleType === 'dingdan'"
+        :visible="true"
+        :lottery-type="lotteryType"
+        @close="handleDrawerClose"
+        @apply="handleDrawerClose"
+      />
+      <FilterModal
+        v-else-if="showRuleDrawer && activeRuleType === 'guolv'"
+        :visible="true"
+        :lottery-type="lotteryType"
+        @close="handleDrawerClose"
+        @apply="handleDrawerClose"
+      />
+      <MatrixModal
+        v-else-if="showRuleDrawer && activeRuleType === 'juzhen'"
+        :visible="true"
+        :lottery-type="lotteryType"
+        @close="handleDrawerClose"
+        @apply="handleDrawerClose"
+      />
+    </RuleDrawer>
 
     <!-- 间距 -->
     <div class="bottom-spacer"></div>
@@ -512,61 +509,6 @@ function reload() {
         </p>
       </div>
     </footer>
-
-    <!-- 图标弹框 -->
-    <IconModal
-      :visible="showIconModal"
-      :type="currentModalType"
-      :lottery-type="lotteryType"
-      @close="handleCloseModal"
-    />
-
-    <!-- 杀号规则弹框 -->
-    <KillRulesModal
-      :visible="showKillRulesModal"
-      :lottery-type="lotteryType"
-      @close="handleKillRulesClose"
-      @apply="handleKillRulesClose"
-    />
-
-    <!-- 选号方法弹框 -->
-    <SelectModal
-      :visible="showSelectModal"
-      :lottery-type="lotteryType"
-      @close="handleSelectClose"
-      @apply="handleSelectClose"
-    />
-
-    <BoldModal
-      :visible="showBoldModal"
-      :lottery-type="lotteryType"
-      @close="handleBoldClose"
-      @apply="handleBoldClose"
-    />
-
-    <FilterModal
-      :visible="showFilterModal"
-      :lottery-type="lotteryType"
-      @close="handleFilterClose"
-      @apply="handleFilterClose"
-    />
-
-    <MatrixModal
-      :visible="showMatrixModal"
-      :lottery-type="lotteryType"
-      @close="handleMatrixClose"
-      @apply="handleMatrixClose"
-    />
-
-    <!-- 五行七列弹框 -->
-    <WuxingQilieModal
-      :visible="showWuxingQilieModal"
-      :lottery-type="lotteryType"
-      @close="handleWuxingQilieClose"
-      @apply="handleWuxingQilieClose"
-    />
-
-
 
     <!-- Toast 提示组件 -->
     <Toast />
@@ -760,14 +702,21 @@ function reload() {
   justify-content: center;
 }
 .layout-col--left {
-  flex: 0.7;
+  flex: 0.4;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
 }
 .layout-col--center {
-  flex: 0.3;
+  flex: 0.35;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.layout-col--right {
+  flex: 0.25;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -952,19 +901,27 @@ function reload() {
   flex-shrink: 0;
 }
 .layout-col--right {
-  flex: 1;
+  flex: 0.25;
+  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
 }
-.layout-col--right :deep(.bagua-container) {
-  padding: 16px 0 0 0;
+.rule-entry-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
-.layout-col--right :deep(.float-widget) {
-  position: static;
-  transform: none;
-  top: auto;
-  right: auto;
+.bagua-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+.inline-section {
   width: 100%;
 }
 
