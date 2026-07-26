@@ -106,7 +106,7 @@ function handleOpenModal(type: string) {
 }
 
 function handleHistory() {
-  showKillRulesModal.value = true
+  showRulesModal.value = true
 }
 
 // 监听类型切换，触发输入框聚焦
@@ -502,11 +502,7 @@ function reload() {
     <!-- 底部版权 -->
     <footer class="home-footer">
       <div class="footer-inner">
-        <p class="footer-text">
-          <span class="footer-left">© 2026 妙手神透</span>
-          <span class="footer-center">Powered by LightOS</span>
-          <span class="footer-right">主任的机制不如机智的我</span>
-        </p>
+        <p class="footer-text">© 2026 妙手神透 Powered by LightOS</p>
       </div>
     </footer>
 
@@ -978,24 +974,10 @@ function reload() {
   width: 100%;
   font-size: 12px;
   line-height: 1.4;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  text-align: center;
   color: rgba(146, 64, 14, 0.5);
   font-family: 'SourceHanSans-Regular';
   margin: 0;
-}
-
-.footer-left,
-.footer-right {
-  white-space: nowrap;
-  opacity: 0.75;
-}
-
-.footer-center {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
 }
 
 /* 平板适配：调整三栏比例 */
