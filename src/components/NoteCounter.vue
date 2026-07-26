@@ -201,6 +201,11 @@ const counterBg = computed(() => props.theme === 'ssq' ? '#FFFBEB' : 'rgba(219,2
   flex: 0 0 36px;
   min-width: 36px;
   width: 36px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 .note-counter.compact .counter-icon {
   width: 16px;

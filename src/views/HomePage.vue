@@ -349,78 +349,80 @@ function reload() {
       </div>
     </div>
 
-    <!-- 主内容区：三栏布局（40% / 35% / 25%） -->
+    <!-- 主内容区：两栏布局（40% / 60%） -->
     <main class="home-main">
       <div class="main-inner" :class="'theme-' + lotteryType">
-        <!-- 左栏 40%：选号 + 参数 -->
+        <!-- 左栏：选号 + 参数 -->
         <div class="layout-col layout-col--left">
-          <!-- 红佛女 -->
-          <div class="inline-section">
-            <div class="inline-section__title" style="color:#EF4444">红佛女</div>
-            <WuxingNumberGrid
-              v-model="userRedNumbers"
-              :lottery-type="lotteryType"
-              :total-numbers="lotteryType === 'ssq' ? 33 : 35"
-              :max-count="lotteryType === 'ssq' ? 6 : 5"
-              @select="setRedNumbers"
-            />
-          </div>
-          <!-- 蓝若寺 -->
-          <div class="inline-section">
-            <div class="inline-section__title" style="color:#3B82F6">蓝若寺</div>
-            <BackZoneGrid
-              v-model="userBlueNumbers"
-              :lottery-type="lotteryType"
-              :total-numbers="lotteryType === 'ssq' ? 16 : 12"
-              :max-count="lotteryType === 'ssq' ? 1 : 2"
-              @select="setBlueNumbers"
-            />
-          </div>
-          <!-- 运数 -->
-          <div class="inline-section">
-            <div class="inline-section__title">运数</div>
-            <div class="counter-row">
-              <div class="counter-item">
-                <span class="counter-item__title" style="color:#EF4444">红佛女</span>
-                <NoteCounter v-model="redCount" :theme="lotteryType" compact />
-              </div>
-              <div class="counter-item">
-                <span class="counter-item__title" style="color:#3B82F6">蓝若寺</span>
-                <NoteCounter v-model="blueCount" :theme="lotteryType" compact />
-              </div>
-              <div class="counter-item">
-                <span class="counter-item__title">注数</span>
-                <NoteCounter v-model="multiplierCount" :theme="lotteryType" compact />
-              </div>
+          <!-- 选号面板 -->
+          <div class="panel section--selection">
+            <div class="inline-section">
+              <div class="inline-section__title" style="color:#EF4444">红佛女</div>
+              <WuxingNumberGrid
+                v-model="userRedNumbers"
+                :lottery-type="lotteryType"
+                :total-numbers="lotteryType === 'ssq' ? 33 : 35"
+                :max-count="lotteryType === 'ssq' ? 6 : 5"
+                @select="setRedNumbers"
+              />
+            </div>
+            <div class="inline-section">
+              <div class="inline-section__title" style="color:#3B82F6">蓝若寺</div>
+              <BackZoneGrid
+                v-model="userBlueNumbers"
+                :lottery-type="lotteryType"
+                :total-numbers="lotteryType === 'ssq' ? 16 : 12"
+                :max-count="lotteryType === 'ssq' ? 1 : 2"
+                @select="setBlueNumbers"
+              />
             </div>
           </div>
-          <!-- 运式 -->
-          <div class="inline-section">
-            <div class="inline-section__title">运式</div>
-            <div class="mode-row">
-              <div class="mode-item">
-                <span class="mode-item__label">单式</span>
-                <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'single' }" @click="mode = 'single'">
-                  <span class="die die--1">⚀</span>
-                </button>
+          <!-- 参数面板 -->
+          <div class="panel section--params">
+            <div class="inline-section">
+              <div class="inline-section__title" style="color:#EF4444">运数</div>
+              <div class="counter-row">
+                <div class="counter-item">
+                  <span class="counter-item__title" style="color:#EF4444">红佛女</span>
+                  <NoteCounter v-model="redCount" :theme="lotteryType" compact />
+                </div>
+                <div class="counter-item">
+                  <span class="counter-item__title" style="color:#3B82F6">蓝若寺</span>
+                  <NoteCounter v-model="blueCount" :theme="lotteryType" compact />
+                </div>
+                <div class="counter-item">
+                  <span class="counter-item__title">注数</span>
+                  <NoteCounter v-model="multiplierCount" :theme="lotteryType" compact />
+                </div>
               </div>
-              <div class="mode-item">
-                <span class="mode-item__label">复式</span>
-                <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'multiple' }" @click="mode = 'multiple'">
-                  <span class="die die--2">⚁</span>
-                </button>
-              </div>
-              <div class="mode-item">
-                <span class="mode-item__label">胆拖</span>
-                <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'dantuo' }" @click="mode = 'dantuo'">
-                  <span class="die die--3">⚂</span>
-                </button>
+            </div>
+            <div class="inline-section">
+              <div class="inline-section__title" style="color:#3B82F6">运式</div>
+              <div class="mode-row">
+                <div class="mode-item">
+                  <span class="mode-item__label">单式</span>
+                  <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'single' }" @click="mode = 'single'">
+                    <span class="die die--1">⚀</span>
+                  </button>
+                </div>
+                <div class="mode-item">
+                  <span class="mode-item__label">复式</span>
+                  <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'multiple' }" @click="mode = 'multiple'">
+                    <span class="die die--2">⚁</span>
+                  </button>
+                </div>
+                <div class="mode-item">
+                  <span class="mode-item__label">胆拖</span>
+                  <button class="mode-selector-btn theme-btn" :class="{ active: mode === 'dantuo' }" @click="mode = 'dantuo'">
+                    <span class="die die--3">⚂</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 中栏 35%：八卦图卡片 -->
+        <!-- 中栏：八卦图 + 规则入口 -->
         <div class="layout-col layout-col--center">
           <div class="bagua-card-wrapper">
             <BaguaDiagram :theme="lotteryType" :spinning="isSpinning" :notes="notes" />
@@ -435,21 +437,6 @@ function reload() {
                 <CopperCoinIcon v-else class="generate-icon" />
                 <div class="generate-spacer"></div>
                 <span class="generate-text">{{ buttonText }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 右栏 25%：规则入口 -->
-        <div class="layout-col layout-col--right">
-          <div class="rule-entry-section">
-            <div class="inline-section__title">运势</div>
-            <div class="rule-icon-row">
-              <button v-for="r in rulesIcons" :key="r.type" class="rule-icon" @click="handleOpenModal(r.type)">
-                <span class="rule-icon-emoji" :style="{ color: r.color }">
-                  <component :is="r.icon" class="rule-icon-svg" />
-                </span>
-                <span class="rule-icon-label">{{ r.label }}</span>
               </button>
             </div>
           </div>
@@ -498,6 +485,18 @@ function reload() {
 
     <!-- 间距 -->
     <div class="bottom-spacer"></div>
+
+    <!-- 规则入口 -->
+    <div class="rule-entry-section">
+      <div class="rule-icon-row">
+        <button v-for="r in rulesIcons" :key="r.type" class="rule-icon" @click="handleOpenModal(r.type)">
+          <span class="rule-icon-emoji" :style="{ color: r.color }">
+            <component :is="r.icon" class="rule-icon-svg" />
+          </span>
+          <span class="rule-icon-label">{{ r.label }}</span>
+        </button>
+      </div>
+    </div>
 
     <!-- 底部版权 -->
     <footer class="home-footer">
@@ -681,60 +680,65 @@ function reload() {
 }
 
 .main-inner {
-  padding: 16px 24px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: center;
   max-width: 960px;
   margin: 0 auto;
-  gap: 0;
+  gap: 16px;
   position: relative;
 }
 
 .layout-col {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
 }
+
 .layout-col--left {
   flex: 0.4;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: stretch;
 }
+
 .layout-col--center {
-  flex: 0.35;
-  display: flex;
-  flex-direction: column;
+  flex: 0.6;
   align-items: center;
   justify-content: center;
-  gap: 16px;
 }
-.layout-col--right {
-  flex: 0.25;
+
+.panel {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding-top: 20px;
+  gap: 8px;
+}
+
+.section--selection {
+  flex-shrink: 0;
+}
+
+.section--params {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+.inline-section__title {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'SourceHanSans-Bold';
+  margin-bottom: 4px;
+  text-align: left;
 }
 .inline-section {
   width: 100%;
 }
-.inline-section__title {
-  font-size: 13px;
-  font-weight: 700;
-  font-family: 'SourceHanSans-Bold';
-  margin-bottom: 6px;
-  text-align: center;
-}
 .counter-row {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 0;
   width: 100%;
+  justify-content: space-around;
 }
 .counter-item {
   flex: 1;
@@ -742,7 +746,7 @@ function reload() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 .counter-item__title {
   font-size: 11px;
@@ -790,15 +794,16 @@ function reload() {
 }
 .mode-row {
   display: flex;
-  gap: 8px;
+  gap: 0;
   width: 100%;
+  justify-content: space-around;
 }
 .mode-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 .mode-item__label {
   font-size: 11px;
@@ -951,47 +956,94 @@ function reload() {
   height: 16px;
 }
 
+/* 规则入口 */
+.rule-entry-section {
+  width: 100%;
+  padding: 4px 0;
+  position: relative;
+  z-index: 10;
+}
+
+.rule-icon-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 8px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.rule-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.rule-icon:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.rule-icon-emoji {
+  width: 24px;
+  height: 24px;
+}
+
+.rule-icon-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(146, 64, 14, 0.7);
+  text-align: center;
+}
+
 .home-footer {
   width: 100%;
   background: transparent;
-  padding: 16px 24px;
+  padding: 6px 0;
   position: relative;
   z-index: 10;
 }
 
 .footer-inner {
   padding: 0;
-  max-width: none;
-  margin: 0;
-  width: 100%;
+  margin: 0 auto;
+  max-width: 640px;
   background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-  box-sizing: border-box;
 }
 
 .footer-text {
-  width: 100%;
   font-size: 12px;
   line-height: 1.4;
   text-align: center;
   color: rgba(146, 64, 14, 0.5);
   font-family: 'SourceHanSans-Regular';
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-/* 平板适配：调整三栏比例 */
+/* 平板适配：调整两栏比例 */
 @media screen and (min-width: 768px) and (max-width: 1023px) {
-  .layout-col--left { flex: 0.35; }
-  .layout-col--center { flex: 0.35; }
-  .layout-col--right { flex: 0.3; }
+  .layout-col--left { flex: 0.4; }
+  .layout-col--center { flex: 0.6; }
 }
 
 /* 桌面端适配 */
 @media screen and (min-width: 1024px) {
   .main-inner {
-    padding: 12px 144px;
-    max-width: 672px;
+    padding: 12px 80px;
+    max-width: 1000px;
   }
 
   .generate-btn-wrapper {
@@ -1017,17 +1069,24 @@ function reload() {
   }
 
   .home-footer {
-    padding: 20px 48px;
+    padding: 6px 0;
+  }
+
+  .rule-entry-section {
+    padding: 16px 0;
   }
 
   .footer-inner {
-    padding: 0;
-    max-width: none;
-    margin: 0;
+    max-width: 640px;
+    margin: 0 auto;
   }
 
   .footer-text {
     font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .bottom-spacer {
@@ -1039,42 +1098,22 @@ function reload() {
 @media screen and (max-width: 767px) {
   .main-inner {
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
 
   .layout-col--left,
-  .layout-col--center,
-  .layout-col--right {
+  .layout-col--center {
     flex: none;
     width: 100%;
-  }
-
-  /* 八卦图在移动端置顶 */
-  .layout-col--center {
-    order: -1;
-  }
-
-  .layout-col--left {
-    order: 0;
-  }
-
-  .layout-col--right {
-    order: 1;
   }
 
   .home-footer {
     padding: 12px 16px;
   }
 
-  .footer-inner {
-    padding: 0;
-    max-width: none;
-    margin: 0;
-  }
-
   /* 主内容区内边距调整 */
   .main-inner {
-    padding: 16px 12px;
+    padding: 12px 12px;
   }
 
   /* 规则弹窗移动端适配 */

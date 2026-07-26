@@ -1002,11 +1002,7 @@ function handleBack() {
     <!-- 底部版权 -->
     <footer class="result-footer">
       <div class="footer-inner">
-        <p class="footer-text">
-          <span class="footer-left">© 2026 妙手神透</span>
-          <span class="footer-center">Powered by LightOS</span>
-          <span class="footer-right">主任的机制不如机智的我</span>
-        </p>
+        <p class="footer-text">© 2026 妙手神透 Powered by LightOS</p>
       </div>
     </footer>
 
@@ -1368,9 +1364,11 @@ function handleBack() {
   width: 100%;
   border-radius: 12px;
   padding: 0;
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -2303,43 +2301,31 @@ function handleBack() {
 
 /* 底部版权 - 悬浮透明背景 */
 .result-footer {
+  width: 100%;
   background: transparent;
-  padding: 16px 0;
+  padding: 12px 0;
   position: relative;
   z-index: 10;
 }
 
 .footer-inner {
-  padding: 0 24px;
-  max-width: 1158px;
+  padding: 0;
   margin: 0 auto;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
-  box-sizing: border-box;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  max-width: 640px;
+  background: transparent;
 }
 
 .footer-text {
   width: 100%;
-  font-size: 13px;
-  line-height: 1.2;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #92400E;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  color: rgba(146, 64, 14, 0.5);
   font-family: 'SourceHanSans-Regular';
   margin: 0;
-}
-
-.footer-left,
-.footer-right {
   white-space: nowrap;
-  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .footer-center {

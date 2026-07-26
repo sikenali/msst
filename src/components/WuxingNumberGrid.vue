@@ -90,16 +90,16 @@ const isNumberSelected = (num: number): boolean => modelValue.value.includes(num
 .wuxing-grid {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 .wuxing-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 .wuxing-row-label {
-  width: 20px;
-  font-size: 13px;
+  width: 16px;
+  font-size: 12px;
   font-weight: 800;
   font-family: 'SourceHanSans-Black';
   text-align: center;
@@ -107,11 +107,13 @@ const isNumberSelected = (num: number): boolean => modelValue.value.includes(num
 }
 .wuxing-row-numbers {
   display: flex;
-  gap: 3px;
+  gap: 6px;
+  justify-content: space-between;
+  flex: 1;
 }
 .wuxing-cell {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   box-sizing: border-box;
   border-radius: 9999px;
   flex-shrink: 0;
