@@ -291,7 +291,105 @@ const getDivineNumberPools = (maxRange: number, isRed: boolean = true) => {
  * 生成双色球号码 (融合所有"法号"数据)
  * 根据用户选择的红球/蓝球数量自动判断模式
  */
-export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single'): SSQResult[] {
+/**
+ * 双色球规则判断与目标数量计算
+ * 根据用户固定号码和外部传入的目标数量自动判断模式
+ */
+function resolveSSQTargets(
+  fixedRedLen: number,
+  fixedBlueLen: number,
+  mode: 'single' | 'multiple' | 'dantuo',
+  externalRedCount?: number,
+  externalBlueCount?: number
+): {
+  finalMode: 'single' | 'multiple' | 'dantuo'
+  targetRedCount: number
+  targetBlueCount: number
+  useFixedRed: boolean
+  useFixedBlue: boolean
+} {
+  let finalMode = mode
+  let useFixedRed = fixedRedLen > 0
+  let useFixedBlue = fixedBlueLen > 0
+
+  // 有外部传入目标数量时，优先使用外部值
+  if (externalRedCount !== undefined || externalBlueCount !== undefined) {
+    const redTarget = externalRedCount ?? (fixedRedLen > 0 ? Math.max(6, fixedRedLen) : 6)
+    const blueTarget = externalBlueCount ?? (fixedBlueLen > 0 ? Math.max(1, fixedBlueLen) : 1)
+
+    if (redTarget > 6 || blueTarget > 1) {
+      return { finalMode: 'multiple', targetRedCount: redTarget, targetBlueCount: blueTarget, useFixedRed: fixedRedLen > 0, useFixedBlue: fixedBlueLen > 0 }
+    }
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetRedCount: 6, targetBlueCount: 1, useFixedRed: fixedRedLen > 0, useFixedBlue: fixedBlueLen > 0 }
+    }
+    return { finalMode: 'single', targetRedCount: 6, targetBlueCount: 1, useFixedRed: fixedRedLen > 0, useFixedBlue: fixedBlueLen > 0 }
+  }
+
+  // ====== 原有规则判断（向后兼容） ======
+  if (fixedRedLen === 0 && fixedBlueLen === 0) {
+    if (mode === 'multiple') {
+      return { finalMode: 'multiple', targetRedCount: 7 + Math.floor(Math.random() * 3), targetBlueCount: 2 + Math.floor(Math.random() * 2), useFixedRed: false, useFixedBlue: false }
+    }
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetRedCount: 6, targetBlueCount: 1, useFixedRed: false, useFixedBlue: false }
+    }
+    return { finalMode: 'single', targetRedCount: 6, targetBlueCount: 1, useFixedRed: false, useFixedBlue: false }
+  }
+
+  if (fixedRedLen > 0 && fixedRedLen < 6 && fixedBlueLen === 0) {
+    if (mode === 'multiple') {
+      return { finalMode: 'multiple', targetRedCount: 7 + Math.floor(Math.random() * 3), targetBlueCount: 1, useFixedRed: true, useFixedBlue: false }
+    }
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetRedCount: 6, targetBlueCount: 1, useFixedRed: true, useFixedBlue: false }
+    }
+    return { finalMode: 'single', targetRedCount: 6, targetBlueCount: 1, useFixedRed: true, useFixedBlue: false }
+  }
+
+  if (fixedRedLen >= 6 && fixedBlueLen === 0) {
+    return { finalMode: 'multiple', targetRedCount: Math.max(6, fixedRedLen), targetBlueCount: 1, useFixedRed: true, useFixedBlue: false }
+  }
+
+  if (fixedRedLen === 0 && fixedBlueLen === 1) {
+    if (mode === 'multiple') {
+      return { finalMode: 'multiple', targetRedCount: 7 + Math.floor(Math.random() * 3), targetBlueCount: 1, useFixedRed: false, useFixedBlue: true }
+    }
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetRedCount: 6, targetBlueCount: 1, useFixedRed: false, useFixedBlue: true }
+    }
+    return { finalMode: 'single', targetRedCount: 6, targetBlueCount: 1, useFixedRed: false, useFixedBlue: true }
+  }
+
+  if (fixedRedLen === 0 && fixedBlueLen > 1) {
+    return { finalMode: 'multiple', targetRedCount: 7 + Math.floor(Math.random() * 3), targetBlueCount: fixedBlueLen, useFixedRed: false, useFixedBlue: true }
+  }
+
+  if (fixedRedLen > 0 && fixedBlueLen === 1 && fixedRedLen < 6) {
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetRedCount: 6, targetBlueCount: 1, useFixedRed: true, useFixedBlue: true }
+    }
+    if (mode === 'multiple') {
+      return { finalMode: 'multiple', targetRedCount: 7 + Math.floor(Math.random() * 3), targetBlueCount: 1, useFixedRed: true, useFixedBlue: true }
+    }
+    return { finalMode: 'single', targetRedCount: 6, targetBlueCount: 1, useFixedRed: true, useFixedBlue: true }
+  }
+
+  if (fixedRedLen > 0 && fixedBlueLen > 0) {
+    if (fixedRedLen === 6 && fixedBlueLen === 1) {
+      return { finalMode: 'single', targetRedCount: 6, targetBlueCount: 1, useFixedRed: true, useFixedBlue: true }
+    }
+    if (fixedRedLen < 6 && fixedBlueLen === 1) {
+      const fm = mode === 'dantuo' ? 'dantuo' : (mode === 'multiple' ? 'multiple' : 'single')
+      return { finalMode: fm, targetRedCount: mode === 'multiple' ? 7 + Math.floor(Math.random() * 3) : 6, targetBlueCount: 1, useFixedRed: true, useFixedBlue: true }
+    }
+    return { finalMode: 'multiple', targetRedCount: Math.max(6, fixedRedLen), targetBlueCount: Math.max(1, fixedBlueLen), useFixedRed: true, useFixedBlue: true }
+  }
+
+  return { finalMode: mode, targetRedCount: 6, targetBlueCount: 1, useFixedRed: fixedRedLen > 0, useFixedBlue: fixedBlueLen > 0 }
+}
+
+export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single', targetRedCount?: number, targetBlueCount?: number): SSQResult[] {
   const fixedRed = getUserRedNumbers().value.filter(n => n >= 1 && n <= 33)
   const fixedBlue = getUserBlueNumbers().value.filter(n => n >= 1 && n <= 16)
 
@@ -300,6 +398,20 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
 
   const killedRed = getKilledSet(33)
   const killedBlue = getKilledSet(16)
+
+  // 检查用户固定号码与杀号规则的冲突（用于 console 提示）
+  if (killedRed.size > 0) {
+    const overlappingReds = fixedRed.filter(n => killedRed.has(n))
+    if (overlappingReds.length > 0) {
+      console.warn('[SSQ] 您的选号中以下号码被杀号规则标记：', overlappingReds, '以您的选择为准，规则已忽略')
+    }
+  }
+  if (killedBlue.size > 0) {
+    const overlappingBlues = fixedBlue.filter(n => killedBlue.has(n))
+    if (overlappingBlues.length > 0) {
+      console.warn('[SSQ] 您的蓝球选号被杀号规则标记：', overlappingBlues, '以您的选择为准')
+    }
+  }
 
   const hasEngineRules = hasActiveKillRules() || selectRuleNames.value.length > 0 ||
     boldRuleNames.value.length > 0 || !!matrixRuleName.value
@@ -349,7 +461,6 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     return Array.from(unique).sort((a, b) => a - b)
   }
 
-  // 辅助生成函数
   const generateRed = (count: number, useFixed: boolean) => {
     if (!useFixed || fixedRed.length === 0) {
       return mergeNumbers([], redWeightMap, 33, count, killedRed)
@@ -364,6 +475,14 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
 
   const generateBlue = (count: number, useFixed: boolean) => {
     if (wuxingActive) {
+      if (useFixed && fixedBlue.length > 0) {
+        if (fixedBlue.length >= count) return [...fixedBlue].slice(0, count).sort((a, b) => a - b)
+        const result = new Set(fixedBlue)
+        const pool = Array.from({ length: 16 }, (_, i) => i + 1).filter(n => !result.has(n))
+        const extra = getRandomNumsFromPool(pool, count - result.size)
+        extra.forEach(n => result.add(n))
+        return Array.from(result).sort((a, b) => a - b)
+      }
       const pool = Array.from({ length: 16 }, (_, i) => i + 1)
       return getRandomNumsFromPool(pool, count)
     }
@@ -376,132 +495,26 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     return mergeNumbers(fixedBlue, blueWeightMap, 16, count, killedBlue)
   }
 
-  // 判断实际模式和目标数量
-  let finalMode = mode
-  let targetRedCount = 6
-  let targetBlueCount = 1
-  let useFixedRed = fixedRed.length > 0
-  let useFixedBlue = fixedBlue.length > 0
-
-  // ====== 规则判断 ======
-  if (fixedRed.length === 0 && fixedBlue.length === 0) {
-    // 规则1/2/3：都没选，按用户选择的模式
-    if (mode === 'multiple') {
-      finalMode = 'multiple'
-      targetRedCount = 7 + Math.floor(Math.random() * 3) // 7-9
-      targetBlueCount = 2 + Math.floor(Math.random() * 2) // 2-3
-      useFixedRed = false
-      useFixedBlue = false
-    } else if (mode === 'dantuo') {
-      finalMode = 'dantuo'
-      useFixedRed = false
-      useFixedBlue = false
-    } else {
-      finalMode = 'single'
-      targetRedCount = 6
-      targetBlueCount = 1
-      useFixedRed = false
-      useFixedBlue = false
-    }
-  } else if (fixedRed.length > 0 && fixedRed.length < 6 && fixedBlue.length === 0) {
-    // 规则4/5/6：红球<6，蓝球未选
-    if (mode === 'multiple') {
-      finalMode = 'multiple'
-      targetRedCount = 7 + Math.floor(Math.random() * 3) // >6
-      targetBlueCount = 1
-    } else if (mode === 'dantuo') {
-      finalMode = 'dantuo'
-      targetRedCount = 6
-      targetBlueCount = 1
-    } else {
-      finalMode = 'single'
-      targetRedCount = 6
-      targetBlueCount = 1
-    }
-    useFixedRed = true
-    useFixedBlue = false
-  } else if (fixedRed.length >= 6 && fixedBlue.length === 0) {
-    // 规则7/8/9/10：红球≥6，蓝球未选 → 自动复式
-    finalMode = 'multiple'
-    targetRedCount = Math.max(6, fixedRed.length)
-    // 复式模式蓝球固定1个，胆拖模式也固定1个蓝球
-    targetBlueCount = 1
-    useFixedRed = true
-    useFixedBlue = false
-  } else if (fixedRed.length === 0 && fixedBlue.length === 1) {
-    // 规则11：红球未选，蓝球=1
-    if (mode === 'multiple') {
-      finalMode = 'multiple'
-      targetRedCount = 7 + Math.floor(Math.random() * 3) // >6
-      targetBlueCount = 1
-    } else if (mode === 'dantuo') {
-      finalMode = 'dantuo'
-      targetRedCount = 6
-      targetBlueCount = 1
-    } else {
-      finalMode = 'single'
-      targetRedCount = 6
-      targetBlueCount = 1
-    }
-    useFixedRed = false
-    useFixedBlue = true
-  } else if (fixedRed.length === 0 && fixedBlue.length > 1) {
-    // 规则12：红球未选，蓝球>1 → 自动复式
-    finalMode = 'multiple'
-    targetRedCount = 7 + Math.floor(Math.random() * 3) // >6
-    targetBlueCount = fixedBlue.length
-    useFixedRed = false
-    useFixedBlue = true
-  } else if (fixedRed.length > 0 && fixedBlue.length === 1 && fixedRed.length < 6) {
-    // 规则13：红球<6，蓝球=1 → 根据用户选择的模式决定
-    if (mode === 'dantuo') {
-      finalMode = 'dantuo'
-      targetRedCount = 6
-      targetBlueCount = 1
-    } else if (mode === 'multiple') {
-      finalMode = 'multiple'
-      targetRedCount = 7 + Math.floor(Math.random() * 3) // >6
-      targetBlueCount = 1
-    } else {
-      finalMode = 'single'
-      targetRedCount = 6
-      targetBlueCount = 1
-    }
-    useFixedRed = true
-    useFixedBlue = true
-  } else if (fixedRed.length > 0 && fixedBlue.length > 0) {
-    // 规则14/15：都选了，按实际数量判断
-    if (fixedRed.length === 6 && fixedBlue.length === 1) {
-      // 标准单式（6+1），强制单式
-      finalMode = 'single'
-      targetRedCount = 6
-      targetBlueCount = 1
-    } else if (fixedRed.length < 6 && fixedBlue.length === 1) {
-      finalMode = mode === 'dantuo' ? 'dantuo' : (mode === 'multiple' ? 'multiple' : 'single')
-      targetRedCount = mode === 'multiple' ? 7 + Math.floor(Math.random() * 3) : 6
-      targetBlueCount = 1
-    } else if (fixedRed.length >= 6 || fixedBlue.length > 1) {
-      finalMode = 'multiple'
-      targetRedCount = Math.max(6, fixedRed.length)
-      targetBlueCount = Math.max(1, fixedBlue.length)
-    }
-    useFixedRed = true
-    useFixedBlue = true
-  }
+  const targets = resolveSSQTargets(fixedRed.length, fixedBlue.length, mode, targetRedCount, targetBlueCount)
+  let finalMode = targets.finalMode
+  let targetRedCount_ = targets.targetRedCount
+  let targetBlueCount_ = targets.targetBlueCount
+  let useFixedRed = targets.useFixedRed
+  let useFixedBlue = targets.useFixedBlue
 
   let results: SSQResult[]
 
   if (finalMode === 'single') {
     results = Array.from({ length: notes }, () => ({
       type: 'single' as const,
-      red: generateRed(targetRedCount, useFixedRed),
-      blue: generateBlue(targetBlueCount, useFixedBlue),
+      red: generateRed(targetRedCount_, useFixedRed),
+      blue: generateBlue(targetBlueCount_, useFixedBlue),
     }))
   } else if (finalMode === 'multiple') {
     results = Array.from({ length: notes }, () => ({
       type: 'multiple' as const,
-      red: generateRed(targetRedCount, useFixedRed),
-      blue: generateBlue(targetBlueCount, useFixedBlue),
+      red: generateRed(targetRedCount_, useFixedRed),
+      blue: generateBlue(targetBlueCount_, useFixedBlue),
     }))
   } else {
     results = Array.from({ length: notes }, () => {
@@ -553,9 +566,9 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
     })
     if (results.length === 0) {
       results = Array.from({ length: notes }, () => ({
-        type: finalMode === 'dantuo' ? 'dantuo' as const : 'single' as const,
-        red: generateRed(targetRedCount, useFixedRed),
-        blue: generateBlue(targetBlueCount, useFixedBlue),
+        type: 'single' as const,
+        red: generateRed(6, false),
+        blue: generateBlue(1, false),
       }))
     }
   }
@@ -567,7 +580,9 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
       return matrixCombos.slice(0, notes).map(combo => ({
         type: 'single' as const,
         red: combo,
-        blue: [Math.floor(Math.random() * 16) + 1],
+        blue: useFixedBlue && fixedBlue.length > 0
+          ? [...fixedBlue].sort((a, b) => a - b)
+          : [Math.floor(Math.random() * 16) + 1],
       }))
     }
   }
@@ -580,7 +595,102 @@ export function generateSSQ(notes: number, mode: 'single' | 'multiple' | 'dantuo
  * 根据用户选择的前区/后区数量自动判断模式
  * 规则参考双色球，前区对应红球(5个)，后区对应蓝球(2个)
  */
-export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single'): DLTResult[] {
+/**
+ * 大乐透规则判断与目标数量计算
+ */
+function resolveDLTTargets(
+  fixedFrontLen: number,
+  fixedBackLen: number,
+  mode: 'single' | 'multiple' | 'dantuo',
+  externalFrontCount?: number,
+  externalBackCount?: number
+): {
+  finalMode: 'single' | 'multiple' | 'dantuo'
+  targetFrontCount: number
+  targetBackCount: number
+  useFixedFront: boolean
+  useFixedBack: boolean
+} {
+  let finalMode = mode
+  let useFixedFront = fixedFrontLen > 0
+  let useFixedBack = fixedBackLen > 0
+
+  if (externalFrontCount !== undefined || externalBackCount !== undefined) {
+    const frontTarget = externalFrontCount ?? (fixedFrontLen > 0 ? Math.max(5, fixedFrontLen) : 5)
+    const backTarget = externalBackCount ?? (fixedBackLen > 0 ? Math.max(2, fixedBackLen) : 2)
+
+    if (frontTarget > 5 || backTarget > 2) {
+      return { finalMode: 'multiple', targetFrontCount: frontTarget, targetBackCount: backTarget, useFixedFront: fixedFrontLen > 0, useFixedBack: fixedBackLen > 0 }
+    }
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetFrontCount: 5, targetBackCount: 2, useFixedFront: fixedFrontLen > 0, useFixedBack: fixedBackLen > 0 }
+    }
+    return { finalMode: 'single', targetFrontCount: 5, targetBackCount: 2, useFixedFront: fixedFrontLen > 0, useFixedBack: fixedBackLen > 0 }
+  }
+
+  if (fixedFrontLen === 0 && fixedBackLen === 0) {
+    if (mode === 'multiple') {
+      return { finalMode: 'multiple', targetFrontCount: 6 + Math.floor(Math.random() * 4), targetBackCount: 3 + Math.floor(Math.random() * 2), useFixedFront: false, useFixedBack: false }
+    }
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetFrontCount: 5, targetBackCount: 2, useFixedFront: false, useFixedBack: false }
+    }
+    return { finalMode: 'single', targetFrontCount: 5, targetBackCount: 2, useFixedFront: false, useFixedBack: false }
+  }
+
+  if (fixedFrontLen > 0 && fixedFrontLen < 5 && fixedBackLen === 0) {
+    if (mode === 'multiple') {
+      return { finalMode: 'multiple', targetFrontCount: 6 + Math.floor(Math.random() * 4), targetBackCount: 2, useFixedFront: true, useFixedBack: false }
+    }
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetFrontCount: 5, targetBackCount: 2, useFixedFront: true, useFixedBack: false }
+    }
+    return { finalMode: 'single', targetFrontCount: 5, targetBackCount: 2, useFixedFront: true, useFixedBack: false }
+  }
+
+  if (fixedFrontLen >= 5 && fixedBackLen === 0) {
+    return { finalMode: 'multiple', targetFrontCount: Math.max(5, fixedFrontLen), targetBackCount: 2, useFixedFront: true, useFixedBack: false }
+  }
+
+  if (fixedFrontLen === 0 && fixedBackLen === 2) {
+    if (mode === 'multiple') {
+      return { finalMode: 'multiple', targetFrontCount: 6 + Math.floor(Math.random() * 4), targetBackCount: 2, useFixedFront: false, useFixedBack: true }
+    }
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetFrontCount: 5, targetBackCount: 2, useFixedFront: false, useFixedBack: true }
+    }
+    return { finalMode: 'single', targetFrontCount: 5, targetBackCount: 2, useFixedFront: false, useFixedBack: true }
+  }
+
+  if (fixedFrontLen === 0 && fixedBackLen > 2) {
+    return { finalMode: 'multiple', targetFrontCount: 6 + Math.floor(Math.random() * 4), targetBackCount: fixedBackLen, useFixedFront: false, useFixedBack: true }
+  }
+
+  if (fixedFrontLen > 0 && fixedBackLen === 2 && fixedFrontLen < 5) {
+    if (mode === 'dantuo') {
+      return { finalMode: 'dantuo', targetFrontCount: 5, targetBackCount: 2, useFixedFront: true, useFixedBack: true }
+    }
+    if (mode === 'multiple') {
+      return { finalMode: 'multiple', targetFrontCount: 6 + Math.floor(Math.random() * 4), targetBackCount: 2, useFixedFront: true, useFixedBack: true }
+    }
+    return { finalMode: 'single', targetFrontCount: 5, targetBackCount: 2, useFixedFront: true, useFixedBack: true }
+  }
+
+  if (fixedFrontLen > 0 && fixedBackLen > 0) {
+    if (fixedFrontLen === 5 && fixedBackLen === 2) {
+      return { finalMode: 'single', targetFrontCount: 5, targetBackCount: 2, useFixedFront: true, useFixedBack: true }
+    }
+    if (fixedFrontLen < 5 && fixedBackLen === 2) {
+      const fm = mode === 'dantuo' ? 'dantuo' : (mode === 'multiple' ? 'multiple' : 'single')
+      return { finalMode: fm, targetFrontCount: mode === 'multiple' ? 6 + Math.floor(Math.random() * 4) : 5, targetBackCount: 2, useFixedFront: true, useFixedBack: true }
+    }
+    return { finalMode: 'multiple', targetFrontCount: Math.max(5, fixedFrontLen), targetBackCount: Math.max(2, fixedBackLen), useFixedFront: true, useFixedBack: true }
+  }
+
+  return { finalMode: mode, targetFrontCount: 5, targetBackCount: 2, useFixedFront: fixedFrontLen > 0, useFixedBack: fixedBackLen > 0 }
+}
+
+export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo' = 'single', targetFrontCount?: number, targetBackCount?: number): DLTResult[] {
   // 获取用户固定的前区(红)和后区(蓝)
   const fixedFront = getUserRedNumbers().value.filter(n => n >= 1 && n <= 35)
   const fixedBack = getUserBlueNumbers().value.filter(n => n >= 1 && n <= 12)
@@ -591,6 +701,20 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
 
   const killedFront = getKilledSet(35)
   const killedBack = getKilledSet(12)
+
+  // 检查用户固定号码与杀号规则的冲突（用于 console 提示）
+  if (killedFront.size > 0) {
+    const overlappingFronts = fixedFront.filter(n => killedFront.has(n))
+    if (overlappingFronts.length > 0) {
+      console.warn('[DLT] 您的选号中以下号码被杀号规则标记：', overlappingFronts, '以您的选择为准，规则已忽略')
+    }
+  }
+  if (killedBack.size > 0) {
+    const overlappingBacks = fixedBack.filter(n => killedBack.has(n))
+    if (overlappingBacks.length > 0) {
+      console.warn('[DLT] 您的后区选号被杀号规则标记：', overlappingBacks, '以您的选择为准')
+    }
+  }
 
   const hasEngineDLT = hasActiveKillRules() || selectRuleNames.value.length > 0 ||
     boldRuleNames.value.length > 0 || !!matrixRuleName.value
@@ -655,6 +779,14 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
 
   const generateBack = (count: number, useFixed: boolean) => {
     if (wuxingActive) {
+      if (useFixed && fixedBack.length > 0) {
+        if (fixedBack.length >= count) return [...fixedBack].slice(0, count).sort((a, b) => a - b)
+        const result = new Set(fixedBack)
+        const pool = Array.from({ length: 12 }, (_, i) => i + 1).filter(n => !result.has(n))
+        const extra = getRandomNumsFromPool(pool, count - result.size)
+        extra.forEach(n => result.add(n))
+        return Array.from(result).sort((a, b) => a - b)
+      }
       const pool = Array.from({ length: 12 }, (_, i) => i + 1)
       return getRandomNumsFromPool(pool, count)
     }
@@ -667,132 +799,26 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     return mergeNumbers(fixedBack, backWeightMap, 12, count, killedBack)
   }
 
-  // 判断实际模式和目标数量
-  let finalMode = mode
-  let targetFrontCount = 5
-  let targetBackCount = 2
-  let useFixedFront = fixedFront.length > 0
-  let useFixedBack = fixedBack.length > 0
-
-  // ====== 规则判断（参考双色球规则，前区5个，后区2个） ======
-  if (fixedFront.length === 0 && fixedBack.length === 0) {
-    // 规则1/2/3：都没选，按用户选择的模式
-    if (mode === 'multiple') {
-      finalMode = 'multiple'
-      targetFrontCount = 6 + Math.floor(Math.random() * 4) // 6-9
-      targetBackCount = 3 + Math.floor(Math.random() * 2) // 3-4
-      useFixedFront = false
-      useFixedBack = false
-    } else if (mode === 'dantuo') {
-      finalMode = 'dantuo'
-      useFixedFront = false
-      useFixedBack = false
-    } else {
-      finalMode = 'single'
-      targetFrontCount = 5
-      targetBackCount = 2
-      useFixedFront = false
-      useFixedBack = false
-    }
-  } else if (fixedFront.length > 0 && fixedFront.length < 5 && fixedBack.length === 0) {
-    // 规则4/5/6：前区<5，后区未选
-    if (mode === 'multiple') {
-      finalMode = 'multiple'
-      targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
-      targetBackCount = 2
-    } else if (mode === 'dantuo') {
-      finalMode = 'dantuo'
-      targetFrontCount = 5
-      targetBackCount = 2
-    } else {
-      finalMode = 'single'
-      targetFrontCount = 5
-      targetBackCount = 2
-    }
-    useFixedFront = true
-    useFixedBack = false
-  } else if (fixedFront.length >= 5 && fixedBack.length === 0) {
-    // 规则7/8/9/10：前区≥5，后区未选 → 自动复式
-    finalMode = 'multiple'
-    targetFrontCount = Math.max(5, fixedFront.length)
-    // 复式模式后区固定2个，胆拖模式也固定2个后区
-    targetBackCount = 2
-    useFixedFront = true
-    useFixedBack = false
-  } else if (fixedFront.length === 0 && fixedBack.length === 2) {
-    // 规则11：前区未选，后区=2
-    if (mode === 'multiple') {
-      finalMode = 'multiple'
-      targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
-      targetBackCount = 2
-    } else if (mode === 'dantuo') {
-      finalMode = 'dantuo'
-      targetFrontCount = 5
-      targetBackCount = 2
-    } else {
-      finalMode = 'single'
-      targetFrontCount = 5
-      targetBackCount = 2
-    }
-    useFixedFront = false
-    useFixedBack = true
-  } else if (fixedFront.length === 0 && fixedBack.length > 2) {
-    // 规则12：前区未选，后区>2 → 自动复式
-    finalMode = 'multiple'
-    targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
-    targetBackCount = fixedBack.length
-    useFixedFront = false
-    useFixedBack = true
-  } else if (fixedFront.length > 0 && fixedBack.length === 2 && fixedFront.length < 5) {
-    // 规则13：前区<5，后区=2 → 根据用户选择的模式决定
-    if (mode === 'dantuo') {
-      finalMode = 'dantuo'
-      targetFrontCount = 5
-      targetBackCount = 2
-    } else if (mode === 'multiple') {
-      finalMode = 'multiple'
-      targetFrontCount = 6 + Math.floor(Math.random() * 4) // >5
-      targetBackCount = 2
-    } else {
-      finalMode = 'single'
-      targetFrontCount = 5
-      targetBackCount = 2
-    }
-    useFixedFront = true
-    useFixedBack = true
-  } else if (fixedFront.length > 0 && fixedBack.length > 0) {
-    // 规则14/15：都选了，按实际数量判断
-    if (fixedFront.length === 5 && fixedBack.length === 2) {
-      // 标准单式（5+2），强制单式
-      finalMode = 'single'
-      targetFrontCount = 5
-      targetBackCount = 2
-    } else if (fixedFront.length < 5 && fixedBack.length === 2) {
-      finalMode = mode === 'dantuo' ? 'dantuo' : (mode === 'multiple' ? 'multiple' : 'single')
-      targetFrontCount = mode === 'multiple' ? 6 + Math.floor(Math.random() * 4) : 5
-      targetBackCount = 2
-    } else if (fixedFront.length >= 5 || fixedBack.length > 2) {
-      finalMode = 'multiple'
-      targetFrontCount = Math.max(5, fixedFront.length)
-      targetBackCount = Math.max(2, fixedBack.length)
-    }
-    useFixedFront = true
-    useFixedBack = true
-  }
+  const targets = resolveDLTTargets(fixedFront.length, fixedBack.length, mode, targetFrontCount, targetBackCount)
+  let finalMode = targets.finalMode
+  let targetFrontCount_ = targets.targetFrontCount
+  let targetBackCount_ = targets.targetBackCount
+  let useFixedFront = targets.useFixedFront
+  let useFixedBack = targets.useFixedBack
 
   let dltResults: DLTResult[]
 
   if (finalMode === 'single') {
     dltResults = Array.from({ length: notes }, () => ({
       type: 'single' as const,
-      front: generateFront(targetFrontCount, useFixedFront),
-      back: generateBack(targetBackCount, useFixedBack),
+      front: generateFront(targetFrontCount_, useFixedFront),
+      back: generateBack(targetBackCount_, useFixedBack),
     }))
   } else if (finalMode === 'multiple') {
     dltResults = Array.from({ length: notes }, () => ({
       type: 'multiple' as const,
-      front: generateFront(targetFrontCount, useFixedFront),
-      back: generateBack(targetBackCount, useFixedBack),
+      front: generateFront(targetFrontCount_, useFixedFront),
+      back: generateBack(targetBackCount_, useFixedBack),
     }))
   } else {
     dltResults = Array.from({ length: notes }, () => {
@@ -843,9 +869,9 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
     })
     if (dltResults.length === 0) {
       dltResults = Array.from({ length: notes }, () => ({
-        type: finalMode === 'dantuo' ? 'dantuo' as const : 'single' as const,
-        front: generateFront(targetFrontCount, useFixedFront),
-        back: generateBack(targetBackCount, useFixedBack),
+        type: 'single' as const,
+        front: generateFront(5, false),
+        back: generateBack(2, false),
       }))
     }
   }
@@ -856,7 +882,9 @@ export function generateDLT(notes: number, mode: 'single' | 'multiple' | 'dantuo
       return matrixCombos.slice(0, notes).map(combo => ({
         type: 'single' as const,
         front: combo,
-        back: getRandomNumsFromPool(Array.from({ length: 12 }, (_, i) => i + 1), 2),
+        back: useFixedBack && fixedBack.length > 0
+          ? [...fixedBack].sort((a, b) => a - b)
+          : getRandomNumsFromPool(Array.from({ length: 12 }, (_, i) => i + 1), 2),
       }))
     }
   }

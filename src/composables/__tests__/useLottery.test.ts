@@ -53,6 +53,37 @@ describe('generateSSQ', () => {
     const result = generateSSQ(5, 'single')
     expect(result).toHaveLength(5)
   })
+
+  it('targetRedCount overrides default 6 for single mode (8 reds + 1 blue should trigger multiple)', () => {
+    // targetRedCount=8 > 6 → forces multiple mode
+    const result = generateSSQ(1, 'single', 8, 1)
+    expect(result[0].type).toBe('multiple')
+    expect(result[0].red.length).toBe(8)
+    expect(result[0].blue.length).toBe(1)
+  })
+
+  it('targetRedCount=targetBlueCount with matching single-mode values stays single', () => {
+    const result = generateSSQ(1, 'multiple', 6, 1)
+    // Target is 6+1 which is single mode size, even if mode param says multiple
+    expect(result[0].type).toBe('single')
+    expect(result[0].red.length).toBe(6)
+    expect(result[0].blue.length).toBe(1)
+  })
+
+  it('targetFrontCount/targetBackCount works for DLT', () => {
+    const result = generateDLT(1, 'single', 7, 2)
+    expect(result[0].type).toBe('multiple')
+    expect(result[0].front.length).toBe(7)
+    expect(result[0].back.length).toBe(2)
+  })
+
+  it('external target counts override defaults but still respect fixed selections', () => {
+    const result = generateSSQ(1, 'single', 6, 2)
+    // blue pool > 1 → multiple
+    expect(result[0].type).toBe('multiple')
+    expect(result[0].red.length).toBe(6)
+    expect(result[0].blue.length).toBe(2)
+  })
 })
 
 describe('generateDLT', () => {

@@ -325,6 +325,8 @@ async function handleGenerate() {
       type: lotteryType.value,
       notes: finalNotes,
       mode: finalMode,
+      rc: redCount.value,
+      bc: blueCount.value,
     },
   })
 }
@@ -429,7 +431,7 @@ function getTabContent(index: number) {
       </div>
     </div>
 
-    <!-- 移动端顶部横排标签栏 -->
+    <!-- 移动端顶部横排标签栏（纯CSS控制显隐） -->
     <div class="mobile-tab-bar">
       <button
         v-for="(tab, index) in mobileTabs"
@@ -683,6 +685,11 @@ function getTabContent(index: number) {
   flex-direction: column;
   background: linear-gradient(135deg, rgba(254,243,199,1) 0%, rgba(255,251,235,1) 50%, rgba(254,243,199,1) 100%);
   position: relative;
+}
+
+/* PC 端隐藏移动端标签栏 */
+.mobile-tab-bar {
+  display: none;
 }
 
 /* 背景雨动画 */
@@ -1299,10 +1306,10 @@ function getTabContent(index: number) {
 
   /* 移动端顶部横排标签栏 */
   .mobile-tab-bar {
+    display: flex !important;
     position: sticky;
     top: 0;
     z-index: 100;
-    display: flex;
     flex-direction: row;
     gap: 0;
     padding: 8px 12px;

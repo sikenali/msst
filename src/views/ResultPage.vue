@@ -37,6 +37,16 @@ const sloganImg = '/msst.png'
 const router = useRouter()
 const route = useRoute()
 
+// 从路由参数中读取目标数量（红佛女/蓝若寺计数器值）
+const routeTargetRedCount = computed(() => {
+  const rc = Number(route.query.rc)
+  return Number.isFinite(rc) && rc > 0 ? rc : undefined
+})
+const routeTargetBlueCount = computed(() => {
+  const bc = Number(route.query.bc)
+  return Number.isFinite(bc) && bc > 0 ? bc : undefined
+})
+
 // 九字真言字符
 const mantraChars = ['临', '兵', '斗', '者', '皆', '列', '阵', '前', '行']
 
@@ -263,13 +273,13 @@ const cardScale = computed(() => {
 
 function refreshData() {
   const currentMode = mode.value as 'single' | 'multiple' | 'dantuo'
-  console.log('🔄 refreshData - mode:', currentMode, 'notes:', notes.value, 'type:', lotteryType.value)
+  console.log('🔄 refreshData - mode:', currentMode, 'notes:', notes.value, 'type:', lotteryType.value, 'rc:', routeTargetRedCount.value, 'bc:', routeTargetBlueCount.value)
 
   if (lotteryType.value === 'ssq') {
-    numbers.value = generateSSQ(notes.value, currentMode)
+    numbers.value = generateSSQ(notes.value, currentMode, routeTargetRedCount.value, routeTargetBlueCount.value)
     console.log('🎱 Generated SSQ numbers:', numbers.value.length, 'items, first note red count:', numbers.value[0]?.red?.length)
   } else {
-    numbers.value = generateDLT(notes.value, currentMode)
+    numbers.value = generateDLT(notes.value, currentMode, routeTargetRedCount.value, routeTargetBlueCount.value)
     console.log('🎱 Generated DLT numbers:', numbers.value.length, 'items, first note front count:', numbers.value[0]?.front?.length)
   }
 
